@@ -7,17 +7,20 @@
 # include <vector>
 # include <map>
 
+# include "Location.hpp"
+
 class	Server
 {
 	private:
-		std::string;
+		std::map<std::string, Location>	location;
+		std::map<int, std::string>		error_page;
+		std::set<std::string>			server_name;
 
 	public:
-		Server();
-		Server(const Server& ref);
-		Server& operator=(const Server& ref);
-		~Server();
-
+		Server ();
+		Server (const Server& ref);
+		Server&	operator= (const Server& ref);
+		~Server ();
 
 };
 
