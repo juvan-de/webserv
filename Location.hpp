@@ -10,18 +10,22 @@ typedef struct		s_redir
 class	Location
 {
 	private:
-		std::string							root;
-		int									client_max_body_size;
-		std::vector<std::string				index;
-		bool								autoindex;
-		bool								static_dir;
-		std::map<std::string, std::string>	cgi;
-		std::set<std::string>				limit_except;
-		std::string							upload_store;
-		t_redir								redir;
+		std::string							_root;
+		int									_clientMaxBodySize;
+		std::vector<std::string				_index;
+		bool								_autoindex;
+		bool								_static_dir;
+		std::map<std::string, std::string>	_cgi;
+		std::set<std::string>				_limitExcept;
+		std::string							_uploadStore;
+		Redir								_redir;
 
 	public:
 		Location();
+		{
+			while
+				this->_redir = Redir();
+		}
 		Location(const Location& ref);
 		Location&	operator= (const Location& ref);
 		~Location();
