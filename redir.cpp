@@ -34,7 +34,7 @@ Redir::~Redir()
 
 void	Redir::setStatusCode (std::string statusCode)
 {
-	if (statusCode.find_first_not_of("0123456789", statusCode.length()) != std::string::npos)
+	if (statusCode.find_first_not_of("0123456789") != std::string::npos)
 		throw("No numbers (error_message verbeteren)");
 	std::istringstream (statusCode) >> this->_statusCode;
 }
