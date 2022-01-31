@@ -28,10 +28,12 @@ $(NAME): $(OBJECTS)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
+	@make clean -C tester/
 	@echo "$(RED)Deleting objectfiles"
 	@/bin/rm -f $(OBJECTS)
 
 fclean: clean
+	@make fclean -C tester/
 	@echo "$(RED)Deleting executable"
 	@/bin/rm -f $(NAME)
 

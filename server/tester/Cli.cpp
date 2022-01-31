@@ -80,7 +80,9 @@ int main(int argc, char **argv)
 	for (int i = 0; i < num; i++)
 	{
 		pthread_create(&threads[i], NULL, client, NULL);
-		sleep(1);
+		// sleep(1);
 	}
+	for (int i = 0; i < num; i++)
+		pthread_join(threads[i], NULL);
 	return 0;
 }
