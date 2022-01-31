@@ -49,8 +49,7 @@ void *client(void *arg)
 	send(data.obj_socket , message.c_str() , message.length() , 0);
 	std::cout << "Message sent" << std::endl;
 	data.reader = read(data.obj_socket, buffer, 1024);
-	std::string ret(buffer);
-	std::cout << ret << std::endl;
+	std::cout << std::string(buffer) << std::endl;
 	return NULL;
 }
 

@@ -14,7 +14,8 @@ NAME 		= 	webserv
 
 SOURCES		= 	main.cpp
 
-OBJECTS 	=	${SOURCES:%.cpp=%.o}
+OBJDIR		=	obj/
+OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
 
 FLAGS 		=	-Wall -Wextra -Werror -std=c++98
 COMPILE		=	clang++
@@ -28,9 +29,10 @@ RED 		= 	\033[38;5;160m
 
 all: $(NAME)
 
-%.o: %.cpp
+$(OBJDIR)%.o: %.cpp
+	@mkdir -p $(OBJDIR)
 	@echo "$(GREY)Compiling...				$(WHITE)$<"
-	@$(COMPILE) -c $(SOURCES)
+	@$(COMPILE) -c -o $@ $< 
 
 $(NAME): $(OBJECTS)
 	@$(COMPILE) $(FLAGS) $(OBJECTS) -o $(NAME)

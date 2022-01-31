@@ -37,13 +37,20 @@ struct sockaddr_in get_addr()
 	return address;
 }
 
+void	handle_connection(int cli_sock)
+{
+	char buffer[1024] = {0};
+
+	read(cli_sock, buffer, 1024);
+	std::cout << std::string(buffer) << std::endl;
+}
+
 int main()
 {
-	int server_sock, cli_sock, reader;
+	int server_sock, cli_sock;
 	struct sockaddr_in address = get_addr();
 	int opted = 1;
 	int address_len = sizeof(address);
-	char buffer[1024] = {0};
 	std::string message = "A message from server !";
 	struct pollfd fds;
 	int flags;
@@ -67,18 +74,12 @@ int main()
 		if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
 		{
 			if (errno == EWOULDBLOCK)
-			{
-				//printf("No pending connections; sleeping for one second.\n");
 				sleep(1);
-			}
 			else
 				error_check(-1, "Accepting a connection");
 		}
 		else
-		{
-			reader = read(cli_sock, buffer, 1024);
-			printf("%s\n", buffer);
-		}
+			handle_connection(cli_sock);
 	}
 	// reader = read(cli_sock, buffer, 1024);
 	// printf("%s\n", buffer);
