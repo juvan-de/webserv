@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -9,14 +8,12 @@
 #include <errno.h>
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #define PORT 8080
+#define BACKLOG 100
 
-// char	*server_thonking()
-// {
-// 	sleep(1);
-// 	return ("response m8\n");
-// }
 
 void	error_check(int err, std::string msg)
 {
@@ -40,9 +37,34 @@ struct sockaddr_in get_addr()
 void	handle_connection(int cli_sock)
 {
 	char buffer[1024] = {0};
+	std::string file_path;
+	int bytes_read = 0;
 
+	/* Parsing the request */
 	read(cli_sock, buffer, 1024);
 	std::cout << std::string(buffer) << std::endl;
+	file_path = std::string(buffer).replace(0, std::string("REQUEST: ").length(), "");
+
+	/* Checking/opening the requested file */
+	FILE *file = fopen(file_path.c_str(), "r");
+	if (file == NULL)
+	{
+		std::cout << "Couldnt open " << file_path << std::endl << "Closed connection" << std::endl;
+		close(cli_sock);
+		return ;
+	}
+
+	/* Reading from file and writing to cli */
+	while ((bytes_read = fread(buffer, 1, 1024, file)) > 0)
+	{
+		std::cout << "Sending " << bytes_read << " bytes" << std::endl;
+		send(cli_sock , buffer, bytes_read, 0);
+	}
+
+	/* closing socket, later it whould be kept alive too */
+	fclose(file);
+	close(cli_sock);
+	std::cout << "Closed connection" << std::endl;
 }
 
 int main()
@@ -51,7 +73,6 @@ int main()
 	struct sockaddr_in address = get_addr();
 	int opted = 1;
 	int address_len = sizeof(address);
-	std::string message = "A message from server !";
 	struct pollfd fds;
 	int flags;
 
@@ -65,12 +86,11 @@ int main()
 	error_check(setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)), "initializing the server socket");
 	/* Binding the socket */
 	error_check(bind(server_sock, (struct sockaddr *)&address, sizeof(address)), "binding the server socket");
-	/* Start listening */
-	error_check(listen(server_sock, 3), "listening on the server socket");
-	std::cout << "Listening to input" << std::endl;
-	while (1)
+	/* Start listening and allow a backlog of 100*/
+	error_check(listen(server_sock, BACKLOG), "listening on the server socket");
+	while (true)
 	{
-		// cli_sock = accept(server, NULL, NULL);
+		std::cout << "Waiting for connections..." << std::endl;
 		if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
 		{
 			if (errno == EWOULDBLOCK)
@@ -79,11 +99,11 @@ int main()
 				error_check(-1, "Accepting a connection");
 		}
 		else
+		{
+			std::cout << "Connected!" << std::endl;
 			handle_connection(cli_sock);
+		}
+			
 	}
-	// reader = read(cli_sock, buffer, 1024);
-	// printf("%s\n", buffer);
-	send(cli_sock , message.c_str(), message.length() , 0 );
-	printf("Server : Message has been sent ! \n");
 	return 0;
 }

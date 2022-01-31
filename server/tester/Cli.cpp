@@ -8,6 +8,7 @@
 #include <thread>
 
 #define PORT 8080
+#define PATH "files/file1.txt"
 
 typedef struct s_data {
 	int obj_socket;
@@ -41,7 +42,7 @@ void *client(void *arg)
 {
 	(void)arg;
 	t_data data;
-	std::string message = "REQUEST";
+	std::string message = "REQUEST: " + std::string(PATH);
 	char buffer[1024] = {0};
 
 	init_data(&data);

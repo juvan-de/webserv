@@ -1,6 +1,6 @@
-NAME 		= 	server
+NAME 		= 	cli
 
-SOURCES		= 	Server.cpp
+SOURCES		= 	Cli.cpp
 
 OBJDIR		=	obj/
 OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
@@ -23,7 +23,6 @@ $(OBJDIR)%.o: %.cpp
 	@$(COMPILE) -c -o $@ $< 
 
 $(NAME): $(OBJECTS)
-	@make -C tester/
 	@$(COMPILE) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
