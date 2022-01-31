@@ -1,5 +1,6 @@
 #include <deque>
 #include "Location.hpp"
+#include <exception>
 
 typedef void (Location::*fptr)(std::vector<std::string>&);
 
@@ -136,3 +137,137 @@ std::ostream&	operator<< (std::ostream& out, const Redir& obj)
 	out << obj.getRedir() << std::endl;
 	return out;
 }
+
+// void	Location::setTitle(std::string title)
+// {
+// 	this->_title =  title;
+// }
+
+void	Location::setRoot(std::vector<std::string>& line)
+{
+	if (line.length() != 2)
+		throw ArgumentIncorrect(line);
+	this->_root = line[1];
+}
+
+void	Location::setClientMaxBodySize(std::vector<std::string>& line)
+{
+	if (line.size() != 2)
+		throw ArgumentIncorrect(line);
+	unsigned long number;
+	unsigned int multiplier = 1;
+	idx = line[1].find_first_not_of("0123456789")
+	if (idx != std::string::npos)
+	{
+		if (idx != line[1].length() - 1)
+			throw ; //kies een exception
+		switch(line[0][idx])
+		{
+			case 'k':
+				multiplier = 1000;
+			case 'm':
+				multiplier = 1000000;
+			case 'g':
+				multiplier = 1000000000
+			default:
+				throw ; // kies een exception
+		}
+	}
+	std::istringstream (line[1]) >> number;
+	this->_clientMaxBodySize = number * multiplier;
+}
+
+void	Location::setIndex(std::vector<std::string>& line)
+{
+	if (line.size() <= 1)
+		throw ArgumentIncorrect(line);
+	line.erase(0, 1);
+	this->_index = line;
+}
+
+void	Location::setAutoIndex(std::vector<std::string>& line)
+{
+	if (line.size() != 2)
+		throw ArgumentIncorrect(line);
+	switch (line[1])
+	{
+		case "on":
+			this->_autoindex = true;
+		case "off":
+			this->_autoindex = false;
+		default:
+			throw ;
+	}
+}
+
+void	Location::setStaticDir(std::vector<std::string>& line)
+{
+	if (line.size() != 2)
+		throw ArgumentIncorrect(line);
+	switch (line[1])
+	{
+		case "true":
+			this->_staticDir = true;
+		case "false":
+			this->_staticDir = false;
+		default:
+			throw ;
+	}
+}
+
+void	Location::addCgi(std::vector<std::string>& line)
+{
+	if (line.size() != 3)
+		throw ArgumentIncorrect(line);
+	this->_cgi[line[1]] = line[2];
+}
+
+void	Location::setLimitExcept(std::vector<std::string>& line)
+{
+	if (line.size() <= 1)
+		throw ArgumentIncorrect(line);
+	//nog toevoegen dat ie checked op valid woorden
+	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
+}
+
+void	Location::setUploadStore(std::vector<std::string>& line)
+{
+	if (line.size() != 2)
+		throw ArgumentIncorrect(line);
+	this->_uploadStore = line[1];
+}
+
+void	Location::setRedir(std::vector<std::string>& line)
+{
+	if (line.size() != 3)
+		throw ArgumentIncorrect(line);
+	this->_redir = Redir(line[1], line[2]);
+}
+
+const std::string&	Location::getRoot() const
+{
+	return this->_root;
+}
+
+const unsigned long	Location::getClientMaxBodySize() const
+{
+	return this->_clientMaxBodySize;
+}
+
+const std::vector<std::string>&	Location::getIndex() const
+{
+	return this->_Index;
+}
+
+const std::string&	Location::getRoot() const
+{
+	return this->_root;
+}
+
+const std::string&	Location::getRoot() const
+{
+	return this->_root;
+}
+
+
+
