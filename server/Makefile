@@ -1,6 +1,7 @@
 NAME 		= 	server
 
-SOURCES		= 	Server.cpp
+SOURCES		= 	main.cpp \
+				Header.cpp
 
 OBJDIR		=	obj/
 OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
@@ -24,6 +25,7 @@ $(OBJDIR)%.o: %.cpp
 
 $(NAME): $(OBJECTS)
 	@make -C tester/
+	@mv tester/cli .
 	@$(COMPILE) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 

@@ -42,11 +42,11 @@ void *client(void *arg)
 {
 	(void)arg;
 	t_data data;
-	std::string message = "REQUEST: " + std::string(PATH);
+	std::string message = "POST /index.html";
 	char buffer[1024] = {0};
 
 	init_data(&data);
-	error_check(connect(data.obj_socket, (struct sockaddr *)&data.serv_addr, sizeof(data.serv_addr )), 0, "connection fail");
+	error_check(connect(data.obj_socket, (struct sockaddr *)&data.serv_addr, sizeof(data.serv_addr)), 0, "connection fail");
 	send(data.obj_socket , message.c_str() , message.length() , 0);
 	std::cout << "Message sent" << std::endl;
 	data.reader = read(data.obj_socket, buffer, 1024);
