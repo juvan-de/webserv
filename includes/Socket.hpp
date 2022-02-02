@@ -23,9 +23,17 @@ class Socket
 		~Socket();
 
 		/*--------------------------Member functions--------------------------*/
+		int		getFd() const;
+		void	error_check(int err, std::string msg);
 
+		/*--------------------------Exception Classes-------------------------*/
+		class Socket_err : public std::exception
+		{
+			virtual const char* what() const throw()
+			{
+				return "Error: couldn't instantiate a socket";
+			}
+		} Socket_err;
 };
-
-std::ostream&	operator<<(std::ostream &out, const Socket &ref);
 
 #endif

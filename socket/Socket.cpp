@@ -1,5 +1,5 @@
 #include "Socket.hpp"
-#include <fstream> //close
+#include <unistd.h> //close
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket(int port)
 {
@@ -11,6 +11,7 @@ Socket::Socket(int port)
 	_sock_addr.sin_addr.s_addr = INADDR_ANY;
 	_sock_addr.sin_port = htons(port);
 
+	std::cout << "Debug: initializing a socket on port " << port << std::endl;
 	/* Getting a socket with ip4 protocol and socket stream */
 	error_check(_server_sock = socket(AF_INET, SOCK_STREAM, 0),
 			"getting the server socket");
@@ -34,6 +35,7 @@ Socket::Socket(int port)
 Socket::~Socket()
 {
 	/*Destructor*/
+	std::cout << "Debug: closing server_sock " << _server_sock << std::endl;
 	close(_server_sock);
 }
 
@@ -54,9 +56,13 @@ Socket&	Socket::operator=(const Socket &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-std::ostream&	operator<<(std::ostream &out, const Socket &ref)
+void	Socket::error_check(int err, std::string msg)
 {
-	/*Output operator*/
-	/*out << Socket;
-	return out;*/
+	if (err < 0)
+		throw Socket::Socket_err;
+}
+
+int		Socket::getFd() const
+{
+	return _server_sock;
 }

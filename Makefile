@@ -1,25 +1,22 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         ::::::::             #
-#    Makefile                                           :+:    :+:             #
-#                                                      +:+                     #
-#    By: julesvanderhoek <julesvanderhoek@studen      +#+                      #
-#                                                    +#+                       #
-#    Created: 2021/02/18 15:01:24 by julesvander   #+#    #+#                  #
-#    Updated: 2022/01/25 16:23:33 by juvan-de      ########   odam.nl          #
-#                                                                              #
-# **************************************************************************** #
+NAME 		= 	server
 
-NAME 		= 	webserv
+SERVER_SRC	= 	Server.cpp
+SOCKET_SRC	=	Socket.cpp
 
-SOURCES		= 	main.cpp
+SERVER		= 	$(addprefix server/, $(SERVER_SRC))
+SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
+
+SOURCES		= 	main.cpp \
+				$(SERVER) \
+				$(SOCKET)
 
 OBJDIR		=	obj/
-OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
+OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
 FLAGS 		=	-Wall -Wextra -Werror -std=c++98
 COMPILE		=	clang++
 
+INC			=	-Iincludes
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
@@ -32,10 +29,10 @@ all: $(NAME)
 $(OBJDIR)%.o: %.cpp
 	@mkdir -p $(OBJDIR)
 	@echo "$(GREY)Compiling...				$(WHITE)$<"
-	@$(COMPILE) -c -o $@ $< 
+	@$(COMPILE) $(INC) -c -o $@ $< 
 
 $(NAME): $(OBJECTS)
-	@$(COMPILE) $(FLAGS) $(OBJECTS) -o $(NAME)
+	@$(COMPILE) $(INC) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
