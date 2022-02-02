@@ -1,5 +1,6 @@
 #include <deque>
 #include "Location.hpp"
+#include <sstream>
 #include <exception>
 
 // typedef void (Location::*fptr)(std::vector<std::string>&);
@@ -81,7 +82,7 @@ Location&	Location::operator=(const Location& ref)
 {
 	// this->_title = ref._title;
 	this->_root = ref._root;
-	// this->_clientMaxBodySize = ref._clientMaxBodySize;
+	this->_clientMaxBodySize = ref._clientMaxBodySize;
 	// this->_index = ref._index;
 	// this->_autoindex = ref._autoindex;
 	// this->_static_dir = ref._static_dir;
@@ -97,7 +98,7 @@ Location::Location(const Location& ref)
 	*this = ref;
 }
 
-Location::Location()
+Location::Location() : _clientMaxBodySize(0)
 {
 	return ;
 }
@@ -114,40 +115,40 @@ void	Location::setRoot(std::vector<std::string>& line)
 	this->_root = line[1];
 }
 
-// void	Location::setClientMaxBodySize(std::vector<std::string>& line)
-// {
-// 	if (line.size() != 2)
-// 		throw ArgumentIncorrect(line);
-// 	unsigned long number;
-// 	unsigned int multiplier = 1;
-// 	idx = line[1].find_first_not_of("0123456789")
-// 	if (idx != std::string::npos)
-// 	{
-// 		if (idx != line[1].length() - 1)
-// 			throw ; //kies een exception
-// 		switch(line[0][idx])
-// 		{
-// 			case 'k':
-// 				multiplier = 1000;
-// 			case 'm':
-// 				multiplier = 1000000;
-// 			case 'g':
-// 				multiplier = 1000000000
-// 			default:
-// 				throw ; // kies een exception
-// 		}
-// 	}
-// 	std::istringstream (line[1]) >> number;
-// 	this->_clientMaxBodySize = number * multiplier;
-// }
+void	Location::setClientMaxBodySize(std::vector<std::string>& line)
+{
+	// if (line.size() != 2)
+	// 	throw ArgumentIncorrect(line);
+	unsigned long number;
+	unsigned int multiplier = 1;
+	size_t idx = line[1].find_first_not_of("0123456789");
+	if (idx != std::string::npos)
+	{
+		if (idx != line[1].length() - 1)
+			throw ; //kies een exception
+		switch(line[0][idx])
+		{
+			case 'k':
+				multiplier = 1000;
+			case 'm':
+				multiplier = 1000000;
+			case 'g':
+				multiplier = 1000000000;
+			default:
+				throw ; // kies een exception
+		}
+	}
+	std::istringstream (line[1]) >> number;
+	this->_clientMaxBodySize = number * multiplier;
+}
 
-// void	Location::setIndex(std::vector<std::string>& line)
-// {
-// 	if (line.size() <= 1)
-// 		throw ArgumentIncorrect(line);
-// 	line.erase(0, 1);
-// 	this->_index = line;
-// }
+void	Location::setIndex(std::vector<std::string>& line)
+{
+	// if (line.size() <= 1)
+	// 	throw ArgumentIncorrect(line);
+	line.erase(line.begin());
+	this->_index = line;
+}
 
 // void	Location::setAutoIndex(std::vector<std::string>& line)
 // {
@@ -213,15 +214,15 @@ const std::string&	Location::getRoot() const
 	return this->_root;
 }
 
-// unsigned long	Location::getClientMaxBodySize() const
-// {
-// 	return this->_clientMaxBodySize;
-// }
+unsigned long	Location::getClientMaxBodySize() const
+{
+	return this->_clientMaxBodySize;
+}
 
-// std::vector<std::string>&	Location::getIndex() const
-// {
-// 	return this->_Index;
-// }
+const std::vector<std::string>&	Location::getIndex() const
+{
+	return this->_index;
+}
 
 // bool	Location::getAutIndex() const
 // {
@@ -258,8 +259,9 @@ std::ostream&	operator<< (std::ostream& out, const Location& obj)
 	out << std::boolalpha;
 	out << "-=- Location > "; //<< obj.getTitle() << " -=-=-=-" << std::endl;
 	out << "root={" << obj.getRoot() << "}" << std::endl;
-	// out << "client_max_body_size={" << obj.getClientMaxBodySize() << "}" << std::endl;
-	// out << "index={" << obj.getIndex() << "}" << std::endl;
+	out << "client_max_body_size={" << obj.getClientMaxBodySize() << "}" << std::endl;
+	out << "index={" << obj.getIndex() << "}" << std::endl;
+	std::vector<std::string> temp;
 	// out << "autoindex={" << obj.getAutoIndex() << "}" << std::endl;
 	// out << "static_dir={" << obj.getStaticDir() << "}" << std::endl;
 	// out << "cgi=";
