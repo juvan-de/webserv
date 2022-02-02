@@ -41,14 +41,23 @@ void	handle_get(int cli_sock, std::string request)
 	
 }
 
-void	handle_connection(int cli_sock)
+void	handle_connection(std::vector<pollfd> fds)
 {
-	char	*request = new char[BUFFER_SIZE];
+	char	*request = new char[BUFFER_SIZE + 1];
+	std::string	root = "files";
+	int ret = read(, request, BUFFER_SIZE);
 
-	read(cli_sock, request, BUFFER_SIZE);
-	std::cout << request << std::endl;
+//	std::cout << request << std::endl;
 	Header	header(request);
-	// if (request.find("GET") == 0)
+	if (header.getType() == GET)
+	{
+		std::string path = root.append(header.getPath());
+		char *cstring = new char[path.length() + 1];
+		std::strcpy(cstring, path.c_str());
+		send(cli_sock, cstring, std::strlen(cstring), 0);
+		delete [] cstring;
+	}
+	delete [] request;
 	// {
 	// 	handle_get(cli_sock, std::string arg(request, 4));
 	// 	std::string arg(command, 4);
@@ -73,8 +82,9 @@ int main()
 	struct sockaddr_in address = get_addr();
 	int opted = 1;
 	int address_len = sizeof(address);
-	struct pollfd fds;
 	int flags;
+	std::vector<pollfd> fds;
+	struct pollfd new_fd;
 
 	/* Getting a socket with ip4 protocol and socket stream */
 	error_check(server_sock = socket(AF_INET, SOCK_STREAM, 0), "getting the server socket");
@@ -88,9 +98,12 @@ int main()
 	error_check(bind(server_sock, (struct sockaddr *)&address, sizeof(address)), "binding the server socket");
 	/* Start listening and allow a backlog of 100*/
 	error_check(listen(server_sock, BACKLOG), "listening on the server socket");
-	std::cout << "Waiting for connections..." << std::endl;
+	new_fd.fd = server_sock;
+	new_fd.events = POLLIN;
+	fds.push_back(new_fd);
 	while (true)
 	{
+		std::cout << "Waiting for connections..." << std::endl;
 		if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
 		{
 			if (errno == EWOULDBLOCK)
@@ -100,9 +113,15 @@ int main()
 		}
 		else
 		{
+			// poll <- add acepted client
+			struct pollfd new_fd;
+			new_fd.fd = cli_sock;
+			new_fd.events = POLLIN;
+			fds.push_back(new_fd);
 			std::cout << "Connected!" << std::endl;
-			handle_connection(cli_sock);
+			handle_connection(fds);
 		}
+		poll(&fds[0], fds.size(), 3 * 60 * 1000);
 	}
 	return 0;
 }
