@@ -1,6 +1,6 @@
 NAME 		= 	server
 
-SOURCES		= 	Server.cpp
+SOURCES		= 	testserver.cpp
 
 OBJDIR		=	obj/
 OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
@@ -23,17 +23,14 @@ $(OBJDIR)%.o: %.cpp
 	@$(COMPILE) -c -o $@ $< 
 
 $(NAME): $(OBJECTS)
-	@make -C tester/
 	@$(COMPILE) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
-	@make clean -C tester/
 	@echo "$(RED)Deleting objectfiles"
 	@/bin/rm -f $(OBJECTS)
 
 fclean: clean
-	@make fclean -C tester/
 	@echo "$(RED)Deleting executable"
 	@/bin/rm -f $(NAME)
 

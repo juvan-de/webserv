@@ -1,4 +1,4 @@
-#include "Socket.hpp"
+#include <Socket.hpp>
 #include <unistd.h> //close
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket(int port)
@@ -58,6 +58,7 @@ Socket&	Socket::operator=(const Socket &ref)
 
 void	Socket::error_check(int err, std::string msg)
 {
+	(void)msg;
 	if (err < 0)
 		throw Socket::Socket_err;
 }
