@@ -1,3 +1,4 @@
+#include <vector>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -15,6 +16,8 @@
 #define PORT 8080
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
+
+std::vector<Header>	requests;
 
 void	error_check(int err, std::string msg)
 {
@@ -35,45 +38,50 @@ struct sockaddr_in get_addr()
 	return address;
 }
 
-void	handle_get(int cli_sock, std::string request)
-{
-	Header header(request);
-	
-}
-
-void	handle_connection(std::vector<pollfd> fds)
+Header		read_request(struct pollfd &fd)
 {
 	char	*request = new char[BUFFER_SIZE + 1];
-	std::string	root = "files";
-	int ret = read(, request, BUFFER_SIZE);
-
-//	std::cout << request << std::endl;
-	Header	header(request);
-	if (header.getType() == GET)
+	int ret = read(fd.fd, request, BUFFER_SIZE);
+	request[ret] = '\0';
+	if (ret > 0)
 	{
-		std::string path = root.append(header.getPath());
-		char *cstring = new char[path.length() + 1];
-		std::strcpy(cstring, path.c_str());
-		send(cli_sock, cstring, std::strlen(cstring), 0);
-		delete [] cstring;
+		std::string srequest(request);
+		Header header(srequest);
+
+		if (header.getType() == GET)
+		{
+			std::string	root = "files";
+			std::string path = root.append(header.getPath());
+			char *cstring = new char[path.length() + 1];
+			std::strcpy(cstring, path.c_str());
+			header.setResponse(path);
+			/* how do I get poll or smth to set the clientfd to pollout?(to receive back the response) :( */
+			delete [] request;
+			return (header);
+		}
 	}
-	delete [] request;
-	// {
-	// 	handle_get(cli_sock, std::string arg(request, 4));
-	// 	std::string arg(command, 4);
-	// 	std::ifstream stream;
-	// 	std::string output;
-		
-	// 	stream.open("files/" + arg);
-	// 	while (getline(stream, output))
-	// 	{
-	// 		char *actualoutput = new char[output.length() + 1];
-	// 		std::strcpy(actualoutput, output.c_str());
-	// 		std::cout << "line:[" << std::strlen(actualoutput) << "]" << std::endl << "output: [" << output.length() << "]" << std::endl;
-	// 		send(cli_sock, actualoutput, std::strlen(actualoutput), 0);
-	// 		delete [] actualoutput;
-	// 	}
-	// }
+	return (Header());
+}
+
+void	handle_connection(std::vector<pollfd> &fds)
+{
+	for (size_t i = 1; i < fds.size(); i++)
+	{
+		if (fds[i].revents & POLLIN)
+		{
+			requests.push_back(read_request(fds[i]));
+			//char *response = requests[0].getResponse();
+			//send(fds[i].fd, requests[0].getResponse(), std::strlen(requests[0].getResponse()), 0);
+		}
+		else if (fds[i].revents & POLLOUT)
+		{
+			std::string response = requests[0].getResponse();
+			char *cstring = new char[response.length() + 1];
+			std::strcpy(cstring, response.c_str());
+			send(fds[i].fd, cstring, std::strlen(cstring), 0);
+			//std::cout << "I need to write something to the thingy" << std::endl;
+		}
+	}
 }
 
 int main()
@@ -113,15 +121,15 @@ int main()
 		}
 		else
 		{
-			// poll <- add acepted client
+			// poll <- add accepted client
 			struct pollfd new_fd;
 			new_fd.fd = cli_sock;
 			new_fd.events = POLLIN;
 			fds.push_back(new_fd);
 			std::cout << "Connected!" << std::endl;
-			handle_connection(fds);
 		}
 		poll(&fds[0], fds.size(), 3 * 60 * 1000);
+		handle_connection(fds);
 	}
 	return 0;
 }

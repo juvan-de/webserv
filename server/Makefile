@@ -6,7 +6,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	obj/
 OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
 
-FLAGS 		=	-Wall -Wextra -Werror -std=c++98
+FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
 
@@ -21,12 +21,12 @@ all: $(NAME)
 $(OBJDIR)%.o: %.cpp
 	@mkdir -p $(OBJDIR)
 	@echo "$(GREY)Compiling...				$(WHITE)$<"
-	@$(COMPILE) -c -o $@ $< 
+	@$(COMPILE) $(FLAGS) -c -o $@ $<
 
 $(NAME): $(OBJECTS)
 	@make -C tester/
 	@mv tester/cli .
-	@$(COMPILE) $(OBJECTS) -o $(NAME)
+	@$(COMPILE) $(FLAGS) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
