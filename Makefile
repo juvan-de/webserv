@@ -1,6 +1,6 @@
 NAME 		= 	webserv
 
-SERVER_SRC	= 	Server.cpp
+SERVER_SRC	= 	Server_block.cpp
 SOCKET_SRC	=	Socket.cpp
 
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
