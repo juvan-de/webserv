@@ -10,7 +10,7 @@ Header::Header()
 
 Header::Header(std::string request, int clisock)
 {
-	this->_cli_sock = clisock;
+	this->_clisock = clisock;
 	size_t size = request.find(' ');
 	switch(size)
 	{
