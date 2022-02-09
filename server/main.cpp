@@ -52,10 +52,7 @@ Header		read_request(struct pollfd &fd)
 		{
 			std::string	root = "files";
 			std::string path = root.append(header.getPath());
-			char *cstring = new char[path.length() + 1];
-			std::strcpy(cstring, path.c_str());
 			header.setResponse(path);
-			/* how do I get poll or smth to set the clientfd to pollout?(to receive back the response) :( */
 			delete [] request;
 			return (header);
 		}
@@ -70,16 +67,15 @@ void	handle_connection(std::vector<pollfd> &fds)
 		if (fds[i].revents & POLLIN)
 		{
 			requests.push_back(read_request(fds[i]));
+			fds[i].events = POLLOUT;
 			//char *response = requests[0].getResponse();
 			//send(fds[i].fd, requests[0].getResponse(), std::strlen(requests[0].getResponse()), 0);
 		}
 		else if (fds[i].revents & POLLOUT)
 		{
 			std::string response = requests[0].getResponse();
-			char *cstring = new char[response.length() + 1];
-			std::strcpy(cstring, response.c_str());
-			send(fds[i].fd, cstring, std::strlen(cstring), 0);
-			//std::cout << "I need to write something to the thingy" << std::endl;
+			send(fds[i].fd, response.c_str(), response.length(), 0);
+			std::cout << "I need to write something to the thingy" << std::endl;
 		}
 	}
 }
@@ -111,25 +107,30 @@ int main()
 	fds.push_back(new_fd);
 	while (true)
 	{
-		std::cout << "Waiting for connections..." << std::endl;
-		if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
-		{
-			if (errno == EWOULDBLOCK)
-				sleep(1);
-			else
-				error_check(-1, "Accepting a connection");
-		}
-		else
-		{
-			// poll <- add accepted client
-			struct pollfd new_fd;
-			new_fd.fd = cli_sock;
-			new_fd.events = POLLIN;
-			fds.push_back(new_fd);
-			std::cout << "Connected!" << std::endl;
-		}
+		fds[0].events = POLLIN;
 		poll(&fds[0], fds.size(), 3 * 60 * 1000);
 		handle_connection(fds);
+		std::cout << "Waiting for connections..." << std::endl;
+		if (fds[0].revents & POLLIN)
+		{
+			if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
+			{
+				if (errno == EWOULDBLOCK)
+					sleep(1);
+				else
+					error_check(-1, "Accepting a connection");
+			}
+			else
+			{
+				// poll <- add accepted client
+				struct pollfd new_fd;
+				new_fd.fd = cli_sock;
+				new_fd.events = POLLIN;
+				fds.push_back(new_fd);
+				fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+				std::cout << "Connected!" << std::endl;
+			}
+		}
 	}
 	return 0;
 }

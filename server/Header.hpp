@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/01 17:00:22 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/02/08 20:11:05 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/02/09 16:20:41 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ class	Header
 	std::string					_path;
 	std::vector<std::string>	_headers;
 	std::string					_response;
+	int							_cli_sock;
 	
 	public:
 	Header();	
@@ -44,7 +45,7 @@ class	Header
 	std::string 				getPath() const;
 	std::vector<std::string>	getHeaders() const;
 	std::string					getResponse() const;
-	void						setResponse(std::string response);
+	void						setResponse(std::string &response);
 };
 
 

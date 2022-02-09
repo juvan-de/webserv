@@ -46,12 +46,12 @@ Header&	Header::operator=(const Header& ref)
 	this->_type = ref.getType();
 	this->_path = ref.getPath();
 	this->_headers = ref.getHeaders();
+	this->_response = ref.getResponse();
 	return (*this);
 }
 
 Header::~Header()
 {
-	
 }
 
 Type		Header::getType() const 
@@ -74,7 +74,7 @@ std::string	Header::getResponse() const
 	return (this->_response);
 }
 
-void		Header::setResponse(std::string response)
+void		Header::setResponse(std::string &response)
 {
 	this->_response = response;
 }
