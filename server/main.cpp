@@ -46,7 +46,7 @@ Header		read_request(struct pollfd &fd)
 	if (ret > 0)
 	{
 		std::string srequest(request);
-		Header header(srequest);
+		Header header(srequest, fd.fd);
 
 		if (header.getType() == GET)
 		{
@@ -68,14 +68,17 @@ void	handle_connection(std::vector<pollfd> &fds)
 		{
 			requests.push_back(read_request(fds[i]));
 			fds[i].events = POLLOUT;
-			//char *response = requests[0].getResponse();
-			//send(fds[i].fd, requests[0].getResponse(), std::strlen(requests[0].getResponse()), 0);
 		}
 		else if (fds[i].revents & POLLOUT)
 		{
-			std::string response = requests[0].getResponse();
-			send(fds[i].fd, response.c_str(), response.length(), 0);
-			std::cout << "I need to write something to the thingy" << std::endl;
+			for (size_t j = 0; j < requests.size(); j++)
+			{
+				if (requests[j].getClisock() == fds[i].fd)
+				{
+					std::string response = requests[j].getResponse();
+					send(fds[i].fd, response.c_str(), response.length(), 0);
+				}
+			}
 		}
 	}
 }
@@ -110,7 +113,7 @@ int main()
 		fds[0].events = POLLIN;
 		poll(&fds[0], fds.size(), 3 * 60 * 1000);
 		handle_connection(fds);
-		std::cout << "Waiting for connections..." << std::endl;
+		//std::cout << "Waiting for connections..." << std::endl;
 		if (fds[0].revents & POLLIN)
 		{
 			if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)

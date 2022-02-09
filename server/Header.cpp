@@ -8,9 +8,9 @@ Header::Header()
 	this->_path = "";
 }
 
-Header::Header(std::string request)
+Header::Header(std::string request, int clisock)
 {
-
+	this->_cli_sock = clisock;
 	size_t size = request.find(' ');
 	switch(size)
 	{
@@ -72,6 +72,11 @@ std::vector<std::string>	Header::getHeaders() const
 std::string	Header::getResponse() const
 {
 	return (this->_response);
+}
+
+int			Header::getClisock() const
+{
+	return (this->_clisock);
 }
 
 void		Header::setResponse(std::string &response)

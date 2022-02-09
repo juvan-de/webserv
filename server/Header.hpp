@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/01 17:00:22 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/02/09 16:20:41 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/02/09 16:33:33 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,11 @@ class	Header
 	std::string					_path;
 	std::vector<std::string>	_headers;
 	std::string					_response;
-	int							_cli_sock;
+	int							_clisock;
 	
 	public:
 	Header();	
-	Header(std::string request);
+	Header(std::string request, int clisock);
 	Header(const Header& ref);
 	Header& operator=(const Header& ref);
 	~Header();
@@ -45,6 +45,7 @@ class	Header
 	std::string 				getPath() const;
 	std::vector<std::string>	getHeaders() const;
 	std::string					getResponse() const;
+	int							getClisock() const;
 	void						setResponse(std::string &response);
 };
 
