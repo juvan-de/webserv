@@ -10,17 +10,16 @@ SOCKET_SRC	=	Socket.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils, $(UTILS_SRC))
-REQUEST		=	$(addprefix requests/, $(REQUEST_SRC))
+REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
-				$(UTILS) \
+				$(REQUESTS) \
 				$(SOCKET) \
-				$(SERVER) \
-
+				$(SERVER)
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
@@ -28,7 +27,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-Wall -Wextra -Werror -std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Iserver -Isocket
+INC			=	-Iincludes -Iserver -Isocket -I
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
