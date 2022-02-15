@@ -4,9 +4,9 @@
 #include <vector>
 #include <deque>
 
-#include "includes/utils.hpp"
-#include "Location.hpp"
-#include "Server.hpp"
+#include <utils.hpp>
+#include <Location.hpp>
+#include <Server.hpp>
 
 static void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
 {

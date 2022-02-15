@@ -2,6 +2,7 @@ NAME 		= 	webserv
 
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp
+CONNECT_SRC	=	handle_connection.cpp
 REQUEST_SRC	=	Header.cpp
 SERVER_SRC	= 	Location.cpp \
 				redir.cpp \
@@ -9,7 +10,8 @@ SERVER_SRC	= 	Location.cpp \
 SOCKET_SRC	=	Socket.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
-UTILS		=	$(addprefix srcs/utils, $(UTILS_SRC))
+UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
+CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
@@ -17,6 +19,7 @@ SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
+				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
 				$(SERVER)

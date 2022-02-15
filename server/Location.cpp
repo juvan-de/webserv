@@ -1,6 +1,6 @@
 #include <deque>
-#include "Location.hpp"
-#include "includes/utils.hpp"
+#include <Location.hpp>
+#include <utils.hpp>
 #include <sstream>
 #include <exception>
 
