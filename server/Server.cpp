@@ -1,5 +1,5 @@
-#include "Server.hpp"
-#include "includes/utils.hpp"
+#include <Server.hpp>
+#include <utils.hpp>
 #include <sstream>
 
 Server::Server()
