@@ -8,7 +8,7 @@
 # include <map>
 # include <set>
 
-# include <Location.hpp>
+# include "Location.hpp"
 
 class	Server
 {
@@ -50,7 +50,7 @@ class	Server
 		{
 			const char*	what (void) const throw()
 			{
-				return "Location elem is not recognized";
+				return "Location elem is not recognized.";
 			}
 		};
 
