@@ -164,8 +164,8 @@ void	Location::setLimitExcept(std::vector<std::string>& line)
 	// 	throw ArgumentIncorrect();
 	//nog toevoegen dat ie checked op valid woorden
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
-	for (std::set<std::string>::iterator it = line.begin() + 1; it != line.end(); it++)
-		for ()
+	// for (std::set<std::string>::iterator it = line.begin() + 1; it != line.end(); it++)
+	// 	for ()
 }
 
 void	Location::setUploadStore(std::vector<std::string>& line)
