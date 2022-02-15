@@ -8,7 +8,7 @@
 #include <Location.hpp>
 #include <Server.hpp>
 
-static void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
+void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
 {
 	std::ifstream			infile;
 	std::string				line;

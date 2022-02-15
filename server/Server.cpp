@@ -43,7 +43,7 @@ Server::Server(std::deque<std::string>& file)
 			}
 			throw ArgumentIncorrect();
 		}
-		throw ElemNotRecognized() ;
+		throw ElemNotRecognized();
 	} 
 }
 

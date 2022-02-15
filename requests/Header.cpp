@@ -50,9 +50,7 @@ Header&	Header::operator=(const Header& ref)
 	return (*this);
 }
 
-Header::~Header()
-{
-}
+Header::~Header() {}
 
 Type		Header::getType() const 
 {
