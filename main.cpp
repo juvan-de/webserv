@@ -1,29 +1,26 @@
+#include "ServerBlock.hpp"
+#include <algorithm> /*for_each*/
+#include <map>
 
-# include <iostream>
-# include <fstream>
-# include <vector>
-// # include "utils.hpp"
+#include <iostream>
+#include <vector>
+#include "includes/utils.hpp"
 #include "Location.hpp"
+#include "Server.hpp"
 
-// template<class T>
-// void	parseLoop(T& block, std::deque<std::string>& config)
-// {
-// 	while (!config.empty())
-// 	{
-// 		std::string& line = config.front();
-// 		config.pop_front();
-// 		std::vector<std::string> splitted = split(line);
-// 		fptr setfunc = block.switchcase(splitted[0]);
-// 		if (setfunc == NULL)
-// 			return ;
-// 		block.(*setfunc)(splitted);
-// 	}
-// }
-
-int main(void)
+int main(int ac, char **av)
 {
-	Location loc;
+	try
+	{
+		(void)ac;
+		std::vector<Server>	servers;
 
-	std::cout << loc << std::endl;
+		parse(av[1], servers);
+		for (std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
+			std::cout << *it <<std::endl;
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
 }
-

@@ -11,7 +11,7 @@ bool	is_in(char c, std::string str)
 	return false;
 }
 
-std::vector<std::string>	split(std::string line, std::string to_split_on = " \t\n\f\v\r")
+std::vector<std::string>	split(std::string line, std::string to_split_on)
 {
 	std::vector<std::string>	vec;
 	std::string::iterator it = line.begin();

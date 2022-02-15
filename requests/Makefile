@@ -1,22 +1,14 @@
-NAME 		= 	webserv
-
-SERVER_SRC	= 	Server_block.cpp
-SOCKET_SRC	=	Socket.cpp
-
-SERVER		= 	$(addprefix server/, $(SERVER_SRC))
-SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
+NAME 		= 	server
 
 SOURCES		= 	main.cpp \
-				$(SOCKET) \
-				$(SERVER)
+				Header.cpp
 
-OBJDIR		=	./obj/
-OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
+OBJDIR		=	obj/
+OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
 
-FLAGS 		=	-Wall -Wextra -Werror -std=c++98
+FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Iserver -Isocket
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
@@ -27,12 +19,14 @@ RED 		= 	\033[38;5;160m
 all: $(NAME)
 
 $(OBJDIR)%.o: %.cpp
-	@mkdir -p $(@D)
+	@mkdir -p $(OBJDIR)
 	@echo "$(GREY)Compiling...				$(WHITE)$<"
-	@$(COMPILE) $(FLAGS) $(INC) -c $< -o $@
+	@$(COMPILE) $(FLAGS) -c -o $@ $<
 
 $(NAME): $(OBJECTS)
-	@$(COMPILE) $(FLAGS) $(INC) $(OBJECTS) -o $(NAME)
+	@make -C tester/
+	@mv tester/cli .
+	@$(COMPILE) $(FLAGS) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
@@ -42,8 +36,6 @@ clean:
 fclean: clean
 	@echo "$(RED)Deleting executable"
 	@/bin/rm -f $(NAME)
-
-fclena: fclean
 
 re: fclean all
 
