@@ -25,47 +25,19 @@ void	error_check(int err, std::string msg)
 	}
 }
 
-struct sockaddr_in get_addr()
+Server::Server(std::ifstream input)
 {
-	struct sockaddr_in address;
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
 }
 
-void	handle_connection(int cli_sock)
+Server::Server(const Server& ref)
 {
-	char buffer[1024] = {0};
-	std::string file_path;
-	int bytes_read = 0;
 
-	/* Parsing the request */
-	read(cli_sock, buffer, 1024);
-	std::cout << std::string(buffer) << std::endl;
-	file_path = std::string(buffer).replace(0, std::string("REQUEST: ").length(), "");
+}
 
-	/* Checking/opening the requested file */
-	FILE *file = fopen(file_path.c_str(), "r");
-	if (file == NULL)
-	{
-		std::cout << "Couldnt open " << file_path << std::endl << "Closed connection" << std::endl;
-		close(cli_sock);
-		return ;
-	}
+Server&	Server::operator=(const Server& ref)
+{
 
-	/* Reading from file and writing to cli */
-	while ((bytes_read = fread(buffer, 1, 1024, file)) > 0)
-	{
-		std::cout << "Sending " << bytes_read << " bytes" << std::endl;
-		send(cli_sock , buffer, bytes_read, 0);
-	}
-
-	/* closing socket, later it whould be kept alive too */
-	fclose(file);
-	close(cli_sock);
-	std::cout << "Closed connection" << std::endl;
 }
 
 void	output(struct pollfd fd)
