@@ -27,7 +27,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-Wall -Wextra -Werror -std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Iserver -Isocket -I
+INC			=	-Iincludes -Iserver -Isocket -Irequests
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m

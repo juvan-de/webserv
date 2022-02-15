@@ -1,12 +1,12 @@
-#include "ServerBlock.hpp"
 #include <algorithm> /*for_each*/
 #include <map>
 
 #include <iostream>
 #include <vector>
-#include "includes/utils.hpp"
-#include "Location.hpp"
-#include "Server.hpp"
+#include <utils.hpp>
+#include <webserv.hpp>
+#include <Location.hpp>
+#include <Server.hpp>
 
 int main(int ac, char **av)
 {
