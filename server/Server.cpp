@@ -20,12 +20,14 @@ Server::Server(std::deque<std::string>& file)
 		if (splitted[0] == "}")
 			return ;
 		else if (splitted[0] == "listen")
+		{
 			this->setListen(splitted);
+		}
 		else if (splitted[0] == "server_name")
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
 			this->addErrorPage(splitted);
-		else if (splitted[0] == "location")
+		else if (splitted[0] == "location") // naar kijken
 		{
 			if (splitted.size() == 3 && splitted[2] == "{")
 			{
@@ -43,7 +45,8 @@ Server::Server(std::deque<std::string>& file)
 			}
 			throw ArgumentIncorrect();
 		}
-		throw ElemNotRecognized() ;
+		else
+			throw ElemNotRecognized() ;
 	} 
 }
 
@@ -94,7 +97,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 	unsigned int number;
 	if (line.size() != 3)
 		throw ArgumentIncorrect();
-	if (line[1].find_first_not_of("0123456789") == std::string::npos)
+	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
 		throw NotANumber();
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
