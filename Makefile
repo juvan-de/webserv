@@ -1,14 +1,26 @@
 NAME 		= 	webserv
 
-SERVER_SRC	= 	Server_block.cpp
+PARSE_SRC	=	parse.cpp
+UTILS_SRC	=	split.cpp
+REQUEST_SRC	=	Header.cpp
+SERVER_SRC	= 	Location.cpp \
+				redir.cpp \
+				Server.cpp
 SOCKET_SRC	=	Socket.cpp
 
+PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
+UTILS		=	$(addprefix srcs/utils, $(UTILS_SRC))
+REQUEST		=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
 
 SOURCES		= 	main.cpp \
+				$(PARSE) \
+				$(UTILS) \
+				$(UTILS) \
 				$(SOCKET) \
-				$(SERVER)
+				$(SERVER) \
+
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
