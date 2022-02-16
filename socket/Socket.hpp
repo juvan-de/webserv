@@ -12,28 +12,42 @@ class Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int					_server_sock;
-		struct sockaddr_in	_sock_addr;
+		int					_port;
+		int					_servfd;
+		struct sockaddr_in	_address;
+		int					_opted;
+		int					_address_len;
+		int					_flags;
+		int					_backlog;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		Socket(int port);
+		Socket();
 		Socket(const Socket &ref);
 		Socket& operator=(const Socket &ref);
 		~Socket();
 
 		/*--------------------------Member functions--------------------------*/
-		int		getFd() const;
-		void	error_check(int err, std::string msg);
+		Socket(int port);
+		// int		getFd() const;
 
+	private:
 		/*--------------------------Exception Classes-------------------------*/
-		class Socket_err : public std::exception
+		class badInit : public std::exception
 		{
 			virtual const char* what() const throw()
 			{
-				return "Error: couldn't instantiate a socket";
+				return "Error: could not prepare port";
 			}
-		} Socket_err;
+		} badInit;
+
+		class badAccept : public std::exception
+		{
+			virtual const char* what() const throw()
+			{
+				return "Error: could not accept a connection";
+			}
+		} badAccept;
 };
 
 #endif
