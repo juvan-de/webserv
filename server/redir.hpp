@@ -21,6 +21,15 @@ class Redir
 
 		unsigned int	getStatusCode () const;
 		std::string		getLocation () const;
+	
+	private: /* -Exception- */
+		class NotANumber : public std::exception
+		{
+			const char*	what (void) const throw()
+			{
+				return "Element is not a number";
+			}
+		};
 };
 
 std::ostream& operator<< (std::ostream& out, const Redir& obj);

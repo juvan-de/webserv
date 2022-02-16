@@ -8,6 +8,10 @@
 # include <deque>
 # include <redir.hpp>
 
+# define COLOR_WHITE_BOLD			"\033[0;37;01m"
+# define COLOR_NORMAL_DIM			"\033[0;02m"
+# define COLOR_NORMAL				"\033[0m"
+
 class	Location
 {
 	private:
@@ -29,7 +33,7 @@ class	Location
 		Location&	operator= (const Location& ref);
 		~Location();
 
-		/* -Setters- */
+	public:		/* -Setters- */
 		void	setTitle(std::string& title);
 		void	setRoot(std::vector<std::string>& line);
 		void	setClientMaxBodySize(std::vector<std::string>& line);
@@ -41,7 +45,10 @@ class	Location
 		void	setUploadStore(std::vector<std::string>& line);
 		void	setRedir(std::vector<std::string>& line);
 
-		/* -Getters- */
+	private:	/* -Setters Utils- */
+		bool	isValidHTTPMethod(const std::string& elem) const;
+
+	public:		/* -Getters- */
 		const std::string&							getTitle() const;
 		const std::string&							getRoot() const;
 		unsigned long								getClientMaxBodySize() const;
@@ -122,6 +129,34 @@ class	Location
 			{
 				return "Wrong argument. static_dir can be [\"true\", \"false\"].";
 			}
+		};
+	
+		class leInvalidMethod : public std::exception
+		{
+			private:
+				leInvalidMethod();
+			protected:
+				std::vector<std::string>	_line;
+				std::string					_elem;
+
+			public:
+				leInvalidMethod(std::vector<std::string>& line, std::string elem) : _line(line), _elem(elem) {}
+				virtual ~leInvalidMethod() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Invalid HTTP method \n";
+					ret += COLOR_NORMAL;
+					ret += "Invalid method: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += this->_elem + "\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 };//end Location class
 

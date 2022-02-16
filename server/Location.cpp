@@ -90,8 +90,8 @@ void	Location::setClientMaxBodySize(std::vector<std::string>& line)
 	unsigned int multiplier;
 	size_t idx;
 
-	// if (line.size() != 2)
-	// 	throw ArgumentIncorrect();
+	if (line.size() != 2)
+		throw ArgumentIncorrect();
 	multiplier = 1;
 	idx = line[1].find_first_not_of("0123456789");
 	if (idx != std::string::npos)
@@ -119,8 +119,8 @@ void	Location::setClientMaxBodySize(std::vector<std::string>& line)
 
 void	Location::setIndex(std::vector<std::string>& line)
 {
-	// if (line.size() <= 1)
-	// 	throw ArgumentIncorrect();
+	if (line.size() <= 1)
+		throw ArgumentIncorrect();
 	line.erase(line.begin());
 	this->_index = line;
 }
@@ -152,33 +152,44 @@ void	Location::setStaticDir(std::vector<std::string>& line)
 
 void	Location::addCgi(std::vector<std::string>& line)
 {
-	// if (line.size() != 3)
-	// 	throw ArgumentIncorrect();
+	if (line.size() != 3)
+		throw ArgumentIncorrect();
 	this->_cgi[line[1]] = line[2];
+}
+
+bool	Location::isValidHTTPMethod(const std::string& elem) const
+{
+	const std::string correctMethod[] = {"GET", "POST", "DELETE"};
+
+	for (size_t idx = 0; idx < sizeof(correctMethod)/sizeof(std::string); idx++)
+		if (elem == correctMethod[idx])
+			return true;
+	return false;
 }
 
 void	Location::setLimitExcept(std::vector<std::string>& line)
 {
-	// const *char[] = {"GET", "POST", "DELETE"};
-	// if (line.size() <= 1)
-	// 	throw ArgumentIncorrect();
-	//nog toevoegen dat ie checked op valid woorden
+	
+	if (line.size() <= 1)
+		throw ArgumentIncorrect();
+	for (std::vector<std::string>::iterator itr = line.begin() + 1; itr != line.end(); itr++)
+		if (!this->isValidHTTPMethod(*itr))
+			throw leInvalidMethod(line, *itr);
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
-	// for (std::set<std::string>::iterator it = line.begin() + 1; it != line.end(); it++)
-	// 	for ()
+	//willen we voor duplicate testen want het wordt toch in een set gezet, misschien het idee van een warning
 }
 
 void	Location::setUploadStore(std::vector<std::string>& line)
 {
-	// if (line.size() != 2)
-	// 	throw ArgumentIncorrect();
+	if (line.size() != 2)
+		throw ArgumentIncorrect();
 	this->_uploadStore = line[1];
 }
 
 void	Location::setRedir(std::vector<std::string>& line)
 {
-	// if (line.size() != 3)
-	// 	throw ArgumentIncorrect();
+	if (line.size() != 3)
+		throw ArgumentIncorrect();
 	this->_redir = Redir(line[1], line[2]);
 }
 
@@ -237,27 +248,27 @@ const Redir&	Location::getRedir() const
 std::ostream&	operator<< (std::ostream& out, const Location& obj)
 {
 	out << std::boolalpha;
-	out << "Location >-> " << obj.getTitle() << " -=-=-=-" << std::endl;
-	out << "\troot={" << obj.getRoot() << "}" << std::endl;
-	out << "\tclient_max_body_size={" << obj.getClientMaxBodySize() << "}" << std::endl;
-	out << "\tindex=";
+	out << "Location >-> title: " << obj.getTitle() << " -=-=-=-" << std::endl;
+	out << "\troot = {" << obj.getRoot() << "}" << std::endl;
+	out << "\tclient_max_body_size = [" << obj.getClientMaxBodySize() << "]" << std::endl;
+	out << "\tindex =";
 	std::vector<std::string> tempIndex = obj.getIndex();
 	for (std::vector<std::string>::iterator it = tempIndex.begin(); it != tempIndex.end(); it++)
 		out << " {" << *it << "}";
 	out << std::endl;
-	out << "\tautoindex={" << obj.getAutoindex() << "}" << std::endl;
-	out << "\tstatic_dir={" << obj.getStaticDir() << "}" << std::endl;
-	out << "\tcgi=";
+	out << "\tautoindex = {" << obj.getAutoindex() << "}" << std::endl;
+	out << "\tstatic_dir = {" << obj.getStaticDir() << "}" << std::endl;
+	out << "\tcgi =";
 	std::map<std::string, std::string> tempCgi = obj.getCgi();
 	for (std::map<std::string, std::string>::iterator it = tempCgi.begin(); it != tempCgi.end(); it++)
-		out << " {\"" << it->first << "\", \"" << it->second << "}";
+		out << " {\"" << it->first << "\", \"" << it->second << "\"}";
 	out << std::endl;
-	out << "\tlimit_except=";
+	out << "\tlimit_except =";
 	std::set<std::string> tempLimitExcept = obj.getLimitExcept();
 	for (std::set<std::string>::iterator it = tempLimitExcept.begin(); it != tempLimitExcept.end(); it++)
 		out << " {" << *it << "}";
 	out << std::endl;
-	out << "\tupload_store={" << obj.getUploadStore() << "}" << std::endl;
+	out << "\tupload_store = {" << obj.getUploadStore() << "}" << std::endl;
 	out << "\t" << obj.getRedir();
 	return out;
 }
