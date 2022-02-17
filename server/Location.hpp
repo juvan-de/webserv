@@ -46,7 +46,8 @@ class	Location
 		void	setRedir(std::vector<std::string>& line);
 
 	private:	/* -Setters Utils- */
-		bool	isValidHTTPMethod(const std::string& elem) const;
+		bool	isIn(const std::string& elem, const std::string array[], size_t size) const;
+		void	_errorJumpTable(std::vector<std::string>& line);
 
 	public:		/* -Getters- */
 		const std::string&							getTitle() const;
@@ -61,77 +62,174 @@ class	Location
 		const Redir&								getRedir() const;
 
 		/* -Exception- */
-		class ArgumentIncorrect : public std::exception
+		class ArgumentIncorrect : public std::exception //done misschien shit verplaatsen
 		{
-			// private:
-			// 	std::vector<std::string>	_line;
-			
-			virtual const char*	what(void) const throw()
-			{
-				// std::string	ret;
-
-				// ret = "Incorrect argument amount:";
-				// for (size_t i = 0; i < this->_line.size(); i++)
-				// 	ret += " " + this->_line[i];
-				// return ret.c_str();
-				return "Incorrect argument amount";
-			}
-
-			// ArgumentIncorrect(std::vector<std::string> line) : _line(line)
-			// {
-			// 	return ;
-			// }
+			private:
+				ArgumentIncorrect();
+			protected:
+				std::vector<std::string>	_line;
+			public:
+				ArgumentIncorrect(std::vector<std::string>& line) : _line(line) {}
+				virtual ~ArgumentIncorrect() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Invalid argument amount\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 
-		class ClosingLocation : public std::exception
+		class MissingClosingBracket : public std::exception //done misschien shit verplaatsen
 		{
 			const char*	what (void) const throw()
 			{
-				return "Location block is not closed. Use '}'.";
+				std::string ret = COLOR_WHITE_BOLD;
+				ret += "Missing closing Bracket for Locationblock"; 
+				return ret.c_str();
 			}
 		};
 
-		class ElemNotRecognized : public std::exception
+		class ElemNotRecognized : public std::exception //done misschien shit verplaatsen
 		{
+			private:
+				ElemNotRecognized();
+			protected:
+				std::vector<std::string>	_line;
+			public:
+			ElemNotRecognized(std::vector<std::string>& line) : _line(line) {}
+			virtual ~ElemNotRecognized() throw() {}
 			const char*	what (void) const throw()
 			{
-				return "Location elem is not recognized";
+				std::string ret;
+				ret += COLOR_WHITE_BOLD;
+				ret += "Element no recognized\n";
+				ret += COLOR_NORMAL;
+				ret += "found: ";
+				ret += COLOR_WHITE_BOLD;
+				ret += "'";
+				ret += _line[0]; 
+				ret += "'\n";
+				ret += COLOR_NORMAL_DIM;
+				ret += "line:";
+				for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+					ret += " " + *it;
+				return ret.c_str();
 			}
+
 		};
 
-		class CMBSToManyLetters : public std::exception
+		class cmbsUnitPrefix : public std::exception //done misschien shit verplaatsen
 		{
-			const char*	what (void) const throw()
-			{
-				return "client_max_body_size can have one adjacent letter. This letter can be [kmg].";
-			}
+			private:
+				cmbsUnitPrefix();
+			protected:
+				std::vector<std::string>	_line;
+				std::string					_unitPrefix;
+
+			public:
+				cmbsUnitPrefix(std::vector<std::string>& line) : _line(line)
+				{
+					size_t idx = line[1].find_first_not_of("0123456789");
+					this->_unitPrefix = std::string(line[1], idx);
+				}
+				virtual ~cmbsUnitPrefix() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Invalid unit prefix\n";
+					ret += COLOR_NORMAL;
+					ret += "found: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'";
+					ret += _unitPrefix; 
+					ret += "'";
+					ret += COLOR_NORMAL;
+					ret += " expected: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'k'/'m'/'g'\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 
-		class CMBSLetterNotRecognized : public std::exception
+		class aiElemNotRecognized : public std::exception //done misschien shit verplaatsen
 		{
-			const char*	what (void) const throw()
-			{
-				return "client_max_body_size letter not recognized. Last char can be [kmg].";
-			}
+			private:
+				aiElemNotRecognized();
+			protected:
+				std::vector<std::string>	_line;
+				std::string					_elem;
+
+			public:
+				aiElemNotRecognized(std::vector<std::string>& line) : _line(line), _elem(line[1]) {}
+				virtual ~aiElemNotRecognized() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Autoindex element not recognized\n";
+					ret += COLOR_NORMAL;
+					ret += "found: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'";
+					ret += _elem; 
+					ret += "'";
+					ret += COLOR_NORMAL;
+					ret += " expected: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'on'/'off'\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 
-		class AIElemNotRecognized : public std::exception
+		class sdElemNotRecognized : public std::exception //done misschien shit verplaatsen
 		{
-			const char*	what (void) const throw()
-			{
-				return "Wrong argument. Autoindex can be [\"on\", \"off\"].";
-			}
-		};
+			private:
+				sdElemNotRecognized();
+			protected:
+				std::vector<std::string>	_line;
+				std::string					_elem;
 
-		class SDElemNotRecognized : public std::exception
-		{
-			const char*	what (void) const throw()
-			{
-				return "Wrong argument. static_dir can be [\"true\", \"false\"].";
-			}
+			public:
+				sdElemNotRecognized(std::vector<std::string>& line) : _line(line), _elem(line[1]) {}
+				virtual ~sdElemNotRecognized() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Static_dir element not recognized\n";
+					ret += COLOR_NORMAL;
+					ret += "found: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'";
+					ret += _elem; 
+					ret += "'";
+					ret += COLOR_NORMAL;
+					ret += " expected: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'true'/'falses'\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 	
-		class leInvalidMethod : public std::exception
+		class leInvalidMethod : public std::exception //done misschien shit verplaatsen
 		{
 			private:
 				leInvalidMethod();
@@ -146,11 +244,11 @@ class	Location
 				{
 					std::string ret;
 					ret += COLOR_WHITE_BOLD;
-					ret += "Invalid HTTP method \n";
+					ret += "Invalid HTTP method\n";
 					ret += COLOR_NORMAL;
-					ret += "Invalid method: ";
+					ret += "found: ";
 					ret += COLOR_WHITE_BOLD;
-					ret += this->_elem + "\n";
+					ret += "'" + this->_elem + "'\n";
 					ret += COLOR_NORMAL_DIM;
 					ret += "line:";
 					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)

@@ -4,6 +4,16 @@
 #include <sstream>
 #include <exception>
 
+void	Location::_errorJumpTable(std::vector<std::string>& line)
+{
+	const std::string server_elements[] = {"listen", "server_name", "error_page", "location"};
+
+	if (isIn(line[0], server_elements, sizeof(server_elements)))
+		throw MissingClosingBracket();
+	else
+		throw ElemNotRecognized(line);
+}
+
 Location::Location(std::deque<std::string>& file, std::string& title)
 {
 	std::vector<std::string>	splitted;
@@ -36,9 +46,9 @@ Location::Location(std::deque<std::string>& file, std::string& title)
 		else if (splitted[0] == "redir")
 			this->setUploadStore(splitted);
 		else
-			throw ElemNotRecognized();
+			this->_errorJumpTable(splitted);
 	}
-	throw ClosingLocation();
+	throw MissingClosingBracket();
 }
 
 Location&	Location::operator=(const Location& ref)
@@ -80,7 +90,7 @@ void	Location::setTitle(std::string& title)
 void	Location::setRoot(std::vector<std::string>& line)
 {
 	if (line.size() != 2)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	this->_root = line[1];
 }
 
@@ -91,13 +101,13 @@ void	Location::setClientMaxBodySize(std::vector<std::string>& line)
 	size_t idx;
 
 	if (line.size() != 2)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	multiplier = 1;
 	idx = line[1].find_first_not_of("0123456789");
 	if (idx != std::string::npos)
 	{
 		if (idx != line[1].length() - 1)
-			throw CMBSToManyLetters();
+			throw cmbsUnitPrefix(line);
 		switch(line[1][idx])
 		{
 			case 'k':
@@ -110,7 +120,7 @@ void	Location::setClientMaxBodySize(std::vector<std::string>& line)
 				multiplier = 1000000000;
 				break ;
 			default:
-				throw CMBSLetterNotRecognized(); 
+				throw cmbsUnitPrefix(line); 
 		}
 	}
 	std::istringstream (line[1]) >> number;
@@ -120,7 +130,7 @@ void	Location::setClientMaxBodySize(std::vector<std::string>& line)
 void	Location::setIndex(std::vector<std::string>& line)
 {
 	if (line.size() <= 1)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	line.erase(line.begin());
 	this->_index = line;
 }
@@ -128,52 +138,52 @@ void	Location::setIndex(std::vector<std::string>& line)
 void	Location::setAutoindex(std::vector<std::string>& line)
 {
 	if (line.size() != 2)
-		throw ArgumentIncorrect();
-
+		throw ArgumentIncorrect(line);
 	if (line[1] == "on")
 		this->_autoindex = true;
 	else if (line[1] == "off")
 		this->_autoindex = false;
 	else
-		throw AIElemNotRecognized();
+		throw aiElemNotRecognized(line);
 }
 
 void	Location::setStaticDir(std::vector<std::string>& line)
 {
 	if (line.size() != 2)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	if (line[1] == "true")
 		this->_staticDir = true;
 	else if (line[1] == "false")
 		this->_staticDir = false;
 	else
-		throw SDElemNotRecognized();
+		throw sdElemNotRecognized(line);
 }
 
 void	Location::addCgi(std::vector<std::string>& line)
 {
 	if (line.size() != 3)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	this->_cgi[line[1]] = line[2];
 }
 
-bool	Location::isValidHTTPMethod(const std::string& elem) const
+bool	Location::isIn(const std::string& elem, const std::string *array, size_t size) const
 {
-	const std::string correctMethod[] = {"GET", "POST", "DELETE"};
-
-	for (size_t idx = 0; idx < sizeof(correctMethod)/sizeof(std::string); idx++)
-		if (elem == correctMethod[idx])
+	for (size_t idx = 0; idx < size/sizeof(std::string); idx++)
+	{
+		if (elem == array[idx])
 			return true;
+	}
 	return false;
 }
 
 void	Location::setLimitExcept(std::vector<std::string>& line)
 {
-	
+	const std::string correctMethods[] = {"GET", "POST", "DELETE"};
+
 	if (line.size() <= 1)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	for (std::vector<std::string>::iterator itr = line.begin() + 1; itr != line.end(); itr++)
-		if (!this->isValidHTTPMethod(*itr))
+		if (!this->isIn(*itr, correctMethods, sizeof(correctMethods)))
 			throw leInvalidMethod(line, *itr);
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
 	//willen we voor duplicate testen want het wordt toch in een set gezet, misschien het idee van een warning
@@ -182,14 +192,14 @@ void	Location::setLimitExcept(std::vector<std::string>& line)
 void	Location::setUploadStore(std::vector<std::string>& line)
 {
 	if (line.size() != 2)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	this->_uploadStore = line[1];
 }
 
 void	Location::setRedir(std::vector<std::string>& line)
 {
 	if (line.size() != 3)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	this->_redir = Redir(line[1], line[2]);
 }
 

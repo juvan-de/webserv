@@ -43,11 +43,11 @@ Server::Server(std::deque<std::string>& file)
 					continue ;
 				}
 			}
-			throw ArgumentIncorrect();
+			throw ArgumentIncorrect(splitted); //misschien incorrect
 		}
 		else
-			throw ElemNotRecognized() ;
-	} 
+			throw ElemNotRecognized(splitted); //misschien incorrect
+	}
 }
 
 Server::Server(const Server& ref)
@@ -75,7 +75,7 @@ void	Server::setListen(std::vector<std::string>& line)
 {
 	unsigned int	number;
 	if (line.size() <= 1)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
 	{
 		if (line[i].find_first_not_of("0123456789") != std::string::npos)
@@ -96,9 +96,9 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 {
 	unsigned int number;
 	if (line.size() != 3)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
-		throw NotANumber();
+		throw epNotANumber(line);
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
 }
@@ -106,7 +106,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 void	Server::setServerName(std::vector<std::string>& line)
 {
 	if (line.size() <= 1)
-		throw ArgumentIncorrect();
+		throw ArgumentIncorrect(line);
 	this->_serverName = std::set<std::string>(line.begin() + 1, line.end());
 }
 
