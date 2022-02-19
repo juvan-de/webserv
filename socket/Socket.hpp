@@ -1,9 +1,10 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
-#include <sys/socket.h>
-#include <fcntl.h>
-#include <netinet/in.h>
+// #include <sys/socket.h> // sockaddr
+#include <fcntl.h> // fcntl
+#include <poll.h> // polling
+#include <netinet/in.h> // sockaddr_in
 
 # include <iostream>
 # define BACKLOG 100
@@ -19,6 +20,7 @@ class Socket
 		int					_address_len;
 		int					_flags;
 		int					_backlog;
+		struct pollfd		_poll;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -29,7 +31,13 @@ class Socket
 
 		/*--------------------------Member functions--------------------------*/
 		Socket(int port);
-		// int		getFd() const;
+		int					new_connection();
+		int					getPort() const { return _port; }
+		int					getFd() const { return _servfd; }
+		struct sockaddr_in	&getAddr() { return _address; };
+		int					&getAddrlen() { return _address_len; }
+		struct pollfd		&getPoll() {return _poll; }
+		int					getFlags() const { return _flags; }
 
 	private:
 		/*--------------------------Exception Classes-------------------------*/
