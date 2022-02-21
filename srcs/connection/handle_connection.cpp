@@ -60,9 +60,9 @@ Header		read_request(struct pollfd &fd)
 	return (Header());
 }
 
-void	handle_connection(std::vector<pollfd> &fds)
+void	handle_connection(std::vector<pollfd> &fds, size_t start)
 {
-	for (size_t i = 1; i < fds.size(); i++)
+	for (size_t i = start; i < fds.size(); i++)
 	{
 		if (fds[i].revents & POLLIN)
 		{

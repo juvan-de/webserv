@@ -15,7 +15,7 @@
 
 # include <Header.hpp>
 
-void		handle_connection(std::vector<pollfd> &fds);
+void		handle_connection(std::vector<pollfd> &fds, size_t start);
 Header		read_request(struct pollfd &fd);
 
 

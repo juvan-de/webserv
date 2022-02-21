@@ -11,7 +11,8 @@ Socket::~Socket()
 {
 	/*Destructor*/
 	// std::cout << "Debug: closing server_sock " << _port << std::endl;
-	close(_servfd);
+	// close(_servfd);
+
 }
 
 Socket::Socket(const Socket &ref)
@@ -32,6 +33,7 @@ Socket&	Socket::operator=(const Socket &ref)
 		_address_len = ref._address_len;
 		_flags = ref._flags;
 		_backlog = ref._backlog;
+		_poll = ref._poll;
 	}
 	return *this;
 }
@@ -47,10 +49,6 @@ Socket::Socket(int port) : _port(port)
 	_address.sin_addr.s_addr = INADDR_ANY;
 	_address.sin_port = htons(_port);
 	_address_len = sizeof(_address);
-
-	/*Initializing pollfd struct*/
-	_poll.fd = _servfd;
-	_poll.events = POLLIN;
 	
 	/*Initializing configurations*/
 	_opted = 1;
@@ -69,6 +67,10 @@ Socket::Socket(int port) : _port(port)
 		throw badInit;
 	if (listen(_servfd, _backlog) < 0)
 		throw badInit;
+
+	/*Initializing pollfd struct*/
+	_poll.fd = _servfd;
+	_poll.events = POLLIN;
 }
 
 int	Socket::new_connection()

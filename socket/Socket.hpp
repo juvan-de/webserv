@@ -1,7 +1,7 @@
 #ifndef SOCKET_HPP
 # define SOCKET_HPP
 
-// #include <sys/socket.h> // sockaddr
+// #include <sys/socket.h> // sockaddr?
 #include <fcntl.h> // fcntl
 #include <poll.h> // polling
 #include <netinet/in.h> // sockaddr_in
