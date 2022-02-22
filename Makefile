@@ -28,7 +28,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-Wall -Wextra -Werror -std=c++98
+FLAGS 		=	 -std=c++98
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Iserver -Isocket -Irequests

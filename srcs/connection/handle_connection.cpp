@@ -10,7 +10,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-
+#include <Server.hpp>
 #include <Header.hpp>
 
 #define PORT 8080
@@ -51,7 +51,7 @@ Header		read_request(struct pollfd &fd)
 	return (Header());
 }
 
-void	handle_connection(std::vector<pollfd> &fds)
+void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> &servers)
 {
 	for (size_t i = 1; i < fds.size(); i++)
 	{

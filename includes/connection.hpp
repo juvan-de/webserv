@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/15 12:56:39 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/02/15 14:42:17 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/02/15 18:34:50 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,9 @@
 
 # include <Header.hpp>
 # include <poll.h>
+# include <Server.hpp>
 
-void				handle_connection(std::vector<pollfd> &fds);
+void				handle_connection(std::vector<pollfd> &fds, std::vector<Server> &servers);
 Header				read_request(struct pollfd &fd);
 struct sockaddr_in	get_addr();
 

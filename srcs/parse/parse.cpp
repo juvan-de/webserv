@@ -8,7 +8,7 @@
 #include <Location.hpp>
 #include <Server.hpp>
 
-void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
+void	setFileInDeque(std::string filename, std::deque<std::string>& filedeque)
 {
 	std::ifstream			infile;
 	std::string				line;
@@ -18,7 +18,7 @@ void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
 		filedeque.push_back(line);
 }
 
-void	parse(char* filename, std::vector<Server>& servers)
+void	parse(std::string filename, std::vector<Server>& servers)
 {
 	std::deque<std::string>	filedeque;
 	setFileInDeque(filename, filedeque);
