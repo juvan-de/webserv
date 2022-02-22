@@ -29,7 +29,21 @@ struct sockaddr_in get_addr()
 	return address;
 }
 
-Header		read_request(struct pollfd &fd)
+std::string	find_response(std::vector<Server> servers, Header header)
+{
+	std::string	host;
+	std::vector<std::string> headers = header.getHeaders();
+	for (std::vector<std::string>::const_iterator it = header.getHeaders().begin(); it != header.getHeaders().end(); it++)
+	{
+		if (it->find("Host:", 0, 5) != std::string::npos)
+		{
+			host = it->substr(6, std::string::npos);
+		}
+	}
+	return ("response");
+}
+
+Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 {
 	char	*request = new char[BUFFER_SIZE + 1];
 	int ret = read(fd.fd, request, BUFFER_SIZE);
@@ -38,12 +52,10 @@ Header		read_request(struct pollfd &fd)
 	{
 		std::string srequest(request);
 		Header header(srequest, fd.fd);
-
 		if (header.getType() == GET)
 		{
-			std::string	root = "files";
-			std::string path = root.append(header.getPath());
-			header.setResponse(path);
+			std::string response = find_response(servers, header);
+			header.setResponse(response);
 			delete [] request;
 			return (header);
 		}
@@ -51,18 +63,18 @@ Header		read_request(struct pollfd &fd)
 	return (Header());
 }
 
-void	handle_connection(std::vector<pollfd> &fds, size_t start)
+void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
 	{
 		if (fds[i].revents & POLLIN)
 		{
-			requests.push_back(read_request(fds[i]));
+			requests.push_back(read_request(fds[i], servers));
 			fds[i].events = POLLOUT;
 		}
 		else if (fds[i].revents & POLLOUT)
 		{
-			for (size_t j = 0; j < requests.size(); j++)
+			for (size_t j = start; j < requests.size(); j++)
 			{
 				if (requests[j].getClisock() == fds[i].fd)
 				{

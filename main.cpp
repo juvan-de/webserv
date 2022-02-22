@@ -37,9 +37,9 @@ std::set<int> get_ports(std::vector<Server> servers, std::map<std::pair<int, std
 #define SERVER_PATH "files/configs/config.conf"
 	// std::deque<std::string>	deque;
 	// char	location[] = "files/configs/config.conf";
-	// setFileInDeque(location, deque);
+	// void	setFileInDeque(location, deque);
 
-int main()
+int main(int ac, char **av)
 {
 	try
 	{
@@ -74,7 +74,7 @@ int main()
 			for (int i = 0; i < sockets_num; i++)
 				fds[i].events = POLLIN;
 			poll(&fds[0], fds.size(), 3 * 60 * 1000);
-			handle_connection(fds, sockets_num);
+			handle_connection(fds, servers, sockets_num);
 			std::cout << "Waiting for connections..." << std::endl;
 			for (int i = 0; i < sockets_num; i++)
 			{
@@ -106,30 +106,6 @@ int main()
 	}
 	catch(const std::exception& e)
 	{
-		fds[0].events = POLLIN;
-		poll(&fds[0], fds.size(), 3 * 60 * 1000);
-		handle_connection(fds, servers);
-		//std::cout << "Waiting for connections..." << std::endl;
-		if (fds[0].revents & POLLIN)
-		{
-			(cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len));
-			if (cli_sock < 0)
-			{
-				if (errno == EWOULDBLOCK)
-					sleep(1);
-				else
-					error_check(-1, "Accepting a connection");
-			}
-			else
-			{
-				// poll <- add accepted client
-				struct pollfd new_fd;
-				new_fd.fd = cli_sock;
-				new_fd.events = POLLIN;
-				fds.push_back(new_fd);
-				fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-				std::cout << "Connected!" << std::endl;
-			}
-		}
-	}
+		std::cout << e.what() << std::endl;
+	}	
 }

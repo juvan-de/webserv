@@ -1,11 +1,12 @@
 #include <Header.hpp>
+#include <fstream>
 
 Header::Header()
 {
 	std::vector<std::string> empty;
 	this->_headers = empty;
 	this->_type = ERROR;
-	this->_path = "";
+	this->_location = "";
 }
 
 Header::Header(std::string request, int clisock)
@@ -25,8 +26,10 @@ Header::Header(std::string request, int clisock)
 					break;
 	}
 	size_t start = request.find('/');
-	size_t end = request.find('\n');
-	this->_path = request.substr(start, end);
+	size_t end = request.find(' ');
+	this->_location = request.substr(start, end);
+	/* I skip the HTTP/1.1 here*/
+	end = request.find('\n');
 	start = end + 1;
 	while (start < request.size() && end != std::string::npos)
 	{
@@ -44,7 +47,7 @@ Header::Header(const Header& ref)
 Header&	Header::operator=(const Header& ref)
 {
 	this->_type = ref.getType();
-	this->_path = ref.getPath();
+	this->_location = ref.getLocation();
 	this->_headers = ref.getHeaders();
 	this->_response = ref.getResponse();
 	return (*this);
@@ -52,32 +55,43 @@ Header&	Header::operator=(const Header& ref)
 
 Header::~Header() {}
 
-Type		Header::getType() const 
+Type		const &Header::getType() const 
 {
 	return (this->_type);
 }
 
-std::string	Header::getPath() const 
+std::string	const &Header::getLocation() const 
 {
-	return (this->_path);
+	return (this->_location);
 }
 
-std::vector<std::string>	Header::getHeaders() const
+std::vector<std::string>	const &Header::getHeaders() const
 {
 	return (this->_headers);
 }
 
-std::string	Header::getResponse() const
+std::string	const &Header::getResponse() const
 {
 	return (this->_response);
 }
 
-int			Header::getClisock() const
+int			const &Header::getClisock() const
 {
 	return (this->_clisock);
 }
 
-void		Header::setResponse(std::string &response)
+void		Header::setResponse(std::string &filename)
 {
-	this->_response = response;
+	std::cout << filename << std::endl;
+	std::fstream	file(filename);
+	std::string		line;
+	if (file.is_open())
+	{
+		while (getline(file, line))
+		{
+			this->_response.append(line);
+		}
+	}
+	else
+		throw NotAFile();
 }
