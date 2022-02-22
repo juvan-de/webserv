@@ -31,7 +31,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	 -std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Iserver -Isocket -Irequests
+INC			=	-Iincludes -Irequests -Iserver -Isocket
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
@@ -52,7 +52,7 @@ $(NAME): $(OBJECTS)
 
 clean:
 	@echo "$(RED)Deleting objectfiles"
-	@/bin/rm -f $(OBJECTS)
+	@/bin/rm -rf $(OBJDIR)
 
 fclean: clean
 	@echo "$(RED)Deleting executable"

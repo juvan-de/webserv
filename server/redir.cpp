@@ -18,7 +18,7 @@ Redir&	Redir::operator= (const Redir& ref)
 
 std::ostream&	operator<< (std::ostream& out, const Redir& obj)
 {
-	out << "Redir={" << obj.getLocation() << "}[" << obj.getStatusCode() << "]";
+	out << "Redir = {" << obj.getLocation() << "} [" << obj.getStatusCode() << "]";
 	return out;
 }
 
@@ -35,7 +35,7 @@ Redir::~Redir()
 void	Redir::setStatusCode (std::string statusCode)
 {
 	if (statusCode.find_first_not_of("0123456789") != std::string::npos)
-		throw("No numbers (error_message verbeteren)");
+		throw NotANumber();
 	std::istringstream (statusCode) >> this->_statusCode;
 }
 

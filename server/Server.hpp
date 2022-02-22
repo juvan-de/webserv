@@ -38,28 +38,82 @@ class	Server
 		const std::set<std::string>&			getServerName() const;
 
 		/* -Exception- */
-		class ArgumentIncorrect : public std::exception
+		class ArgumentIncorrect : public std::exception //done misschien shit verplaatsen
 		{
-			const char*	what (void) const throw()
-			{
-				return "Incorrect argument amount";
-			}
+			private:
+				ArgumentIncorrect();
+			protected:
+				std::vector<std::string>	_line;
+			public:
+				ArgumentIncorrect(std::vector<std::string>& line) : _line(line) {}
+				virtual ~ArgumentIncorrect() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Invalid argument amount\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 
-		class ElemNotRecognized : public std::exception
+		class ElemNotRecognized : public std::exception //done misschien shit verplaatsen
 		{
+			private:
+				ElemNotRecognized();
+			protected:
+				std::vector<std::string>	_line;
+			public:
+			ElemNotRecognized(std::vector<std::string>& line) : _line(line) {}
+			virtual ~ElemNotRecognized() throw() {}
 			const char*	what (void) const throw()
 			{
-				return "Location elem is not recognized.";
+				std::string ret;
+				ret += COLOR_WHITE_BOLD;
+				ret += "Element no recognized\n";
+				ret += COLOR_NORMAL;
+				ret += "found: ";
+				ret += COLOR_WHITE_BOLD;
+				ret += "'";
+				ret += _line[0]; 
+				ret += "'\n";
+				ret += COLOR_NORMAL_DIM;
+				ret += "line:";
+				for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+					ret += " " + *it;
+				return ret.c_str();
 			}
+
 		};
 
-		class NotANumber : public std::exception
+		class epNotANumber : public std::exception
 		{
-			const char*	what (void) const throw()
-			{
-				return "Element is not a number";
-			}
+			private:
+				epNotANumber();
+			protected:
+				std::vector<std::string>	_line;
+			public:
+				epNotANumber(std::vector<std::string>& line) : _line(line) {}
+				virtual ~epNotANumber() throw() {}
+				const char*	what (void) const throw()
+				{
+					std::string ret;
+					ret += COLOR_WHITE_BOLD;
+					ret += "Element is not a number\n";
+					ret += "found: ";
+					ret += COLOR_WHITE_BOLD;
+					ret += "'";
+					ret += _line[1]; 
+					ret += "'\n";
+					ret += COLOR_NORMAL_DIM;
+					ret += "line:";
+					for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+						ret += " " + *it;
+					return ret.c_str();
+				}
 		};
 };
 

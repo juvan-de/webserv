@@ -1,42 +1,18 @@
 #include <Socket.hpp>
 #include <unistd.h> //close
 /*--------------------------------Coplien form--------------------------------*/
-Socket::Socket(int port)
+Socket::Socket()
 {
 	/*Constructor*/
-	int flags;
-	int opted = 1;
-
-	_sock_addr.sin_family = AF_INET;
-	_sock_addr.sin_addr.s_addr = INADDR_ANY;
-	_sock_addr.sin_port = htons(port);
-
-	std::cout << "Debug: initializing a socket on port " << port << std::endl;
-	/* Getting a socket with ip4 protocol and socket stream */
-	error_check(_server_sock = socket(AF_INET, SOCK_STREAM, 0),
-			"getting the server socket");
-	/* Getting socket flags with fcntl */
-	error_check(flags = fcntl(_server_sock, F_GETFL),
-			"getting the server socket flags");
-	/* Setting the non-blocking flag */
-	error_check(fcntl(_server_sock, F_SETFL, flags | O_NONBLOCK),
-			"setting the server socket as non-blocking");
-	/* Initializing the socket on socket level using the reuseaddr protocol */
-	error_check(setsockopt(_server_sock, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)),
-			"initializing the server socket");
-	/* Binding the socket */
-	error_check(bind(_server_sock, (struct sockaddr *)&_sock_addr, sizeof(_sock_addr)),
-			"binding the server socket");
-	/* Start listening and allow a backlog of 100*/
-	error_check(listen(_server_sock, BACKLOG),
-			"listening on the server socket");
+	return ;
 }
 
 Socket::~Socket()
 {
 	/*Destructor*/
-	std::cout << "Debug: closing server_sock " << _server_sock << std::endl;
-	close(_server_sock);
+	// std::cout << "Debug: closing server_sock " << _port << std::endl;
+	// close(_servfd);
+
 }
 
 Socket::Socket(const Socket &ref)
@@ -50,20 +26,54 @@ Socket&	Socket::operator=(const Socket &ref)
 	/*Assignation operator*/
 	if (this != &ref)
 	{
-		/* assign member variables*/
+		_port = ref._port;
+		_servfd = ref._servfd;
+		_address = ref._address;
+		_opted = ref._opted;
+		_address_len = ref._address_len;
+		_flags = ref._flags;
+		_backlog = ref._backlog;
+		_poll = ref._poll;
 	}
 	return *this;
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-void	Socket::error_check(int err, std::string msg)
+Socket::Socket(int port) : _port(port)
 {
-	(void)msg;
-	if (err < 0)
-		throw Socket::Socket_err;
+	/*Constructor*/
+	std::cout << "Initializing port " << _port << std::endl;
+
+	/*Initializing sock address*/
+	_address.sin_family = AF_INET;
+	_address.sin_addr.s_addr = INADDR_ANY;
+	_address.sin_port = htons(_port);
+	_address_len = sizeof(_address);
+	
+	/*Initializing configurations*/
+	_opted = 1;
+	_backlog = 100;
+
+	/*Instantiating a connection*/
+	if ((_servfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		throw badInit;
+	if ((_flags = fcntl(_servfd, F_GETFL)) < 0)
+		throw badInit;
+	if (fcntl(_servfd, F_SETFL, _flags | O_NONBLOCK) < 0)
+		throw badInit;
+	if (setsockopt(_servfd, SOL_SOCKET, SO_REUSEADDR, &_opted, sizeof(_opted)) < 0)
+		throw badInit;
+	if (bind(_servfd, (struct sockaddr *)&_address, sizeof(_address)) < 0)
+		throw badInit;
+	if (listen(_servfd, _backlog) < 0)
+		throw badInit;
+
+	/*Initializing pollfd struct*/
+	_poll.fd = _servfd;
+	_poll.events = POLLIN;
 }
 
-int		Socket::getFd() const
+int	Socket::new_connection()
 {
-	return _server_sock;
+	return accept(_servfd, (struct sockaddr *)&_address, (socklen_t*)&_address);
 }
