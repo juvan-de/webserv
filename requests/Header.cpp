@@ -82,8 +82,7 @@ int			const &Header::getClisock() const
 
 void		Header::setResponse(std::string &filename)
 {
-	std::cout << filename << std::endl;
-	std::fstream	file(filename);
+	std::ifstream	file(filename.c_str());
 	std::string		line;
 	if (file.is_open())
 	{

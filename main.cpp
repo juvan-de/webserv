@@ -41,71 +41,79 @@ std::set<int> get_ports(std::vector<Server> servers, std::map<std::pair<int, std
 
 int main(int ac, char **av)
 {
-	try
+	if (ac == 2)
 	{
-		(void)ac;
-		std::vector<Server>	servers;
-		std::map<std::pair<int, std::string>, Server> table;
-		std::set<int> ports;
-		std::vector<Socket> sockets;
-		std::vector<pollfd> fds;
-
-		parse(av[1], servers);
-		ports = get_ports(servers, table);
-	
-		std::cout << "initializing ports" << std::endl;
-		sockets.reserve(ports.size());
-		for (std::set<int>::iterator it = ports.begin(); it != ports.end(); it++)
-			sockets.push_back(Socket(*it));
-
-		/* DEBUG */
-		for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); it++)
-			std::cout << "sock[" << it->getPort() << "], ";
-		std::cout << std::endl;
-
-		for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); it++)
-			fds.push_back(it->getPoll());
-
-		int sockets_num = fds.size();
-		/* DEBUG */
-		std::cout << "num " << sockets_num << std::endl;
-		while (true)
+		try
 		{
-			for (int i = 0; i < sockets_num; i++)
-				fds[i].events = POLLIN;
-			poll(&fds[0], fds.size(), 3 * 60 * 1000);
-			handle_connection(fds, servers, sockets_num);
-			std::cout << "Waiting for connections..." << std::endl;
-			for (int i = 0; i < sockets_num; i++)
+			(void)ac;
+			std::vector<Server>	servers;
+			std::map<std::pair<int, std::string>, Server> table;
+			std::set<int> ports;
+			std::vector<Socket> sockets;
+			std::vector<pollfd> fds;
+
+			parse(av[1], servers);
+			ports = get_ports(servers, table);
+		
+			std::cout << "initializing ports" << std::endl;
+			sockets.reserve(ports.size());
+			for (std::set<int>::iterator it = ports.begin(); it != ports.end(); it++)
+				sockets.push_back(Socket(*it));
+
+			/* DEBUG */
+			// for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); it++)
+			// 	std::cout << "sock[" << it->getPort() << "], ";
+			std::cout << std::endl;
+
+			for (std::vector<Socket>::iterator it = sockets.begin(); it != sockets.end(); it++)
+				fds.push_back(it->getPoll());
+
+			int sockets_num = fds.size();
+			/* DEBUG */
+			std::cout << "num " << sockets_num << std::endl;
+			while (true)
 			{
-				// std::cout << "revents: " << fds[i].events << ", " << POLLIN << ", fd: " << fds[i].fd << std::endl;
-				if (fds[i].revents & POLLIN)
+				for (int i = 0; i < sockets_num; i++)
+					fds[i].events = POLLIN;
+				poll(&fds[0], fds.size(), 3 * 60 * 1000);
+				handle_connection(fds, servers, sockets_num);
+				std::cout << "Waiting for connections..." << std::endl;
+				for (int i = 0; i < sockets_num; i++)
 				{
-					int cli_sock;
-					if ((cli_sock = sockets[i].new_connection()) < 0)
+					std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
+					if (fds[i].revents & POLLIN)
 					{
-						if (errno != EWOULDBLOCK)
-							std::cout << "error occured" << std::endl;
-					}
-					else
-					{
-						// poll <- add accepted client
-						struct pollfd new_fd;
-						int flags;
-						new_fd.fd = cli_sock;
-						new_fd.events = POLLIN;
-						fds.push_back(new_fd);
-						flags = fcntl(cli_sock, F_GETFL);
-						fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-						std::cout << "Connected!" << std::endl;
+						int cli_sock;
+						if ((cli_sock = sockets[i].new_connection()) < 0)
+						{
+							if (errno != EWOULDBLOCK)
+								std::cout << "error occured" << std::endl;
+						}
+						else
+						{
+							// poll <- add accepted client
+							struct pollfd new_fd;
+							int flags;
+							new_fd.fd = cli_sock;
+							new_fd.events = POLLIN;
+							fds.push_back(new_fd);
+							flags = fcntl(cli_sock, F_GETFL);
+							fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+							std::cout << "Connected!" << std::endl;
+						}
 					}
 				}
+				sleep(1);
 			}
-			sleep(1);
 		}
+		catch(const std::exception& e)
+		{
+			std::cout << e.what() << std::endl;
+		}	
 	}
-	catch(const std::exception& e)
+	else
 	{
-		std::cout << e.what() << std::endl;
-	}	
+		std::cout << "incorrect arguments" << std::endl;
+	}
+	return (0);	
 }

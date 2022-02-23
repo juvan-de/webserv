@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/01 17:00:22 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/02/22 15:53:04 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/02/23 18:02:00 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ class	Header
 		{
 			const char*	what (void) const throw()
 			{
-				return "Can't open this file";
+				return ("Can't open this file");
 			}
 		};
 };
