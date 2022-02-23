@@ -30,6 +30,8 @@ class	Server
 		void	addLocation(std::deque<std::string>& file, std::string& title);
 		void	addErrorPage(std::vector<std::string>& line);
 		void	setServerName(std::vector<std::string>& line);
+
+		void	_errorJumpTable(std::vector<std::string>& line);
 		/* -Getters- */
 		const std::set<int>&					getListen() const;
 		const std::map<std::string, Location>&	getLocations() const;
@@ -38,6 +40,16 @@ class	Server
 		const std::set<std::string>&			getServerName() const;
 
 		/* -Exception- */
+		class MissingClosingBracket : public std::exception //done misschien shit verplaatsen
+		{
+			const char*	what (void) const throw()
+			{
+				std::string ret = COLOR_WHITE_BOLD;
+				ret += "Missing closing Bracket for Serverblock"; 
+				return ret.c_str();
+			}
+		};
+
 		class ArgumentIncorrect : public std::exception //done misschien shit verplaatsen
 		{
 			private:
@@ -114,6 +126,15 @@ class	Server
 						ret += " " + *it;
 					return ret.c_str();
 				}
+		};
+
+		/*not parse exception */  //Hoe willen we dit preies vormgeven
+		class LocationDoesNotExist : public std::exception
+		{
+			const char*	what(void) const throw()
+			{
+				return ("This Location does not exist");
+			};
 		};
 };
 

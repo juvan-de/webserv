@@ -6,7 +6,8 @@ CONNECT_SRC	=	handle_connection.cpp
 REQUEST_SRC	=	Header.cpp
 SERVER_SRC	= 	Location.cpp \
 				redir.cpp \
-				Server.cpp
+				Server.cpp \
+				webservException.cpp
 SOCKET_SRC	=	Socket.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))

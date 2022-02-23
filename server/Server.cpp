@@ -2,9 +2,13 @@
 #include <utils.hpp>
 #include <sstream>
 
-Server::Server()
+void	Server::_errorJumpTable(std::vector<std::string>& line)
 {
-	return ;
+	if (line[0] == "server")
+		throw MissingClosingBracket();
+	else
+		throw ElemNotRecognized(line);
+
 }
 
 Server::Server(std::deque<std::string>& file)
@@ -27,7 +31,7 @@ Server::Server(std::deque<std::string>& file)
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
 			this->addErrorPage(splitted);
-		else if (splitted[0] == "location") // naar kijken
+		else if (splitted[0] == "location")
 		{
 			if (splitted.size() == 3 && splitted[2] == "{")
 			{
@@ -43,11 +47,12 @@ Server::Server(std::deque<std::string>& file)
 					continue ;
 				}
 			}
-			throw ArgumentIncorrect(splitted); //misschien incorrect
+			throw ArgumentIncorrect(splitted);
 		}
 		else
-			throw ElemNotRecognized(splitted); //misschien incorrect
+			this->_errorJumpTable(splitted);
 	}
+	throw MissingClosingBracket();
 }
 
 Server::Server(const Server& ref)
@@ -122,11 +127,12 @@ const std::map<std::string, Location>&	Server::getLocations() const
 	return this->_locations;
 }
 
-// Location&	Server::getLocation(const std::string& key)
-// {
-// 	if (this->_locations.find(key) != this->_locations.end())
-// 		return this->_locations[key];
-// }
+Location&	Server::getLocation(const std::string& key)
+{
+	if (this->_locations.find(key) != this->_locations.end())
+		return this->_locations[key];
+	throw LocationDoesNotExist();
+}
 
 const std::map<int, std::string>&	Server::getErrorPage() const
 {

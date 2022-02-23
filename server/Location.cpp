@@ -4,12 +4,12 @@
 #include <sstream>
 #include <exception>
 
-void	Location::_errorJumpTable(std::vector<std::string>& line)
+void	Location::_errorJumpTable(std::vector<std::string>& line) // naam aanpassen
 {
 	const std::string server_elements[] = {"listen", "server_name", "error_page", "location"};
 
 	if (isIn(line[0], server_elements, sizeof(server_elements)))
-		throw MissingClosingBracket();
+		throw MissingClosingBracket("Location");
 	else
 		throw ElemNotRecognized(line);
 }
@@ -48,7 +48,7 @@ Location::Location(std::deque<std::string>& file, std::string& title)
 		else
 			this->_errorJumpTable(splitted);
 	}
-	throw MissingClosingBracket();
+	throw MissingClosingBracket("Location");
 }
 
 Location&	Location::operator=(const Location& ref)
@@ -144,7 +144,7 @@ void	Location::setAutoindex(std::vector<std::string>& line)
 	else if (line[1] == "off")
 		this->_autoindex = false;
 	else
-		throw aiElemNotRecognized(line);
+		throw ElemDefNotRecognized("Auto index", "[\"on\"/\"off\"]", line);
 }
 
 void	Location::setStaticDir(std::vector<std::string>& line)
@@ -156,7 +156,7 @@ void	Location::setStaticDir(std::vector<std::string>& line)
 	else if (line[1] == "false")
 		this->_staticDir = false;
 	else
-		throw sdElemNotRecognized(line);
+		throw ElemDefNotRecognized("Static dir", "[\"true\"/\"false\"]", line);
 }
 
 void	Location::addCgi(std::vector<std::string>& line)
@@ -186,7 +186,6 @@ void	Location::setLimitExcept(std::vector<std::string>& line)
 		if (!this->isIn(*itr, correctMethods, sizeof(correctMethods)))
 			throw leInvalidMethod(line, *itr);
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
-	//willen we voor duplicate testen want het wordt toch in een set gezet, misschien het idee van een warning
 }
 
 void	Location::setUploadStore(std::vector<std::string>& line)
