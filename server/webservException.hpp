@@ -26,7 +26,7 @@ class MissingClosingBracket : public std::exception
 	private:
 		MissingClosingBracket();
 	protected:
-		std::string	_location;
+		const std::string	_location;
 	public:
 		MissingClosingBracket(const std::string& loc);
 		virtual ~MissingClosingBracket() throw();
@@ -64,10 +64,10 @@ class ElemDefNotRecognized : public std::exception
 	private:
 		ElemDefNotRecognized();
 	protected:
-		std::string					_elem;
-		std::string					_expected;
-		std::vector<std::string>	_line;
-		std::string					_defenition;
+		const std::string				_elem;
+		const std::string				_expected;
+		const std::vector<std::string>	_line;
+		const std::string				_defenition;
 
 	public:
 		ElemDefNotRecognized(const std::string& elem, const std::string& expected, std::vector<std::string>& line);
@@ -80,12 +80,24 @@ class leInvalidMethod : public std::exception //done misschien shit verplaatsen
 	private:
 		leInvalidMethod();
 	protected:
-		std::vector<std::string>	_line;
-		std::string					_elem;
+		const std::vector<std::string>	_line;
+		const std::string				_elem;
 
 	public:
 		leInvalidMethod(std::vector<std::string>& line, std::string elem);
 		virtual ~leInvalidMethod() throw();
+		const char*	what (void) const throw();
+};
+
+class ElemNotANumber : public std::exception
+{
+	private:
+		ElemNotANumber();
+	protected:
+		const std::vector<std::string>	_line;
+	public:
+		ElemNotANumber(std::vector<std::string>& line);
+		virtual ~ElemNotANumber() throw();
 		const char*	what (void) const throw();
 };
 

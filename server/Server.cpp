@@ -5,7 +5,7 @@
 void	Server::_errorJumpTable(std::vector<std::string>& line)
 {
 	if (line[0] == "server")
-		throw MissingClosingBracket();
+		throw MissingClosingBracket("Server");
 	else
 		throw ElemNotRecognized(line);
 
@@ -52,7 +52,7 @@ Server::Server(std::deque<std::string>& file)
 		else
 			this->_errorJumpTable(splitted);
 	}
-	throw MissingClosingBracket();
+	throw MissingClosingBracket("Server");
 }
 
 Server::Server(const Server& ref)
@@ -103,7 +103,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
 	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
-		throw epNotANumber(line);
+		throw ElemNotANumber(line);
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
 }

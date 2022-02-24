@@ -130,3 +130,24 @@ const char*	leInvalidMethod::what (void) const throw()
 		ret += " " + *it;
 	return ret.c_str();
 }
+
+/* Element is not a number */
+ElemNotANumber::ElemNotANumber(std::vector<std::string>& line) : _line(line) {}
+ElemNotANumber::~ElemNotANumber() throw() {}
+
+const char*	ElemNotANumber::what (void) const throw()
+{
+	std::string ret;
+	ret += COLOR_WHITE_BOLD;
+	ret += "Element is not a number\n";
+	ret += "found: ";
+	ret += COLOR_WHITE_BOLD;
+	ret += "'";
+	ret += _line[1]; 
+	ret += "'\n";
+	ret += COLOR_NORMAL_DIM;
+	ret += "line:";
+	for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+		ret += " " + *it;
+	return ret.c_str();
+}
