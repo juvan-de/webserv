@@ -31,13 +31,33 @@ std::set<int> get_ports(std::vector<Server> servers, std::map<std::pair<int, std
 	return ports;
 }
 
-// #define PORT 8080
-// #define BACKLOG 100
-// #define BUFFER_SIZE 2000
-// #define SERVER_PATH "files/configs/config.conf"
-	// std::deque<std::string>	deque;
-	// char	location[] = "files/configs/config.conf";
-	// void	setFileInDeque(location, deque);
+void	add_cli(std::vector<pollfd> &fds, int cli_sock)
+{
+	struct pollfd new_fd;
+	int flags;
+
+	new_fd.fd = cli_sock;
+	new_fd.events = POLLIN;
+	flags = fcntl(cli_sock, F_GETFL);
+	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+	fds.push_back(new_fd);
+	std::cout << "Connected!" << std::endl;
+}
+
+void	check_connection(std::vector<pollfd> &fds, std::vector<Socket> &sockets, int i)
+{
+	if (fds[i].revents & POLLIN)
+	{
+		int cli_sock;
+		if ((cli_sock = sockets[i].new_connection()) < 0)
+		{
+			if (errno != EWOULDBLOCK)
+				std::cout << "error occured" << std::endl;
+		}
+		else
+			add_cli(fds, cli_sock);
+	}
+}
 
 int main(int ac, char **av)
 {

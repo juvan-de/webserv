@@ -1,9 +1,19 @@
 NAME 		= 	cli
 
-SOURCES		= 	cli.cpp
+SOURCES		= 	main.cpp\
+				cli.cpp\
+				parser/Server.cpp\
+				parser/Location.cpp\
+				parser/redir.cpp\
+				parser/parse.cpp\
+				parser/split.cpp\
+				parser/isNumber.cpp
 
-OBJDIR		=	obj/
-OBJECTS 	=	$(addprefix $(OBJDIR), $(SOURCES:%.cpp=%.o))
+				
+OBJDIR		=	./obj/
+OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
+
+INC			=	-Iparser
 
 FLAGS 		=	-Wall -Wextra -Werror -std=c++98
 COMPILE		=	clang++
@@ -18,12 +28,12 @@ RED 		= 	\033[38;5;160m
 all: $(NAME)
 
 $(OBJDIR)%.o: %.cpp
-	@mkdir -p $(OBJDIR)
+	@mkdir -p $(@D)
 	@echo "$(GREY)Compiling...				$(WHITE)$<"
-	@$(COMPILE) -c -o $@ $< 
+	@$(COMPILE) $(FLAGS) $(INC) -c $< -o $@
 
 $(NAME): $(OBJECTS)
-	@$(COMPILE) $(OBJECTS) -o $(NAME)
+	@$(COMPILE) $(FLAGS) $(INC) $(OBJECTS) -o $(NAME)
 	@echo "$(GREEN)Use exe - $(NAME)"
 
 clean:
