@@ -31,10 +31,10 @@ std::set<int> get_ports(std::vector<Server> servers, std::map<std::pair<int, std
 	return ports;
 }
 
-#define PORT 8080
-#define BACKLOG 100
-#define BUFFER_SIZE 2000
-#define SERVER_PATH "files/configs/config.conf"
+// #define PORT 8080
+// #define BACKLOG 100
+// #define BUFFER_SIZE 2000
+// #define SERVER_PATH "files/configs/config.conf"
 	// std::deque<std::string>	deque;
 	// char	location[] = "files/configs/config.conf";
 	// void	setFileInDeque(location, deque);
@@ -70,17 +70,17 @@ int main(int ac, char **av)
 
 			int sockets_num = fds.size();
 			/* DEBUG */
-			std::cout << "num " << sockets_num << std::endl;
+			// std::cout << "num " << sockets_num << std::endl;
 			while (true)
 			{
 				for (int i = 0; i < sockets_num; i++)
 					fds[i].events = POLLIN;
 				poll(&fds[0], fds.size(), 3 * 60 * 1000);
-				handle_connection(fds, servers, sockets_num);
+				handle_connection(fds, table, servers, sockets_num);
 				std::cout << "Waiting for connections..." << std::endl;
 				for (int i = 0; i < sockets_num; i++)
 				{
-					std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
+					// std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
 					if (fds[i].revents & POLLIN)
 					{
 						int cli_sock;
@@ -112,8 +112,6 @@ int main(int ac, char **av)
 		}	
 	}
 	else
-	{
 		std::cout << "incorrect arguments" << std::endl;
-	}
 	return (0);	
 }

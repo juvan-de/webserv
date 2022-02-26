@@ -1,4 +1,5 @@
 #include <vector>
+#include <map>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -56,11 +57,13 @@ std::string	find_response(std::vector<Server> servers, Header header)
 	return ("error_response");
 }
 
-Header		read_request(struct pollfd &fd, std::vector<Server> servers)
+Header		read_request(struct pollfd &fd, std::map<std::pair<int, std::string>, Server> &table, std::vector<Server> servers)
 {
 	char		*request = new char[BUFFER_SIZE + 1];
 	std::string	srequest;
 	int			ret;
+
+	(void)table;
 	do 
 	{
 		ret = read(fd.fd, request, BUFFER_SIZE);
@@ -95,13 +98,13 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 	return (Header());
 }
 
-void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
+void	handle_connection(std::vector<pollfd> &fds, std::map<std::pair<int, std::string>, Server> &table, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
 	{
 		if (fds[i].revents & POLLIN)
 		{
-			requests.push_back(read_request(fds[i], servers));
+			requests.push_back(read_request(fds[i], table, servers));
 		//	fds[i].events = POLLOUT;
 		}
 		else if (fds[i].revents & POLLOUT)
