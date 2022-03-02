@@ -80,7 +80,7 @@ int main(int ac, char **av)
 				std::cout << "Waiting for connections..." << std::endl;
 				for (int i = 0; i < sockets_num; i++)
 				{
-					std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
+//					std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
 					if (fds[i].revents & POLLIN)
 					{
 						int cli_sock;

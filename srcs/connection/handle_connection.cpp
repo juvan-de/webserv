@@ -12,6 +12,7 @@
 #include <fstream>
 #include <Server.hpp>
 #include <Header.hpp>
+#include <Response.hpp>
 
 #define PORT 8080
 #define BACKLOG 100
@@ -29,7 +30,7 @@ struct sockaddr_in get_addr()
 	return address;
 }
 
-std::string	find_response(std::vector<Server> servers, Header header)
+Response	find_response(std::vector<Server> servers, Header header)
 {
 	std::string	host;
 	std::vector<std::string> headers = header.getHeaders();
@@ -42,18 +43,18 @@ std::string	find_response(std::vector<Server> servers, Header header)
 			int port = std::atoi(host.substr(host.find(":") + 1).c_str());
 			for(std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 			{
-				/*still need to check for correct port as well */
+				/* still need to check for correct port as well */
 				if (it->getServerName().find(name) != it->getServerName().end())
 				{
 					Location location = it->getLocation(header.getLocation());
 					/* autograbbing the first index entry */
 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
-					return (response_file);
+					return (Response(response_file, *it));
 				}
 			}
 		}
 	}
-	return ("error_response");
+	return (Response("error_response"));
 }
 
 Header		read_request(struct pollfd &fd, std::vector<Server> servers)
@@ -75,8 +76,11 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 		Header header(srequest, fd.fd);
 		if (header.getType() == GET)
 		{
-			std::string path = "files/" + find_response(servers, header);
-			header.setResponse(path);
+			Response response = find_response(servers, header);
+			/* for now */
+			std::string path = "files/" + response.getPath();
+			header.setResponseBody(path);
+			std::cout << response << std::endl;
 			return (header);
 		}
 		else if (header.getType() == POST)
@@ -110,7 +114,7 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 			{
 				if (requests[j].getClisock() == fds[i].fd)
 				{
-					std::string response = requests[j].getResponse();
+					std::string response = requests[j].getResponseStr();
 					send(fds[i].fd, response.c_str(), response.length(), 0);
 				}
 			}
