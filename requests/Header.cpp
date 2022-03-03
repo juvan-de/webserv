@@ -49,7 +49,7 @@ Header&	Header::operator=(const Header& ref)
 	this->_type = ref.getType();
 	this->_location = ref.getLocation();
 	this->_headers = ref.getHeaders();
-	this->_response = ref.getResponse();
+	this->_responseStr = ref.getResponseStr();
 	return (*this);
 }
 
@@ -70,9 +70,9 @@ std::vector<std::string>	const &Header::getHeaders() const
 	return (this->_headers);
 }
 
-std::string	const &Header::getResponse() const
+std::string	const &Header::getResponseStr() const
 {
-	return (this->_response);
+	return (this->_responseStr);
 }
 
 int			const &Header::getClisock() const
@@ -80,17 +80,30 @@ int			const &Header::getClisock() const
 	return (this->_clisock);
 }
 
-void		Header::setResponse(std::string &filename)
+// void		Header::wrapResponse()
+// {
+// 	Response	response();
+// 	StatusCodes	codes();
+
+// }
+
+void		Header::setResponseBody(std::string &filename)
 {
 	std::ifstream	file(filename.c_str());
 	std::string		line;
+
 	if (file.is_open())
 	{
 		while (getline(file, line))
 		{
-			this->_response.append(line);
+			this->_responseStr.append(line);
 		}
 	}
 	else
 		throw NotAFile();
+}
+
+void		Header::setResponse(Response response)
+{
+	this->_response = response;
 }

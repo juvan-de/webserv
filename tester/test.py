@@ -1,4 +1,5 @@
-import sys
+import sys # open
+import threading # multi threading
 import requests # need the requests package for this one bois
 
 def get_ports():
@@ -12,7 +13,10 @@ def get_ports():
 	return list(dict.fromkeys(ports))
 
 def make_request():
-	r = requests.get("http://localhost:8080/")
+	link = "http://localhost:" + str(threading.current_thread().name) + "/"
+	# print(link)
+	r = requests.get(link)
+	print(r)
 
 def	main():
 	ports = []
@@ -21,6 +25,10 @@ def	main():
 	except:
 		print("Invalid argument")
 	print(ports)
-	make_request()
+	for port in ports:
+		try:
+			threading.Thread(target=make_request, name=port).start()
+		except:
+			print("Couldnt make thread")
 
 main()
