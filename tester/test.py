@@ -1,15 +1,26 @@
 import sys
+import requests # need the requests package for this one bois
+
+def get_ports():
+	ports = []
+	f = open(sys.argv[1], "r")
+	for line in f:
+		if "listen" in line:
+			for word in line.split():
+				if not "listen" in word and not "localhost" in word:
+					ports.append(int(word))
+	return list(dict.fromkeys(ports))
+
+def make_request():
+	r = requests.get("http://localhost:8080/")
 
 def	main():
-	ports = ""
+	ports = []
 	try:
-		f = open(sys.argv[1], "r")
-		# print(f.read())
-		for i in f:
-			if "listen" in i:
-				ports += i
+		ports = get_ports()
 	except:
 		print("Invalid argument")
-	print(ports.replace("listen", ""))
+	print(ports)
+	make_request()
 
 main()
