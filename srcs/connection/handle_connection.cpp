@@ -15,21 +15,21 @@
 #include <Header.hpp>
 #include <Response.hpp>
 
-#define PORT 8080
+// #define PORT 8080
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
 std::vector<Header>	requests;
 
-struct sockaddr_in get_addr()
-{
-	struct sockaddr_in address;
+// struct sockaddr_in get_addr()
+// {
+// 	struct sockaddr_in address;
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
-}
+// 	address.sin_family = AF_INET;
+// 	address.sin_addr.s_addr = INADDR_ANY;
+// 	address.sin_port = htons(PORT);
+// 	return address;
+// }
 
 Response	find_response(std::vector<Server> servers, Header header)
 {
@@ -58,13 +58,12 @@ Response	find_response(std::vector<Server> servers, Header header)
 	return (Response("error_response"));
 }
 
-Header		read_request(struct pollfd &fd, std::map<std::pair<int, std::string>, Server> &table, std::vector<Server> servers)
+Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 {
 	char		*request = new char[BUFFER_SIZE + 1];
 	std::string	srequest;
 	int			ret;
 
-	(void)table;
 	do 
 	{
 		ret = read(fd.fd, request, BUFFER_SIZE);
@@ -102,24 +101,25 @@ Header		read_request(struct pollfd &fd, std::map<std::pair<int, std::string>, Se
 	return (Header());
 }
 
-void	handle_connection(std::vector<pollfd> &fds, std::map<std::pair<int, std::string>, Server> &table, std::vector<Server> servers, size_t start)
+void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
 	{
 		if (fds[i].revents & POLLIN)
 		{
-			requests.push_back(read_request(fds[i], table, servers));
-		//	fds[i].events = POLLOUT;
+			requests.push_back(read_request(fds[i], servers));
+			fds[i].events = POLLOUT;
 		}
 		else if (fds[i].revents & POLLOUT)
 		{
-			for (size_t j = start; j < requests.size(); j++)
+			std::cout << "polluttt" << std::endl;
+			for (size_t j = 0; j < requests.size(); j++)
 			{
-				if (requests[j].getClisock() == fds[i].fd)
-				{
+				// if (requests[j].getClisock() == fds[i].fd)
+				// {
 					std::string response = requests[j].getResponseStr();
 					send(fds[i].fd, response.c_str(), response.length(), 0);
-				}
+				// }
 			}
 		}
 	}

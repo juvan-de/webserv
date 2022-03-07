@@ -95,8 +95,10 @@ int main(int ac, char **av)
 			{
 				for (int i = 0; i < sockets_num; i++)
 					fds[i].events = POLLIN;
-				poll(&fds[0], fds.size(), 3 * 60 * 1000);
-				handle_connection(fds, table, servers, sockets_num);
+				// for (std::vector<pollfd>::const_iterator it = fds.begin(); it != fds.end(); it++)
+				// 	std::cout << it->fd << std::endl;
+				poll(&fds[0], fds.size(), 0);
+				handle_connection(fds, servers, sockets_num);
 				std::cout << "Waiting for connections..." << std::endl;
 				for (int i = 0; i < sockets_num; i++)
 				{
@@ -124,6 +126,7 @@ int main(int ac, char **av)
 					}
 				}
 				sleep(1);
+				// meerdere keer readen, cgi
 			}
 		}
 		catch(const std::exception& e)

@@ -17,7 +17,7 @@
 # include <poll.h>
 # include <Server.hpp>
 
-void	handle_connection(std::vector<pollfd> &fds, std::map<std::pair<int, std::string>, Server> &table, std::vector<Server> servers, size_t start);
+void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start);
 Header				read_request(struct pollfd &fd);
 struct sockaddr_in	get_addr();
 

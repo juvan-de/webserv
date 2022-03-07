@@ -13,10 +13,15 @@ def get_ports():
 	return list(dict.fromkeys(ports))
 
 def make_request():
+	print("started new thread")
 	link = "http://localhost:" + str(threading.current_thread().name) + "/"
 	# print(link)
-	r = requests.get(link)
-	print(r)
+	try:
+		r = requests.get(link, timeout=1)
+		print("------------------------------\n" + r + "------------------------------\n")
+	except:
+		print("Bad return")
+	return
 
 def	main():
 	ports = []
