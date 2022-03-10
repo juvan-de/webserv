@@ -101,6 +101,7 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 	return (Header());
 }
 
+// for 
 void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
@@ -112,14 +113,10 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 		}
 		else if (fds[i].revents & POLLOUT)
 		{
-			std::cout << "polluttt" << std::endl;
 			for (size_t j = 0; j < requests.size(); j++)
 			{
-				// if (requests[j].getClisock() == fds[i].fd)
-				// {
-					std::string response = requests[j].getResponseStr();
-					send(fds[i].fd, response.c_str(), response.length(), 0);
-				// }
+				std::string response = requests[j].getResponseStr();
+				send(fds[i].fd, response.c_str(), response.length(), 0);
 			}
 		}
 	}
