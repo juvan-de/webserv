@@ -1,4 +1,4 @@
-HTTP/1.0 200 OK
+HTTP/1.1 200 OK
 Server: Netscape-Communications/1.1
 Date: Tuesday, 25-Nov-97 01:22:04 GMT
 Last-modified: Thursday, 20-Nov-97 10:44:53 GMT
@@ -20,3 +20,9 @@ Connection: [stay alive of Closed]
 
 "doctype"
 
+--------------------------------------------------------------------------------
+
+HTTP/1.1 200 OK
+Content-type: video/mp4;
+Connection: Closed
+Content-length: [bytes to send]

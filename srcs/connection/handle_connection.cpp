@@ -14,22 +14,13 @@
 #include <Server.hpp>
 #include <Header.hpp>
 #include <Response.hpp>
+#include <sstream> // for bullshit
 
-// #define PORT 8080
+#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
 std::vector<Header>	requests;
-
-// struct sockaddr_in get_addr()
-// {
-// 	struct sockaddr_in address;
-
-// 	address.sin_family = AF_INET;
-// 	address.sin_addr.s_addr = INADDR_ANY;
-// 	address.sin_port = htons(PORT);
-// 	return address;
-// }
 
 Response	find_response(std::vector<Server> servers, Header header)
 {
@@ -101,7 +92,28 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 	return (Header());
 }
 
-#include <sstream>
+void	send_response(std::vector<pollfd> &fds, std::string response, int index)
+{
+	int bytes_send = 0;
+	int len = response.length();
+
+	while (len > 0)
+	{
+		if (len > TCP_MAX)
+		{
+			std::cout << "*LEN IS MORE THEN MAX TCP CAN SEND*" << std::endl;
+			send(fds[index].fd, response.c_str() + bytes_send, TCP_MAX, 0);
+			bytes_send += TCP_MAX;
+		}
+		else
+		{
+			send(fds[index].fd, response.c_str() + bytes_send, len, 0);
+			bytes_send += len;
+		}
+		len -= bytes_send;
+	}
+}
+
 void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
@@ -124,7 +136,8 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 				mod_resp.append("\n\n");
 				mod_resp.append(response);
 				std::cout << mod_resp << std::endl;
-				send(fds[i].fd, mod_resp.c_str(), mod_resp.length(), 0);
+				// send(fds[i].fd, mod_resp.c_str(), mod_resp.length(), 0);
+				send_response(fds, mod_resp, i);
 			}
 		}
 	}
