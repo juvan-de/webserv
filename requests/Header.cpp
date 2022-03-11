@@ -96,11 +96,12 @@ void		Header::setResponseBody(std::string &filename)
 	{
 		while (getline(file, line))
 		{
-			this->_responseStr.append(line);
+			this->_responseStr.append(line).append("\n");
 		}
 	}
 	else
 		throw NotAFile();
+	file.close();
 }
 
 void		Header::setResponse(Response response)

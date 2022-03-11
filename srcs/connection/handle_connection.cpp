@@ -101,7 +101,7 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 	return (Header());
 }
 
-// for 
+#include <sstream>
 void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
 {
 	for (size_t i = start; i < fds.size(); i++)
@@ -116,7 +116,15 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 			for (size_t j = 0; j < requests.size(); j++)
 			{
 				std::string response = requests[j].getResponseStr();
-				send(fds[i].fd, response.c_str(), response.length(), 0);
+				std::cout << "-----------------response-----------------" << std::endl;
+				std::string mod_resp = "HTTP/1.0 200 OK\nContent-type: text/html\nConnection: Closed\nContent-length: ";
+				std::stringstream ss;
+				ss << response.size();
+				mod_resp.append(ss.str());
+				mod_resp.append("\n\n");
+				mod_resp.append(response);
+				std::cout << mod_resp << std::endl;
+				send(fds[i].fd, mod_resp.c_str(), mod_resp.length(), 0);
 			}
 		}
 	}
