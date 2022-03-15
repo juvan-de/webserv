@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/15 17:31:56 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/15 17:45:17 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,7 @@ Response::Response(std::string file, Server server)
 	ss << "Last-modified: Thursday, 20-Nov-97 10:44:53 GMT" << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: text/html" << "\r\n";
-	ss << "Connection: Keep-Alive" << "\r\n";
-	ss << "\r\n";
+	ss << "Connection: Keep-Alive" << "\r\n\r\n";
 	ss << getResponseBody();
 	this->_response = ss.str();
 }
