@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   handle_connection.cpp                              :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
+/*   Updated: 2022/03/16 10:52:38 by ztan          ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <vector>
 #include <map>
 #include <unistd.h>
@@ -41,6 +53,8 @@ Response	find_response(std::vector<Server> servers, Header header)
 					Location location = it->getLocation(header.getLocation());
 					/* autograbbing the first index entry */
 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
+					// Response response(response_file, *it, header);
+					// std::cout << response.getResponse() << std::endl;
 					return (Response(response_file, *it));
 				}
 			}
@@ -62,18 +76,19 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 		if (ret)
 			srequest.append(request);
 	} while (ret > 0);
-	std::cout << srequest << std::endl;
+//	std::cout << srequest << std::endl;
 	delete [] request;
 	if (srequest.size() > 0)
 	{
 		Header header(srequest, fd.fd);
 		if (header.getType() == GET)
 		{
-			Response response = find_response(servers, header);
 			/* for now */
-			std::string path = "files/" + response.getPath();
-			header.setResponseBody(path);
-			std::cout << response << std::endl;
+			Response response = find_response(servers, header);
+			header.setResponse(response);
+			std::cout << response.getResponse() << std::endl;
+			int ret = send(fd.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+			std::cout << "ret:" << ret << "responselength: " << response.getResponse().length() << std::endl;
 			return (header);
 		}
 		else if (header.getType() == POST)
@@ -127,17 +142,12 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 		{
 			for (size_t j = 0; j < requests.size(); j++)
 			{
-				std::string response = requests[j].getResponseStr();
-				std::cout << "-----------------response-----------------" << std::endl;
-				std::string mod_resp = "HTTP/1.0 200 OK\nContent-type: text/html\nConnection: Closed\nContent-length: ";
-				std::stringstream ss;
-				ss << response.size();
-				mod_resp.append(ss.str());
-				mod_resp.append("\n\n");
-				mod_resp.append(response);
-				std::cout << mod_resp << std::endl;
-				// send(fds[i].fd, mod_resp.c_str(), mod_resp.length(), 0);
-				send_response(fds, mod_resp, i);
+				// if (requests[j].getClisock() == fds[i].fd)
+				// {
+					std::string response = requests[j].getResponse().getResponse();
+					std::cout << response << std::endl;
+					send(fds[i].fd, response.c_str(), response.length(), 0);
+				// }
 			}
 		}
 	}
