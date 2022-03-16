@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/16 10:52:38 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/16 11:15:53 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,12 +142,12 @@ void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, si
 		{
 			for (size_t j = 0; j < requests.size(); j++)
 			{
-				// if (requests[j].getClisock() == fds[i].fd)
-				// {
+				if (requests[j].getClisock() == fds[i].fd)
+				{
 					std::string response = requests[j].getResponse().getResponse();
-					std::cout << response << std::endl;
+					std::cout << "resp: " << response << std::endl;
 					send(fds[i].fd, response.c_str(), response.length(), 0);
-				// }
+				}
 			}
 		}
 	}

@@ -15,19 +15,13 @@
 #include <data.hpp> // main struct
 #include <Socket.hpp> // socket obj
 
-std::set<int> get_ports(std::vector<Server> servers, std::map<std::pair<int, std::string>, Server>& table)
+std::set<int> get_ports(std::vector<Server> servers)
 {
 	std::set<int> ports;
 
 	for (std::vector<Server>::iterator serv_it = servers.begin(); serv_it != servers.end(); serv_it++)
-	{
 		for (std::set<int>::iterator port_it = serv_it->getListen().begin(); port_it != serv_it->getListen().end(); port_it++)
-		{
 			ports.insert(*port_it);
-			for (std::set<std::string>::iterator name_it = serv_it->getServerName().begin(); name_it != serv_it->getServerName().end(); name_it++)
-				table.insert(std::make_pair(std::make_pair(*port_it, *name_it), *serv_it));
-		}
-	}
 	return ports;
 }
 
@@ -67,13 +61,12 @@ int main(int ac, char **av)
 		{
 			(void)ac;
 			std::vector<Server>	servers;
-			std::map<std::pair<int, std::string>, Server> table;
 			std::set<int> ports;
 			std::vector<Socket> sockets;
 			std::vector<pollfd> fds;
 
 			parse(av[1], servers);
-			ports = get_ports(servers, table);
+			ports = get_ports(servers);
 		
 			std::cout << "initializing ports" << std::endl;
 			sockets.reserve(ports.size());
@@ -101,30 +94,7 @@ int main(int ac, char **av)
 				handle_connection(fds, servers, sockets_num);
 				std::cout << "Waiting for connections..." << std::endl;
 				for (int i = 0; i < sockets_num; i++)
-				{
-					// std::cout << "revents: " << fds[i].revents << ", " << POLLOUT << ", fd: " << fds[i].fd << std::endl;
-					if (fds[i].revents & POLLIN)
-					{
-						int cli_sock;
-						if ((cli_sock = sockets[i].new_connection()) < 0)
-						{
-							if (errno != EWOULDBLOCK)
-								std::cout << "error occured" << std::endl;
-						}
-						else
-						{
-							// poll <- add accepted client
-							struct pollfd new_fd;
-							int flags;
-							new_fd.fd = cli_sock;
-							new_fd.events = POLLIN;
-							fds.push_back(new_fd);
-							flags = fcntl(cli_sock, F_GETFL);
-							fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-							std::cout << "Connected!" << std::endl;
-						}
-					}
-				}
+					check_connection(fds, sockets, i);
 				sleep(1);
 				// meerdere keer readen, cgi
 			}
