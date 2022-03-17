@@ -1,15 +1,15 @@
-#include <Header.hpp>
+#include <Request.hpp>
 #include <fstream>
 
-Header::Header()
+Request::Request()
 {
 	std::vector<std::string> empty;
-	this->_headers = empty;
+	this->_Requests = empty;
 	this->_type = ERROR;
 	this->_location = "";
 }
 
-Header::Header(std::string request, int clisock)
+Request::Request(std::string request, int clisock)
 {
 	this->_clisock = clisock;
 	size_t size = request.find(' ');
@@ -34,52 +34,52 @@ Header::Header(std::string request, int clisock)
 	while (start < request.size() && end != std::string::npos)
 	{
 		end = request.find('\n', start);
-		this->_headers.push_back(request.substr(start, end - start - 1));
+		this->_Requests.push_back(request.substr(start, end - start - 1));
 		start = end + 1;
 	}
 }
 
-Header::Header(const Header& ref)
+Request::Request(const Request& ref)
 {
 	*this = ref;
 }
 
-Header&	Header::operator=(const Header& ref)
+Request&	Request::operator=(const Request& ref)
 {
 	this->_type = ref.getType();
 	this->_location = ref.getLocation();
-	this->_headers = ref.getHeaders();
+	this->_Requests = ref.getRequests();
 	return (*this);
 }
 
-Header::~Header() {}
+Request::~Request() {}
 
-Type		const &Header::getType() const 
+Type		const &Request::getType() const 
 {
 	return (this->_type);
 }
 
-std::string	const &Header::getLocation() const 
+std::string	const &Request::getLocation() const 
 {
 	return (this->_location);
 }
 
-std::vector<std::string>	const &Header::getHeaders() const
+std::vector<std::string>	const &Request::getRequests() const
 {
-	return (this->_headers);
+	return (this->_Requests);
 }
 
-Response	const &Header::getResponse() const
+Response	const &Request::getResponse() const
 {
 	return (this->_response);
 }
 
-int			const &Header::getClisock() const
+int			const &Request::getClisock() const
 {
 	return (this->_clisock);
 }
 
-void			Header::setResponse(Response response)
+void			Request::setResponse(Response response)
 {
 	this->_response = response;
 }

@@ -1,5 +1,7 @@
 #include <Socket.hpp>
 #include <unistd.h> //close
+#include <vector>
+
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket()
 {
@@ -10,9 +12,8 @@ Socket::Socket()
 Socket::~Socket()
 {
 	/*Destructor*/
-	// std::cout << "Debug: closing server_sock " << _port << std::endl;
-	// close(_servfd);
-
+	std::cout << "Debug: closing server_sock " << _port << std::endl;
+	close(_servfd);
 }
 
 Socket::Socket(const Socket &ref)

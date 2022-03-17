@@ -6,39 +6,70 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/16 11:15:53 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/17 15:26:42 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+// containers
 #include <vector>
-#include <map>
+// connections
+#include <netinet/in.h> // networking
+#include <sys/socket.h> // htons
+#include <poll.h> // poll
+#include <fcntl.h> // setting flags
+// idk
 #include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+// cpp idk
+#include <iostream> // cout
+#include <sstream> // debug
+#include <fstream> // files
+// custom
 #include <Server.hpp>
-#include <Header.hpp>
+#include <Request.hpp>
 #include <Response.hpp>
-#include <sstream> // for bullshit
+
+#include <defines.hpp> // data struct, client struct
 
 #define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-std::vector<Header>	requests;
+void	add_cli_to_pollfds(t_data &data, int cli_sock)
+{
+	struct pollfd new_fd;
+	int flags;
 
-Response	find_response(std::vector<Server> servers, Header header)
+	new_fd.fd = cli_sock;
+	new_fd.events = POLLIN;
+	flags = fcntl(cli_sock, F_GETFL);
+	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+	data.fds.push_back(new_fd);
+	std::cout << "Connected!" << std::endl;
+}
+
+void	check_connection(t_data &data, int i)
+{
+	if (data.fds[i].revents & POLLIN)
+	{
+		int cli_sock;
+		if ((cli_sock = (*data.sockets[i]).new_connection()) < 0)
+		{
+			if (errno != EWOULDBLOCK)
+				std::cout << "error occured" << std::endl;
+		}
+		else
+			add_cli_to_pollfds(data, cli_sock);
+	}
+}
+
+Response	find_response(std::vector<Server> servers, Request Request)
 {
 	std::string	host;
-	std::vector<std::string> headers = header.getHeaders();
-	for (std::vector<std::string>::const_iterator it = header.getHeaders().begin(); it != header.getHeaders().end(); it++)
+	std::vector<std::string> Requests = Request.getRequests();
+	for (std::vector<std::string>::const_iterator it = Request.getRequests().begin(); it != Request.getRequests().end(); it++)
 	{
 		if (it->find("Host:", 0, 5) != std::string::npos)
 		{
@@ -50,10 +81,10 @@ Response	find_response(std::vector<Server> servers, Header header)
 				/* still need to check for correct port as well */
 				if (it->getServerName().find(name) != it->getServerName().end())
 				{
-					Location location = it->getLocation(header.getLocation());
+					Location location = it->getLocation(Request.getLocation());
 					/* autograbbing the first index entry */
 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
-					// Response response(response_file, *it, header);
+					// Response response(response_file, *it, Request);
 					// std::cout << response.getResponse() << std::endl;
 					return (Response(response_file, *it));
 				}
@@ -63,7 +94,7 @@ Response	find_response(std::vector<Server> servers, Header header)
 	return (Response("error_response"));
 }
 
-Header		read_request(struct pollfd &fd, std::vector<Server> servers)
+Request		read_request(struct pollfd &fd, std::vector<Server> servers)
 {
 	char		*request = new char[BUFFER_SIZE + 1];
 	std::string	srequest;
@@ -80,22 +111,22 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 	delete [] request;
 	if (srequest.size() > 0)
 	{
-		Header header(srequest, fd.fd);
-		if (header.getType() == GET)
+		Request Request(srequest, fd.fd);
+		if (Request.getType() == GET)
 		{
 			/* for now */
-			Response response = find_response(servers, header);
-			header.setResponse(response);
+			Response response = find_response(servers, Request);
+			Request.setResponse(response);
 			std::cout << response.getResponse() << std::endl;
 			int ret = send(fd.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
 			std::cout << "ret:" << ret << "responselength: " << response.getResponse().length() << std::endl;
-			return (header);
+			return (Request);
 		}
-		else if (header.getType() == POST)
+		else if (Request.getType() == POST)
 		{
 			std::cout << "whooo do the post thiing" << std::endl;
 		}
-		else if(header.getType() == DELETE)
+		else if(Request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
 		}
@@ -104,7 +135,7 @@ Header		read_request(struct pollfd &fd, std::vector<Server> servers)
 			std::cout << "shit went wrong yo" << std::endl;
 		}
 	}
-	return (Header());
+	return (Request());
 }
 
 void	send_response(std::vector<pollfd> &fds, std::string response, int index)

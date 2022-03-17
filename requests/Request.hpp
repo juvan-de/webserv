@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Header.hpp                                         :+:    :+:            */
+/*   Request.hpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
@@ -10,8 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef HEADER_HPP
-# define HEADER_HPP
+#ifndef Request_HPP
+# define Request_HPP
 
 # include <string>
 # include <iostream>
@@ -26,25 +26,25 @@ enum Type
 	ERROR
 };
 
-class	Header
+class	Request
 {
 	private:
 	Type						_type;
 	std::string					_location;
-	std::vector<std::string>	_headers;
+	std::vector<std::string>	_Requests;
 	int							_clisock;
 	Response					_response;
 	
 	public:
-	Header();	
-	Header(std::string request, int clisock);
-	Header(const Header& ref);
-	Header& operator=(const Header& ref);
-	~Header();
+	Request();	
+	Request(std::string request, int clisock);
+	Request(const Request& ref);
+	Request& operator=(const Request& ref);
+	~Request();
 
 	Type						const &getType() const;
 	std::string 				const &getLocation() const;
-	std::vector<std::string>	const &getHeaders() const;
+	std::vector<std::string>	const &getRequests() const;
 	Response					const &getResponse() const;
 	int							const &getClisock() const;
 	void						setResponse(Response response);
