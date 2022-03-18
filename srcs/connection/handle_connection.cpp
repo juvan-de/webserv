@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 16:43:21 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/18 16:45:13 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,7 +160,7 @@ void	send_response(std::vector<pollfd> &fds, std::string response, int index)
 	}
 }
 
-void	handle_connection(t_data &data, std::vector<Client> clients)
+void	handle_connection(std::vector<Client> clients)
 {
 	pollfd clientFd;
 	
