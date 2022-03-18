@@ -1,139 +1,176 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   handle_connection.cpp                              :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
+/*   Updated: 2022/03/18 16:45:13 by ztan          ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
+// containers
 #include <vector>
+// connections
+#include <netinet/in.h> // networking
+#include <sys/socket.h> // htons
+#include <poll.h> // poll
+#include <fcntl.h> // setting flags
+// idk
 #include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+// cpp idk
+#include <iostream> // cout
+#include <sstream> // debug
+#include <fstream> // files
+// custom
+#include <Server.hpp>
+#include <Request.hpp>
+#include <Response.hpp>
 
-#include <Header.hpp>
+#include <defines.hpp> // data struct, client struct
 
-#define PORT 8080
+#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-std::vector<Header>	requests;
-
-void	error_check(int err, std::string msg)
+void	add_cli_to_pollfds(t_data &data, int cli_sock)
 {
-	if (err < 0)
+	struct pollfd new_fd;
+	int flags;
+
+	new_fd.fd = cli_sock;
+	new_fd.events = POLLIN;
+	flags = fcntl(cli_sock, F_GETFL);
+	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+	data.fds.push_back(new_fd);
+	std::cout << "Connected!" << std::endl;
+}
+
+void	check_connection(t_data &data, int i)
+{
+	if (data.fds[i].revents & POLLIN)
 	{
-		std::cout << "Error: " << msg << std::endl;
-		exit(EXIT_FAILURE);	
+		int cli_sock;
+		if ((cli_sock = (*data.sockets[i]).new_connection()) < 0)
+		{
+			if (errno != EWOULDBLOCK)
+				std::cout << "error occured" << std::endl;
+		}
+		else
+			add_cli_to_pollfds(data, cli_sock);
 	}
 }
 
-struct sockaddr_in get_addr()
+Response	find_response(std::vector<Server> servers, Request Request)
 {
-	struct sockaddr_in address;
-
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
-}
-
-Header		read_request(struct pollfd &fd)
-{
-	char	*request = new char[BUFFER_SIZE + 1];
-	int ret = read(fd.fd, request, BUFFER_SIZE);
-	request[ret] = '\0';
-	if (ret > 0)
+	std::string	host;
+	std::vector<std::string> Requests = Request.getRequests();
+	for (std::vector<std::string>::const_iterator it = Request.getRequests().begin(); it != Request.getRequests().end(); it++)
 	{
-		std::string srequest(request);
-		Header header(srequest, fd.fd);
-
-		if (header.getType() == GET)
+		if (it->find("Host:", 0, 5) != std::string::npos)
 		{
-			std::string	root = "files";
-			std::string path = root.append(header.getPath());
-			header.setResponse(path);
-			delete [] request;
-			return (header);
-		}
-	}
-	return (Header());
-}
-
-void	handle_connection(std::vector<pollfd> &fds, size_t start)
-{
-	for (size_t i = start; i < fds.size(); i++)
-	{
-		if (fds[i].revents & POLLIN)
-		{
-			requests.push_back(read_request(fds[i]));
-			fds[i].events = POLLOUT;
-		}
-		else if (fds[i].revents & POLLOUT)
-		{
-			for (size_t j = 0; j < requests.size(); j++)
+			host = it->substr(6, std::string::npos);
+			std::string name = host.substr(0, host.find(":"));
+			int port = std::atoi(host.substr(host.find(":") + 1).c_str());
+			for(std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 			{
-				if (requests[j].getClisock() == fds[i].fd)
+				/* still need to check for correct port as well */
+				if (it->getServerName().find(name) != it->getServerName().end())
 				{
-					std::string response = requests[j].getResponse();
-					send(fds[i].fd, response.c_str(), response.length(), 0);
+					Location location = it->getLocation(Request.getLocation());
+					/* autograbbing the first index entry */
+					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
+					// Response response(response_file, *it, Request);
+					// std::cout << response.getResponse() << std::endl;
+					return (Response(response_file, *it));
 				}
 			}
 		}
 	}
+	return (Response("error_response"));
 }
 
-// int main()
-// {
-// 	int server_sock, cli_sock;
-// 	struct sockaddr_in address = get_addr();
-// 	int opted = 1;
-// 	int address_len = sizeof(address);
-// 	int flags;
-// 	std::vector<pollfd> fds;
-// 	struct pollfd new_fd;
+Request		read_request(struct pollfd &fd, std::vector<Server> servers)
+{
+	char		*request = new char[BUFFER_SIZE + 1];
+	std::string	srequest;
+	int			ret;
 
-// 	/* Getting a socket with ip4 protocol and socket stream */
-// 	error_check(server_sock = socket(AF_INET, SOCK_STREAM, 0), "getting the server socket");
-// 	/* Getting socket flags with fcntl */
-// 	error_check(flags = fcntl(server_sock, F_GETFL), "getting the server socket flags");
-// 	/* Setting the non-blocking flag */
-// 	error_check(fcntl(server_sock, F_SETFL, flags | O_NONBLOCK), "setting the server socket as non-blocking");
-// 	/* Initializing the socket on socket level using the reuseaddr protocol */
-// 	error_check(setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)), "initializing the server socket");
-// 	/* Binding the socket */
-// 	error_check(bind(server_sock, (struct sockaddr *)&address, sizeof(address)), "binding the server socket");
-// 	/* Start listening and allow a backlog of 100*/
-// 	error_check(listen(server_sock, BACKLOG), "listening on the server socket");
-// 	new_fd.fd = server_sock;
-// 	new_fd.events = POLLIN;
-// 	fds.push_back(new_fd);
-// 	while (true)
-// 	{
-// 		fds[0].events = POLLIN;
-// 		poll(&fds[0], fds.size(), 3 * 60 * 1000);
-// 		handle_connection(fds);
-// 		//std::cout << "Waiting for connections..." << std::endl;
-// 		if (fds[0].revents & POLLIN)
-// 		{
-// 			if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
-// 			{
-// 				if (errno == EWOULDBLOCK)
-// 					sleep(1);
-// 				else
-// 					error_check(-1, "Accepting a connection");
-// 			}
-// 			else
-// 			{
-// 				// poll <- add accepted client
-// 				struct pollfd new_fd;
-// 				new_fd.fd = cli_sock;
-// 				new_fd.events = POLLIN;
-// 				fds.push_back(new_fd);
-// 				fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-// 				std::cout << "Connected!" << std::endl;
-// 			}
-// 		}
-// 	}
-// 	return 0;
-// }
+	do 
+	{
+		ret = read(fd.fd, request, BUFFER_SIZE);
+		request[ret] = '\0';
+		if (ret)
+			srequest.append(request);
+	} while (ret > 0);
+//	std::cout << srequest << std::endl;
+	delete [] request;
+	if (srequest.size() > 0)
+	{
+		Request Request(srequest, fd.fd);
+		if (Request.getType() == GET)
+		{
+			/* for now */
+			Response response = find_response(servers, Request);
+			Request.setResponse(response);
+			std::cout << response.getResponse() << std::endl;
+			int ret = send(fd.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+			std::cout << "ret:" << ret << "responselength: " << response.getResponse().length() << std::endl;
+			return (Request);
+		}
+		else if (Request.getType() == POST)
+		{
+			std::cout << "whooo do the post thiing" << std::endl;
+		}
+		else if(Request.getType() == DELETE)
+		{
+			std::cout << "we be deletin tho" << std::endl;
+		}
+		else
+		{
+			std::cout << "shit went wrong yo" << std::endl;
+		}
+	}
+	return (Request());
+}
+
+void	send_response(std::vector<pollfd> &fds, std::string response, int index)
+{
+	int bytes_send = 0;
+	int len = response.length();
+
+	while (len > 0)
+	{
+		if (len > TCP_MAX)
+		{
+			std::cout << "*LEN IS MORE THEN MAX TCP CAN SEND*" << std::endl;
+			send(fds[index].fd, response.c_str() + bytes_send, TCP_MAX, 0);
+			bytes_send += TCP_MAX;
+		}
+		else
+		{
+			send(fds[index].fd, response.c_str() + bytes_send, len, 0);
+			bytes_send += len;
+		}
+		len -= bytes_send;
+	}
+}
+
+void	handle_connection(std::vector<Client> clients)
+{
+	pollfd clientFd;
+	
+	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
+	{
+		clientFd = client.getFd();
+		
+		if (clientFd & POLLIN)
+			client.request.addto_request();
+		else if (clientFd & POLLOUT)
+			handle_response(client.getRequest(), client.getStatus())
+	}
+}

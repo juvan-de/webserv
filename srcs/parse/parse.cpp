@@ -15,7 +15,7 @@
 # define COLOR_NORMAL_BOLD			"\033[0;01m"
 // # define COLOR_NORMAL				"\033[0m"
 
-static void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
+static void	setFileInDeque(std::string filename, std::deque<std::string>& filedeque)
 {
 	std::ifstream			infile;
 	std::string				line;
@@ -25,7 +25,7 @@ static void	setFileInDeque(char* filename, std::deque<std::string>& filedeque)
 		filedeque.push_back(line);
 }
 
-void	parse(char* filename, std::vector<Server>& servers)
+void	parse(std::string filename, std::vector<Server>& servers)
 {
 	std::deque<std::string>	filedeque;
 	setFileInDeque(filename, filedeque);

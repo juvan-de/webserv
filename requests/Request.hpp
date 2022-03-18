@@ -1,21 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
-/*   Header.hpp                                         :+:    :+:            */
+/*   Request.hpp                                         :+:    :+:            */
 /*                                                     +:+                    */
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/01 17:00:22 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/02/09 16:33:33 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/15 16:52:36 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef HEADER_HPP
-# define HEADER_HPP
+#ifndef Request_HPP
+# define Request_HPP
 
 # include <string>
 # include <iostream>
 # include <vector>
+# include <Response.hpp>
 
 enum Type 
 {
@@ -25,28 +26,37 @@ enum Type
 	ERROR
 };
 
-class	Header
+class	Request
 {
 	private:
 	Type						_type;
-	std::string					_path;
-	std::vector<std::string>	_headers;
-	std::string					_response;
+	std::string					_location;
+	std::vector<std::string>	_Requests;
 	int							_clisock;
+	Response					_response;
 	
 	public:
-	Header();	
-	Header(std::string request, int clisock);
-	Header(const Header& ref);
-	Header& operator=(const Header& ref);
-	~Header();
+	Request();	
+	Request(std::string request, int clisock);
+	Request(const Request& ref);
+	Request& operator=(const Request& ref);
+	~Request();
 
-	Type						getType() const;
-	std::string 				getPath() const;
-	std::vector<std::string>	getHeaders() const;
-	std::string					getResponse() const;
-	int							getClisock() const;
-	void						setResponse(std::string &response);
+	Type						const &getType() const;
+	std::string 				const &getLocation() const;
+	std::vector<std::string>	const &getRequests() const;
+	Response					const &getResponse() const;
+	int							const &getClisock() const;
+	void						setResponse(Response response);
+
+	private: /* -Exception- */
+		class NotAFile : public std::exception
+		{
+			const char*	what (void) const throw()
+			{
+				return ("Can't open this file");
+			}
+		};
 };
 
 

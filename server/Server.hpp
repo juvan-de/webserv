@@ -48,6 +48,14 @@ class	Server
 				return ("This Location does not exist");
 			};
 		};
+
+		class LocationDoesNotExist : public std::exception
+		{
+			const char*	what(void) const throw()
+			{
+				return ("This Location does not exist");
+			};
+		};
 };
 
 std::ostream&	operator<< (std::ostream& out, const Server& obj);

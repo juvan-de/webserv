@@ -5,6 +5,7 @@
 #include <fcntl.h> // fcntl
 #include <poll.h> // polling
 #include <netinet/in.h> // sockaddr_in
+#include <set>
 
 # include <iostream>
 # define BACKLOG 100

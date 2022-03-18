@@ -1,0 +1,42 @@
+data {
+	std::vector<Server>	servers_configs;
+	std::vector<Socket> sockets;
+	std::vector<pollfd> fds;
+	int socket_num;
+}
+
+client {
+	int fd;
+	Request request;
+	pair<int, string> status;
+}
+
+handle_clients(Client client) {
+	if POLLIN {
+		client.request.addto_request(handle_request(client.getfd()))
+	}
+	else if POLLOUT {
+		handle_response(client.getrequest(), client.getstatus())
+	}
+}
+
+main {
+	parse
+	open_sockets()
+	while {
+		poll clients
+		for each client
+			handle_clients
+		get_new_clients
+	}
+	return
+}
+
+*FILES*
+- objects
+	Socket
+	Server
+	Request
+- data structures
+	Client
+	data -> alle algemene data zoals servers sockets etc
