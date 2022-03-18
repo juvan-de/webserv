@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 18:25:28 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/18 18:37:25 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,16 +39,6 @@
 #define BUFFER_SIZE 2000
 
 std::vector<Request>	requests;
-
-struct sockaddr_in get_addr()
-{
-	struct sockaddr_in address;
-
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
-}
 
 Server	&find_server(std::vector<Server> servers, Request Request)
 {
@@ -85,8 +75,6 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		{
 			/* for now */
 			Server server = find_server(servers, client.request);
-			
-			std::cout << client.request.getResponse() << std::endl;
 			int ret = send(client.fd.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
 		}
 		else if (client.request.getType() == POST)
@@ -129,7 +117,7 @@ void	handle_connection(std::vector<Server> servers, std::vector<t_client> client
 				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
 				// }
 		}
-		len -= bytes_send;
+	//	len -= bytes_send;
 	}
 }
 

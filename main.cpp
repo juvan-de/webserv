@@ -18,7 +18,7 @@ int main(int ac, char **av)
 			for (int i = 0; i < data.socket_num; i++)
 				data.fds[i].events = POLLIN;
 			poll(&data.fds[0], data.fds.size(), -1);
-			// handle_connection(clients);
+			handle_connection(data.servers_configs, clients);
 			std::cout << "Waiting for connections..." << std::endl;
 			for (int i = 0; i < data.socket_num; i++)
 				check_connection(data, clients, i);
