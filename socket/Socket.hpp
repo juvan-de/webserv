@@ -5,9 +5,15 @@
 #include <fcntl.h> // fcntl
 #include <poll.h> // polling
 #include <netinet/in.h> // sockaddr_in
+#include <set>
+
+#include <defines.hpp> // data and client struct
 
 # include <iostream>
 # define BACKLOG 100
+
+typedef struct s_data t_data;
+typedef struct s_client t_client;
 
 class Socket
 {
@@ -15,11 +21,11 @@ class Socket
 		/*--------------------------Member variables--------------------------*/
 		int					_port;
 		int					_servfd;
-		struct sockaddr_in	_address;
 		int					_opted;
 		int					_address_len;
 		int					_flags;
 		int					_backlog;
+		struct sockaddr_in	_address;
 		struct pollfd		_poll;
 
 	public:
@@ -57,5 +63,7 @@ class Socket
 			}
 		} badAccept;
 };
+
+void	check_connection(t_data &data, std::vector<t_client> clients, int i);
 
 #endif

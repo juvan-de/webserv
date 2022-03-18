@@ -44,7 +44,7 @@ class	Request
 
 	Type						const &getType() const;
 	std::string 				const &getLocation() const;
-	std::vector<std::string>	const &getHeaders() const;
+	std::vector<std::string>	const &getRequests() const;
 	Response					const &getResponse() const;
 	void						setResponse(Response response);
 	void						addto_request(int fd);

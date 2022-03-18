@@ -6,28 +6,35 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 18:09:48 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/18 18:25:28 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+// containers
 #include <vector>
+// connections
+#include <netinet/in.h> // networking
+#include <sys/socket.h> // htons
+#include <poll.h> // poll
+#include <fcntl.h> // setting flags
+// idk
 #include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+// cpp idk
+#include <iostream> // cout
+#include <sstream> // debug
+#include <fstream> // files
+// custom
 #include <Server.hpp>
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
 
-#define PORT 8080
+#include <defines.hpp> // data struct, client struct
+
+#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
@@ -122,5 +129,17 @@ void	handle_connection(std::vector<Server> servers, std::vector<t_client> client
 				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
 				// }
 		}
+		len -= bytes_send;
 	}
 }
+
+// void	handle_connection(std::vector<Client> clients)
+// {	
+// 	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
+// 	{
+// 		if (client.fd & POLLIN)
+// 			client.request.addto_request();
+// 		else if (client.fd & POLLOUT)
+// 			handle_response(client.getRequest(), client.getStatus())
+// 	}
+// }
