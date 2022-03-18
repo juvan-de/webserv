@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/17 15:26:42 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/18 16:43:21 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,26 +160,17 @@ void	send_response(std::vector<pollfd> &fds, std::string response, int index)
 	}
 }
 
-void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
+void	handle_connection(t_data &data, std::vector<Client> clients)
 {
-	for (size_t i = start; i < fds.size(); i++)
+	pollfd clientFd;
+	
+	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
 	{
-		if (fds[i].revents & POLLIN)
-		{
-			requests.push_back(read_request(fds[i], servers));
-			fds[i].events = POLLOUT;
-		}
-		else if (fds[i].revents & POLLOUT)
-		{
-			for (size_t j = 0; j < requests.size(); j++)
-			{
-				if (requests[j].getClisock() == fds[i].fd)
-				{
-					std::string response = requests[j].getResponse().getResponse();
-					std::cout << "resp: " << response << std::endl;
-					send(fds[i].fd, response.c_str(), response.length(), 0);
-				}
-			}
-		}
+		clientFd = client.getFd();
+		
+		if (clientFd & POLLIN)
+			client.request.addto_request();
+		else if (clientFd & POLLOUT)
+			handle_response(client.getRequest(), client.getStatus())
 	}
 }

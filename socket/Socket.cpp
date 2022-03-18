@@ -40,7 +40,7 @@ Socket&	Socket::operator=(const Socket &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Socket::Socket(int port) : _port(port)
+Socket::Socket(int port, bool isClient) : _port(port)
 {
 	/*Constructor*/
 	std::cout << "Initializing port " << _port << std::endl;
