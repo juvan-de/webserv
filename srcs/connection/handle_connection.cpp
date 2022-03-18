@@ -6,41 +6,51 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 18:09:48 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/18 18:15:43 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
+// containers
 #include <vector>
+// connections
+#include <netinet/in.h> // networking
+#include <sys/socket.h> // htons
+#include <poll.h> // poll
+#include <fcntl.h> // setting flags
+// idk
 #include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+// cpp idk
+#include <iostream> // cout
+#include <sstream> // debug
+#include <fstream> // files
+// custom
 #include <Server.hpp>
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
 
-#define PORT 8080
+#include <defines.hpp> // data struct, client struct
+
+#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
 std::vector<Request>	requests;
 
-struct sockaddr_in get_addr()
+void	add_cli_to_pollfds(t_data &data, int cli_sock)
 {
-	struct sockaddr_in address;
+	struct pollfd new_fd;
+	int flags;
 
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
+	new_fd.fd = cli_sock;
+	new_fd.events = POLLIN;
+	flags = fcntl(cli_sock, F_GETFL);
+	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+	data.fds.push_back(new_fd);
+	std::cout << "Connected!" << std::endl;
 }
 
 Server	&find_server(std::vector<Server> servers, Request Request)
@@ -122,5 +132,21 @@ void	handle_connection(std::vector<Server> servers, std::vector<t_client> client
 				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
 				// }
 		}
+		len -= bytes_send;
+	}
+}
+
+void	handle_connection(std::vector<Client> clients)
+{
+	pollfd clientFd;
+	
+	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
+	{
+		clientFd = client.getFd();
+		
+		if (clientFd & POLLIN)
+			client.request.addto_request();
+		else if (clientFd & POLLOUT)
+			handle_response(client.getRequest(), client.getStatus())
 	}
 }
