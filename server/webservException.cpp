@@ -34,14 +34,14 @@ const char*	MissingClosingBracket::what(void) const throw()
 }
 
 /* Element not Recognized */
-ElemNotRecognized::ElemNotRecognized(std::vector<std::string>& line) : _line(line) {}
-ElemNotRecognized::~ElemNotRecognized() throw() {}
+DirectiveNotRecognized::DirectiveNotRecognized(std::vector<std::string>& line) : _line(line) {}
+DirectiveNotRecognized::~DirectiveNotRecognized() throw() {}
 
-const char*	ElemNotRecognized::what (void) const throw()
+const char*	DirectiveNotRecognized::what (void) const throw()
 {
 	std::string ret;
 	ret += COLOR_WHITE_BOLD;
-	ret += "Element no recognized\n";
+	ret += "Directive no recognized\n";
 	ret += COLOR_NORMAL;
 	ret += "found: ";
 	ret += COLOR_WHITE_BOLD;

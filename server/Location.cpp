@@ -11,7 +11,7 @@ void	Location::_errorJumpTable(std::vector<std::string>& line) // naam aanpassen
 	if (isIn(line[0], server_elements, sizeof(server_elements)))
 		throw MissingClosingBracket("Location");
 	else
-		throw ElemNotRecognized(line);
+		throw DirectiveNotRecognized(line);
 }
 
 Location::Location(std::deque<std::string>& file, std::string& title)

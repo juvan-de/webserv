@@ -33,15 +33,15 @@ class MissingClosingBracket : public std::exception
 		const char*	what (void) const throw();
 };
 
-class ElemNotRecognized : public std::exception
+class DirectiveNotRecognized : public std::exception
 {
 	private:
-		ElemNotRecognized();
+		DirectiveNotRecognized();
 	protected:
 		std::vector<std::string>	_line;
 	public:
-		ElemNotRecognized(std::vector<std::string>& line);
-		virtual ~ElemNotRecognized() throw();
+		DirectiveNotRecognized(std::vector<std::string>& line);
+		virtual ~DirectiveNotRecognized() throw();
 		const char*	what (void) const throw();
 };
 

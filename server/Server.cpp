@@ -7,7 +7,7 @@ void	Server::_errorJumpTable(std::vector<std::string>& line)
 	if (line[0] == "server")
 		throw MissingClosingBracket("Server");
 	else
-		throw ElemNotRecognized(line);
+		throw DirectiveNotRecognized(line);
 
 }
 
