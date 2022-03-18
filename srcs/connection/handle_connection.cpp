@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/15 17:17:45 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/18 18:09:48 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,14 +23,15 @@
 #include <sstream>
 #include <fstream>
 #include <Server.hpp>
-#include <Header.hpp>
+#include <Request.hpp>
 #include <Response.hpp>
+#include <defines.hpp>
 
 #define PORT 8080
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-std::vector<Header>	requests;
+std::vector<Request>	requests;
 
 struct sockaddr_in get_addr()
 {
@@ -42,11 +43,11 @@ struct sockaddr_in get_addr()
 	return address;
 }
 
-Response	find_response(std::vector<Server> servers, Header header)
+Server	&find_server(std::vector<Server> servers, Request Request)
 {
 	std::string	host;
-	std::vector<std::string> headers = header.getHeaders();
-	for (std::vector<std::string>::const_iterator it = header.getHeaders().begin(); it != header.getHeaders().end(); it++)
+	std::vector<std::string> Requests = Request.getHeaders();
+	for (std::vector<std::string>::const_iterator it = Request.getHeaders().begin(); it != Request.getHeaders().end(); it++)
 	{
 		if (it->find("Host:", 0, 5) != std::string::npos)
 		{
@@ -58,82 +59,68 @@ Response	find_response(std::vector<Server> servers, Header header)
 				/* still need to check for correct port as well */
 				if (it->getServerName().find(name) != it->getServerName().end())
 				{
-					Location location = it->getLocation(header.getLocation());
+					return (*it);
+					Location location = it->getLocation(Request.getLocation());
 					/* autograbbing the first index entry */
 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
-					// Response response(response_file, *it, header);
+					// Response response(response_file, *it, Request);
 					// std::cout << response.getResponse() << std::endl;
-					return (Response(response_file, *it));
 				}
 			}
 		}
 	}
-	return (Response("error_response"));
+	/* not found statuscode */
 }
 
-Header		read_request(struct pollfd &fd, std::vector<Server> servers)
+void	handle_response(t_client client, std::vector<Server> servers)
 {
-	char		*request = new char[BUFFER_SIZE + 1];
-	std::string	srequest;
-	int			ret;
-	do 
-	{
-		ret = read(fd.fd, request, BUFFER_SIZE);
-		request[ret] = '\0';
-		if (ret)
-			srequest.append(request);
-	} while (ret > 0);
-//	std::cout << srequest << std::endl;
-	delete [] request;
-	if (srequest.size() > 0)
-	{
-		Header header(srequest, fd.fd);
-		if (header.getType() == GET)
+		if (client.request.getType() == GET)
 		{
 			/* for now */
-			Response response = find_response(servers, header);
-			header.setResponse(response);
-			std::cout << response.getResponse() << std::endl;
-			int ret = send(fd.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
-			std::cout << "ret:" << ret << "responselength: " << response.getResponse().length() << std::endl;
-			return (header);
+			Server server = find_server(servers, client.request);
+			
+			std::cout << client.request.getResponse() << std::endl;
+			int ret = send(client.fd.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
 		}
-		else if (header.getType() == POST)
+		else if (client.request.getType() == POST)
 		{
 			std::cout << "whooo do the post thiing" << std::endl;
 		}
-		else if(header.getType() == DELETE)
+		else if(client.request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
 		}
 		else
 		{
 			std::cout << "shit went wrong yo" << std::endl;
-		}
-	}
-	return (Header());
+		}	
 }
 
-void	handle_connection(std::vector<pollfd> &fds, std::vector<Server> servers, size_t start)
+void	handle_connection(std::vector<Server> servers, std::vector<t_client> clients)
 {
-	for (size_t i = start; i < fds.size(); i++)
+	pollfd clientFD;
+	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
 	{
-		if (fds[i].revents & POLLIN)
+		clientFD = client->fd;
+		if (clientFD.revents & POLLIN)
 		{
-			requests.push_back(read_request(fds[i], servers));
-			fds[i].events = POLLOUT;
+			client->request.addto_request(clientFD.fd);
+			if (client->request.isFinished())
+				clientFD.events = POLLOUT;
 		}
-		else if (fds[i].revents & POLLOUT)
+		else if (clientFD.revents & POLLOUT)
 		{
-			for (size_t j = start; j < requests.size(); j++)
-			{
-				if (requests[j].getClisock() == fds[i].fd)
-				{
-					std::string response = requests[j].getResponse().getResponse();
-					std::cout << response << std::endl;
-					send(fds[i].fd, response.c_str(), response.length(), 0);
-				}
-			}
+			client->request.setRequest();
+			handle_response(*client, servers);
+
+
+			
+				// if (requests[j].getClisock() == fds[i].fd)
+				// {
+				// 	std::string response = requests[j].getResponse().getResponse();
+				// 	std::cout << response << std::endl;
+				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
+				// }
 		}
 	}
 }

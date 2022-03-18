@@ -4,7 +4,7 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				error.cpp
 CONNECT_SRC	=	handle_connection.cpp
-REQUEST_SRC	=	Header.cpp \
+REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
 SERVER_SRC	= 	Location.cpp \
