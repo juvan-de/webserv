@@ -6,35 +6,32 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
+<<<<<<< HEAD
 /*   Updated: 2022/03/18 18:37:25 by juvan-de      ########   odam.nl         */
+=======
+/*   Updated: 2022/03/18 18:18:48 by juvan-de      ########   odam.nl         */
+>>>>>>> 1c892b63686310bb3ce52f3fcee7ee8b515c8291
 /*                                                                            */
 /* ************************************************************************** */
 
-// containers
 #include <vector>
-// connections
-#include <netinet/in.h> // networking
-#include <sys/socket.h> // htons
-#include <poll.h> // poll
-#include <fcntl.h> // setting flags
-// idk
 #include <unistd.h>
+#include <netinet/in.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <stdlib.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <errno.h>
-// cpp idk
-#include <iostream> // cout
-#include <sstream> // debug
-#include <fstream> // files
-// custom
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <Server.hpp>
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
 
-#include <defines.hpp> // data struct, client struct
-
-#define TCP_MAX 1000000
+#define PORT 8080
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
