@@ -115,6 +115,14 @@ class	Server
 					return ret.c_str();
 				}
 		};
+
+		class LocationDoesNotExist : public std::exception
+		{
+			const char*	what(void) const throw()
+			{
+				return ("This Location does not exist");
+			};
+		};
 };
 
 std::ostream&	operator<< (std::ostream& out, const Server& obj);

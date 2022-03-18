@@ -1,9 +1,13 @@
 NAME 		= 	webserv
 
 PARSE_SRC	=	parse.cpp
-UTILS_SRC	=	split.cpp
+UTILS_SRC	=	split.cpp \
+				error.cpp
+INIT_SRC	=	data.cpp
 CONNECT_SRC	=	handle_connection.cpp
-REQUEST_SRC	=	Header.cpp
+REQUEST_SRC	=	Request.cpp \
+				Response.cpp \
+				StatusCodes.cpp 
 SERVER_SRC	= 	Location.cpp \
 				redir.cpp \
 				Server.cpp
@@ -11,6 +15,7 @@ SOCKET_SRC	=	Socket.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
+INIT		=	$(addprefix srcs/init_data/, $(INIT_SRC))
 CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
@@ -19,6 +24,7 @@ SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
+				$(INIT) \
 				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
@@ -27,7 +33,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-Wall -Wextra -Werror -std=c++98
+FLAGS 		=	 -std=c++98
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Irequests -Iserver -Isocket

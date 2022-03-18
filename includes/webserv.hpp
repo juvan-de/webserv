@@ -4,6 +4,7 @@
 # include <vector>
 # include <Server.hpp>
 
-void	parse(char* filename, std::vector<Server>& servers);
+void	parse(std::string filename, std::vector<Server>& servers);
+void	setFileInDeque(std::string filename, std::deque<std::string>& filedeque);
 
 #endif

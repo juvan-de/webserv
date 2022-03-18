@@ -1,139 +1,133 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   handle_connection.cpp                              :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
+/*   Updated: 2022/03/18 18:37:25 by juvan-de      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
+// containers
 #include <vector>
+// connections
+#include <netinet/in.h> // networking
+#include <sys/socket.h> // htons
+#include <poll.h> // poll
+#include <fcntl.h> // setting flags
+// idk
 #include <unistd.h>
-#include <netinet/in.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <stdlib.h>
-#include <poll.h>
-#include <fcntl.h>
 #include <errno.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+// cpp idk
+#include <iostream> // cout
+#include <sstream> // debug
+#include <fstream> // files
+// custom
+#include <Server.hpp>
+#include <Request.hpp>
+#include <Response.hpp>
+#include <defines.hpp>
 
-#include <Header.hpp>
+#include <defines.hpp> // data struct, client struct
 
-#define PORT 8080
+#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-std::vector<Header>	requests;
+std::vector<Request>	requests;
 
-void	error_check(int err, std::string msg)
+Server	&find_server(std::vector<Server> servers, Request Request)
 {
-	if (err < 0)
+	std::string	host;
+	std::vector<std::string> Requests = Request.getHeaders();
+	for (std::vector<std::string>::const_iterator it = Request.getHeaders().begin(); it != Request.getHeaders().end(); it++)
 	{
-		std::cout << "Error: " << msg << std::endl;
-		exit(EXIT_FAILURE);	
-	}
-}
-
-struct sockaddr_in get_addr()
-{
-	struct sockaddr_in address;
-
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	return address;
-}
-
-Header		read_request(struct pollfd &fd)
-{
-	char	*request = new char[BUFFER_SIZE + 1];
-	int ret = read(fd.fd, request, BUFFER_SIZE);
-	request[ret] = '\0';
-	if (ret > 0)
-	{
-		std::string srequest(request);
-		Header header(srequest, fd.fd);
-
-		if (header.getType() == GET)
+		if (it->find("Host:", 0, 5) != std::string::npos)
 		{
-			std::string	root = "files";
-			std::string path = root.append(header.getPath());
-			header.setResponse(path);
-			delete [] request;
-			return (header);
-		}
-	}
-	return (Header());
-}
-
-void	handle_connection(std::vector<pollfd> &fds, size_t start)
-{
-	for (size_t i = start; i < fds.size(); i++)
-	{
-		if (fds[i].revents & POLLIN)
-		{
-			requests.push_back(read_request(fds[i]));
-			fds[i].events = POLLOUT;
-		}
-		else if (fds[i].revents & POLLOUT)
-		{
-			for (size_t j = 0; j < requests.size(); j++)
+			host = it->substr(6, std::string::npos);
+			std::string name = host.substr(0, host.find(":"));
+			int port = std::atoi(host.substr(host.find(":") + 1).c_str());
+			for(std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
 			{
-				if (requests[j].getClisock() == fds[i].fd)
+				/* still need to check for correct port as well */
+				if (it->getServerName().find(name) != it->getServerName().end())
 				{
-					std::string response = requests[j].getResponse();
-					send(fds[i].fd, response.c_str(), response.length(), 0);
+					return (*it);
+					Location location = it->getLocation(Request.getLocation());
+					/* autograbbing the first index entry */
+					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
+					// Response response(response_file, *it, Request);
+					// std::cout << response.getResponse() << std::endl;
 				}
 			}
 		}
 	}
+	/* not found statuscode */
 }
 
-// int main()
-// {
-// 	int server_sock, cli_sock;
-// 	struct sockaddr_in address = get_addr();
-// 	int opted = 1;
-// 	int address_len = sizeof(address);
-// 	int flags;
-// 	std::vector<pollfd> fds;
-// 	struct pollfd new_fd;
+void	handle_response(t_client client, std::vector<Server> servers)
+{
+		if (client.request.getType() == GET)
+		{
+			/* for now */
+			Server server = find_server(servers, client.request);
+			int ret = send(client.fd.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
+		}
+		else if (client.request.getType() == POST)
+		{
+			std::cout << "whooo do the post thiing" << std::endl;
+		}
+		else if(client.request.getType() == DELETE)
+		{
+			std::cout << "we be deletin tho" << std::endl;
+		}
+		else
+		{
+			std::cout << "shit went wrong yo" << std::endl;
+		}	
+}
 
-// 	/* Getting a socket with ip4 protocol and socket stream */
-// 	error_check(server_sock = socket(AF_INET, SOCK_STREAM, 0), "getting the server socket");
-// 	/* Getting socket flags with fcntl */
-// 	error_check(flags = fcntl(server_sock, F_GETFL), "getting the server socket flags");
-// 	/* Setting the non-blocking flag */
-// 	error_check(fcntl(server_sock, F_SETFL, flags | O_NONBLOCK), "setting the server socket as non-blocking");
-// 	/* Initializing the socket on socket level using the reuseaddr protocol */
-// 	error_check(setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)), "initializing the server socket");
-// 	/* Binding the socket */
-// 	error_check(bind(server_sock, (struct sockaddr *)&address, sizeof(address)), "binding the server socket");
-// 	/* Start listening and allow a backlog of 100*/
-// 	error_check(listen(server_sock, BACKLOG), "listening on the server socket");
-// 	new_fd.fd = server_sock;
-// 	new_fd.events = POLLIN;
-// 	fds.push_back(new_fd);
-// 	while (true)
+void	handle_connection(std::vector<Server> servers, std::vector<t_client> clients)
+{
+	pollfd clientFD;
+	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
+	{
+		clientFD = client->fd;
+		if (clientFD.revents & POLLIN)
+		{
+			client->request.addto_request(clientFD.fd);
+			if (client->request.isFinished())
+				clientFD.events = POLLOUT;
+		}
+		else if (clientFD.revents & POLLOUT)
+		{
+			client->request.setRequest();
+			handle_response(*client, servers);
+
+
+			
+				// if (requests[j].getClisock() == fds[i].fd)
+				// {
+				// 	std::string response = requests[j].getResponse().getResponse();
+				// 	std::cout << response << std::endl;
+				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
+				// }
+		}
+	//	len -= bytes_send;
+	}
+}
+
+// void	handle_connection(std::vector<Client> clients)
+// {	
+// 	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
 // 	{
-// 		fds[0].events = POLLIN;
-// 		poll(&fds[0], fds.size(), 3 * 60 * 1000);
-// 		handle_connection(fds);
-// 		//std::cout << "Waiting for connections..." << std::endl;
-// 		if (fds[0].revents & POLLIN)
-// 		{
-// 			if ((cli_sock = accept(server_sock, (struct sockaddr *)&address, (socklen_t*)&address_len)) < 0)
-// 			{
-// 				if (errno == EWOULDBLOCK)
-// 					sleep(1);
-// 				else
-// 					error_check(-1, "Accepting a connection");
-// 			}
-// 			else
-// 			{
-// 				// poll <- add accepted client
-// 				struct pollfd new_fd;
-// 				new_fd.fd = cli_sock;
-// 				new_fd.events = POLLIN;
-// 				fds.push_back(new_fd);
-// 				fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-// 				std::cout << "Connected!" << std::endl;
-// 			}
-// 		}
+// 		if (client.fd & POLLIN)
+// 			client.request.addto_request();
+// 		else if (client.fd & POLLOUT)
+// 			handle_response(client.getRequest(), client.getStatus())
 // 	}
-// 	return 0;
 // }

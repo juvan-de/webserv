@@ -122,11 +122,12 @@ const std::map<std::string, Location>&	Server::getLocations() const
 	return this->_locations;
 }
 
-// Location&	Server::getLocation(const std::string& key)
-// {
-// 	if (this->_locations.find(key) != this->_locations.end())
-// 		return this->_locations[key];
-// }
+Location&	Server::getLocation(const std::string& key)
+{
+	if (this->_locations.find(key) != this->_locations.end())
+		return this->_locations[key];
+	throw LocationDoesNotExist();
+}
 
 const std::map<int, std::string>&	Server::getErrorPage() const
 {
