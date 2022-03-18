@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 16:45:13 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/18 18:01:51 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,34 +36,6 @@
 #define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
-
-void	add_cli_to_pollfds(t_data &data, int cli_sock)
-{
-	struct pollfd new_fd;
-	int flags;
-
-	new_fd.fd = cli_sock;
-	new_fd.events = POLLIN;
-	flags = fcntl(cli_sock, F_GETFL);
-	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-	data.fds.push_back(new_fd);
-	std::cout << "Connected!" << std::endl;
-}
-
-void	check_connection(t_data &data, int i)
-{
-	if (data.fds[i].revents & POLLIN)
-	{
-		int cli_sock;
-		if ((cli_sock = (*data.sockets[i]).new_connection()) < 0)
-		{
-			if (errno != EWOULDBLOCK)
-				std::cout << "error occured" << std::endl;
-		}
-		else
-			add_cli_to_pollfds(data, cli_sock);
-	}
-}
 
 Response	find_response(std::vector<Server> servers, Request Request)
 {
@@ -160,17 +132,13 @@ void	send_response(std::vector<pollfd> &fds, std::string response, int index)
 	}
 }
 
-void	handle_connection(std::vector<Client> clients)
-{
-	pollfd clientFd;
-	
-	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
-	{
-		clientFd = client.getFd();
-		
-		if (clientFd & POLLIN)
-			client.request.addto_request();
-		else if (clientFd & POLLOUT)
-			handle_response(client.getRequest(), client.getStatus())
-	}
-}
+// void	handle_connection(std::vector<Client> clients)
+// {	
+// 	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
+// 	{
+// 		if (client.fd & POLLIN)
+// 			client.request.addto_request();
+// 		else if (client.fd & POLLOUT)
+// 			handle_response(client.getRequest(), client.getStatus())
+// 	}
+// }

@@ -6,6 +6,8 @@
 #include <Request.hpp>
 #include <poll.h> // pollfd
 
+class Socket;
+
 typedef struct s_data
 {
 	std::vector<Server>		servers_configs;
@@ -16,7 +18,7 @@ typedef struct s_data
 
 typedef struct s_client
 {
-	int						fd;
+	struct pollfd			fd;
 	Request					request;
 	int						status;
 }				t_client;
