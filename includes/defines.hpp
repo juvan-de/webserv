@@ -10,7 +10,7 @@ class Socket;
 
 typedef struct s_data
 {
-	std::vector<Server>		servers_configs;
+	std::vector<Server>		server_configs;
 	std::vector<Socket>		sockets;
 	std::vector<struct pollfd>		fds;
 	int						socket_num;
@@ -18,7 +18,7 @@ typedef struct s_data
 
 typedef struct s_client
 {
-	struct pollfd			*fd;
+	struct pollfd			fd;
 	Request					request;
 	int						status;
 }				t_client;

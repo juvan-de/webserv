@@ -88,13 +88,13 @@ struct pollfd	new_pollfd(int cli_sock)
 
 	new_fd.fd = cli_sock;
 	new_fd.events = POLLIN;
-	std::cout << "new: " << new_fd.events << std::endl;
+//	std::cout << "new: " << new_fd.events << std::endl;
 	flags = fcntl(cli_sock, F_GETFL);
 	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
 	return new_fd;
 }
 
-t_client	accept_client(struct pollfd *fd)
+t_client	accept_client(pollfd fd)
 {
 	t_client new_client;
 
@@ -118,9 +118,9 @@ void	check_connection(t_data &data, std::vector<t_client> &clients, int i)
 		}
 		else
 		{
-			// struct pollfd new_fd = new_pollfd(cli_sock);
-			data.fds.push_back(new_pollfd(cli_sock));
-			clients.push_back(accept_client(&data.fds.back()));
+			pollfd new_fd = new_pollfd(cli_sock);
+			data.fds.push_back(new_fd);
+			clients.push_back(accept_client(data.fds.back()));
 			// std::cout << "new cli: " << clients.back().fd.fd << ", " << clients.back().fd.events <<std::endl;
 			// std::cout << "new cli: " << data.fds.back().fd << std::endl;
 		}

@@ -1,4 +1,4 @@
-NAME 		= 	webserv
+NAME 		= 	webserv.exe
 
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
