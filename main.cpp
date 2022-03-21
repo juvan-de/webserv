@@ -21,10 +21,10 @@ int main(int ac, char **av)
 			// handle_connection(data.servers_configs, clients);
 			// if (clients.size())
 			// 	std::cout << "new cli main: " << clients.back()->fd.events << ", " << POLLIN << std::endl;
-			// for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
-			// 	std::cout << "cli fd: " << it->fd->fd << ", revent: " << it->fd->revents << std::endl;
-			for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); it++)
+			for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
 				std::cout << "cli fd: " << it->fd->fd << ", revent: " << it->fd->revents << std::endl;
+			// for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); it++)
+			// 	std::cout << "cli fd: " << it->fd->fd << ", revent: " << it->fd->revents << std::endl;
 			std::cout << "Waiting for connections..." << std::endl;
 			for (int i = 0; i < data.socket_num; i++)
 				check_connection(data, clients, i);

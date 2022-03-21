@@ -12,7 +12,7 @@ typedef struct s_data
 {
 	std::vector<Server>		servers_configs;
 	std::vector<Socket>		sockets;
-	std::vector<pollfd>		fds;
+	std::vector<struct pollfd>		fds;
 	int						socket_num;
 }				t_data;
 
