@@ -12,8 +12,8 @@ Socket::Socket()
 Socket::~Socket()
 {
 	/*Destructor*/
-	std::cout << "Debug: closing server_sock " << _port << std::endl;
-	close(_servfd);
+	// std::cout << "Debug: closing server_sock " << _port << std::endl;
+	// close(_servfd);
 }
 
 Socket::Socket(const Socket &ref)
@@ -94,33 +94,34 @@ struct pollfd	new_pollfd(int cli_sock)
 	return new_fd;
 }
 
-t_client	*accept_client(int fd)
+t_client	accept_client(pollfd *fd)
 {
-	t_client *new_client = new t_client;
+	t_client new_client;
 
-	new_client->fd = new_pollfd(fd);
-	new_client->request = Request();
+	new_client.fd = fd;
+	new_client.request = Request();
 	// beter als we hier een define gebruiken
-	new_client->status = 200;
+	new_client.status = 200;
 	std::cout << "Connected!" << std::endl;
 	return new_client;
 }
 
-void	check_connection(t_data &data, std::vector<t_client*> &clients, int i)
+void	check_connection(t_data &data, std::vector<t_client> &clients, int i)
 {
 	if (data.fds[i].revents & POLLIN)
 	{
 		int cli_sock;
-		if ((cli_sock = (data.sockets[i])->new_connection()) < 0)
+		if ((cli_sock = data.sockets[i].new_connection()) < 0)
 		{
 			if (errno != EWOULDBLOCK)
 				std::cout << "error occured" << std::endl;
 		}
 		else
 		{
-			clients.push_back(accept_client(cli_sock));
-			std::cout << "new cli: " << clients.back()->fd.fd << ", " << clients.back()->fd.events <<std::endl;
-			data.fds.push_back(clients.back()->fd);
+			pollfd new_fd = new_pollfd(cli_sock);
+			data.fds.push_back(new_pollfd(cli_sock));
+			// clients.push_back(accept_client(&data.fds.back()));
+			// std::cout << "new cli: " << clients.back().fd.fd << ", " << clients.back().fd.events <<std::endl;
 			// std::cout << "new cli: " << data.fds.back().fd << std::endl;
 		}
 	}
