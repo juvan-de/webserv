@@ -4,6 +4,22 @@
 #include <connection.hpp> // handle_connection
 #include <defines.hpp> // data struct, client struct
 
+void	set_client_fds(std::vector<t_client> &clients, std::vector<pollfd> &fds)
+{
+	for(std::vector<pollfd>::iterator it = fds.begin(); it != fds.end(); it++)
+	{
+		for (std::vector<t_client>::iterator itc = clients.begin(); itc != clients.end(); itc++)
+		{
+			if (itc->fd.fd == it->fd)
+			{
+				itc->fd.events = it->events;
+				itc->fd.revents = it->revents;
+				break ;
+			}
+		}
+	}
+}
+
 int main(int ac, char **av)
 {
 	if (ac == 2)
@@ -17,14 +33,14 @@ int main(int ac, char **av)
 		{
 			for (int i = 0; i < data.socket_num; i++)
 				data.fds[i].events = POLLIN;
+			for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
+				std::cout << "prepoll: " << it->fd.fd << "\trevent: " << it->fd.revents << "\t" << POLLIN << "\t" << POLLOUT << std::endl;
 			poll(&data.fds[0], data.fds.size(), -1);
-			// handle_connection(data.servers_configs, clients);
-			// if (clients.size())
-			// 	std::cout << "new cli main: " << clients.back()->fd.events << ", " << POLLIN << std::endl;
-			// for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
-			// 	std::cout << "cli fd: " << it->fd->fd << ", revent: " << it->fd->revents << std::endl;
-			for (std::vector<pollfd>::iterator it = clients.begin(); it != clients.end(); it++)
-				std::cout << "cli fd: " << it->fd->fd << ", revent: " << it->fd->revents << std::endl;
+			std::cout << "yoyoyoghurt" << std::endl;
+			set_client_fds(clients, data.fds);
+			handle_connection(data.server_configs, clients);
+			for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
+				std::cout << "postpoll: " << it->fd.fd << "\trevent: " << it->fd.revents << std::endl;
 			std::cout << "Waiting for connections..." << std::endl;
 			for (int i = 0; i < data.socket_num; i++)
 				check_connection(data, clients, i);

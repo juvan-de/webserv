@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/21 13:35:26 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/21 15:35:18 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		{
 			/* for now */
 			Server server = find_server(servers, client.request);
-			int ret = send(client.fd->fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
+			int ret = send(client.fd.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
 		}
 		else if (client.request.getType() == POST)
 		{
@@ -87,17 +87,18 @@ void	handle_response(t_client client, std::vector<Server> servers)
 
 void	handle_connection(std::vector<Server> &servers, std::vector<t_client> &clients)
 {
+	
 	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
 	{
-		// std::cout << "handle connections: " << client->fd->fd << ", " << client->fd->revents << std::endl;
-		if (client->fd->revents & POLLIN)
+		std::cout << "handle connections: " << client->fd.fd << ", " << client->fd.revents << std::endl;
+		if (client->fd.revents & POLLIN)
 		{
 			std::cout << "debug" << std::endl;
-			client->request.addto_request(client->fd->fd);
+		//	client->request.addto_request(client->fd.fd);
 			if (client->request.isFinished())
-				client->fd->events = POLLOUT;
+				client->fd.events = POLLOUT;
 		}
-		else if (client->fd->revents & POLLOUT)
+		else if (client->fd.revents & POLLOUT)
 		{
 			client->request.setRequest();
 			handle_response(*client, servers);
