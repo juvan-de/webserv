@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/15 17:45:17 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/21 10:40:20 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 
 Response::Response()
 {
-	std::cout << "default constructor called" << std::endl;
+	// std::cout << "default constructor called" << std::endl;
 }
 
 Response::Response(std::string error)

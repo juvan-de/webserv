@@ -8,7 +8,6 @@
 Request::Request()
 {
 	this->_type = NOTSET;
-
 }
 
 Request::Request(const Request& ref)

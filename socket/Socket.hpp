@@ -64,6 +64,6 @@ class Socket
 		} badAccept;
 };
 
-void	check_connection(t_data &data, std::vector<t_client> clients, int i);
+void	check_connection(t_data &data, std::vector<t_client*> &clients, int i);
 
 #endif

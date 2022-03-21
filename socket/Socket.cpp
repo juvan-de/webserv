@@ -88,24 +88,25 @@ struct pollfd	new_pollfd(int cli_sock)
 
 	new_fd.fd = cli_sock;
 	new_fd.events = POLLIN;
+	std::cout << "new: " << new_fd.events << std::endl;
 	flags = fcntl(cli_sock, F_GETFL);
 	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
 	return new_fd;
 }
 
-t_client	accept_client(int fd)
+t_client	*accept_client(int fd)
 {
-	t_client new_client;
+	t_client *new_client = new t_client;
 
-	new_client.fd = new_pollfd(fd);
-	new_client.request = Request();
+	new_client->fd = new_pollfd(fd);
+	new_client->request = Request();
 	// beter als we hier een define gebruiken
-	new_client.status = 200;
+	new_client->status = 200;
 	std::cout << "Connected!" << std::endl;
 	return new_client;
 }
 
-void	check_connection(t_data &data, std::vector<t_client> clients, int i)
+void	check_connection(t_data &data, std::vector<t_client*> &clients, int i)
 {
 	if (data.fds[i].revents & POLLIN)
 	{
@@ -118,7 +119,9 @@ void	check_connection(t_data &data, std::vector<t_client> clients, int i)
 		else
 		{
 			clients.push_back(accept_client(cli_sock));
-			data.fds.push_back((*clients.end()).fd);
+			std::cout << "new cli: " << clients.back()->fd.fd << ", " << clients.back()->fd.events <<std::endl;
+			data.fds.push_back(clients.back()->fd);
+			// std::cout << "new cli: " << data.fds.back().fd << std::endl;
 		}
 	}
 }

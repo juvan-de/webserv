@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 18:42:16 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/21 12:20:38 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,33 +84,23 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		}	
 }
 
-void	handle_connection(std::vector<Server> servers, std::vector<t_client> clients)
+void	handle_connection(std::vector<Server> servers, std::vector<t_client*> clients)
 {
-	pollfd clientFD;
-	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
+	for (std::vector<t_client*>::iterator client = clients.begin(); client != clients.end(); client++)
 	{
-		clientFD = client->fd;
-		if (clientFD.revents & POLLIN)
+		std::cout << "handle connections: " << (*client)->fd.fd << ", " << (*client)->fd.revents << std::endl;
+		if ((*client)->fd.revents & POLLIN)
 		{
-			client->request.addto_request(clientFD.fd);
-			if (client->request.isFinished())
-				clientFD.events = POLLOUT;
+			std::cout << "debug" << std::endl;
+			(*client)->request.addto_request((*client)->fd.fd);
+			if ((*client)->request.isFinished())
+				(*client)->fd.events = POLLOUT;
 		}
-		else if (clientFD.revents & POLLOUT)
+		else if ((*client)->fd.revents & POLLOUT)
 		{
-			client->request.setRequest();
-			handle_response(*client, servers);
-
-
-			
-				// if (requests[j].getClisock() == fds[i].fd)
-				// {
-				// 	std::string response = requests[j].getResponse().getResponse();
-				// 	std::cout << response << std::endl;
-				// 	send(fds[i].fd, response.c_str(), response.length(), 0);
-				// }
+			(*client)->request.setRequest();
+			handle_response(*(*client), servers);
 		}
-	//	len -= bytes_send;
 	}
 }
 
