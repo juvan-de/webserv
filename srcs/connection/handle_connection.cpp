@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/21 17:05:31 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/23 14:31:26 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,10 @@ void	handle_connection(std::vector<Server> &servers, std::vector<t_client> &clie
 			std::cout << "debug" << std::endl;
 		//	client->request.addto_request(client->fd.fd);
 			if (client->request.isFinished())
+			{
+				client->request.setRequest();
 				client->fd.events = POLLOUT;
+			}
 		}
 		else if (client->fd.revents & POLLOUT)
 		{
