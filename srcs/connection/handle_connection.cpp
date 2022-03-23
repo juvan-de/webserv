@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/21 15:35:18 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/03/21 17:05:31 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,14 +105,3 @@ void	handle_connection(std::vector<Server> &servers, std::vector<t_client> &clie
 		}
 	}
 }
-
-// void	handle_connection(std::vector<Client> clients)
-// {	
-// 	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
-// 	{
-// 		if (client.fd & POLLIN)
-// 			client.request.addto_request();
-// 		else if (client.fd & POLLOUT)
-// 			handle_response(client.getRequest(), client.getStatus())
-// 	}
-// }
