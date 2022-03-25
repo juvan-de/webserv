@@ -18,8 +18,7 @@
 # include <Server.hpp>
 # include <defines.hpp>
 
-
-void				handle_connection(std::vector<Server> &servers, std::vector<t_client> &clients);
+void				handle_connection(t_data &data);
 Request				read_request(struct pollfd &fd);
 
 #endif

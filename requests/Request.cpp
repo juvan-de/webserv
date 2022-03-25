@@ -57,7 +57,7 @@ void			Request::addto_request(int fd)
 
 	while ((ret = read(fd, cstr, BUFFER_SIZE)) > 0)
 		this->_input.append(cstr);
-	std::cout << "input\n" << this->_input << "\ninput" << std::endl;
+	// std::cout << "input\n" << this->_input << "\ninput" << std::endl;
 	}
 
 bool			Request::isFinished(void)
