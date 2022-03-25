@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/23 14:51:09 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/23 16:27:00 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,19 +90,21 @@ void	handle_connection(std::vector<Server> &servers, std::vector<t_client> &clie
 	
 	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
 	{
-		// std::cout << "handle connections: " << client->fd.fd << ", " << client->fd.revents << std::endl;
+		std::cout << "handle connections: " << client->fd.fd << ", " << client->fd.revents << std::endl;
 		if (client->fd.revents & POLLIN)
 		{
-			// std::cout << "debug" << std::endl;
-		//	client->request.addto_request(client->fd.fd);
+			std::cout << "debug" << std::endl;
+			client->request.addto_request(client->fd.fd);
 			if (client->request.isFinished())
 			{
+				std::cout << "yep" << std::endl;
 				client->request.setRequest();
 				client->fd.events = POLLOUT;
 			}
 		}
 		else if (client->fd.revents & POLLOUT)
 		{
+			std::cout << "pollout" << std::endl;
 			client->request.setRequest();
 			handle_response(*client, servers);
 		}

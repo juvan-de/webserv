@@ -53,11 +53,12 @@ void			Request::setResponse(Response response)
 void			Request::addto_request(int fd)
 {
 	char	*cstr = new char[BUFFER_SIZE + 1];
-	int		ret;
-	ret = read(fd, cstr, BUFFER_SIZE);
-	if (ret > 0)
+	int		ret = 1;
+
+	while ((ret = read(fd, cstr, BUFFER_SIZE)) > 0)
 		this->_input.append(cstr);
-}
+	std::cout << "input\n" << this->_input << "\ninput" << std::endl;
+	}
 
 bool			Request::isFinished(void)
 {
