@@ -40,3 +40,7 @@ main {
 - data structures
 	Client
 	data -> alle algemene data zoals servers sockets etc
+
+*polling* case?
+ - update lost connections (delete clients and pollfd)
+ - check 

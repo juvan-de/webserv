@@ -69,7 +69,7 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		{
 			/* for now */
 			Server server = find_server(servers, client.request);
-			int ret = send(client.fd.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
+			int ret = send(client.fd, client.request.getResponse().getResponse().c_str(), client.request.getResponse().getResponse().length(), 0);
 		}
 		else if (client.request.getType() == POST)
 		{
@@ -85,26 +85,58 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		}	
 }
 
-void	handle_connection(std::vector<Server> &servers, std::vector<t_client> &clients)
+void	handle_connection(t_data &data)
 {
-	
-	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
+	std::vector<pollfd> fds = data.fds;
+	int					end = data.fds.size();
+
+	for (int i = data.socket_num; i < end; i++)
 	{
-		std::cout << "handle connections: " << client->fd.fd << ", " << client->fd.revents << std::endl;
-		if (client->fd.revents & POLLIN)
+		switch (data.fds[i].revents)
 		{
-			std::cout << "debug" << std::endl;
-		//	client->request.addto_request(client->fd.fd);
-			if (client->request.isFinished())
-			{
-				client->request.setRequest();
-				client->fd.events = POLLOUT;
-			}
-		}
-		else if (client->fd.revents & POLLOUT)
-		{
-			client->request.setRequest();
-			handle_response(*client, servers);
+			case POLLIN :
+				std::cout << "pollin" << std::endl;
+				data.clients[i - data.socket_num].request.addto_request(data.clients[i - data.socket_num].fd);
+				if (data.clients[i - data.socket_num].request.isFinished())
+				{
+					data.clients[i - data.socket_num].request.setRequest();
+					data.fds[i].events = POLLOUT;
+				}
+				break;
+			case POLLOUT :
+				std::cout << "pollout" << std::endl;
+				data.clients[i - data.socket_num].request.setRequest();
+				handle_response(data.clients[i - data.socket_num], data.server_configs);
+				break;
+			case LOST_CONNETION :
+				std::cout << "lost connection" << std::endl;
+				data.clients.erase(data.clients.begin() + (i - data.socket_num));
+				data.fds.erase(data.fds.begin() + i);
+				break;
 		}
 	}
 }
+
+// void	handle_connection(t_data &data)
+// {
+	
+// 	for (std::vector<t_client>::iterator client = clients.begin(); client != clients.end(); client++)
+// 	{
+// 		std::cout << "handle connections: " << client->fd.fd << ", " << client->fd.revents << std::endl;
+// 		if (client->fd.revents & POLLIN)
+// 		{
+// 			std::cout << "debug" << std::endl;
+// 		//	client->request.addto_request(client->fd.fd);
+// 			if (client->request.isFinished())
+// 			{
+// 				client->request.setRequest();
+// 				client->fd.events = POLLOUT;
+// 			}
+// 		}
+// 		else if (client->fd.revents & POLLOUT)
+// 		{
+// 			client->request.setRequest();
+// 			handle_response(*client, servers);
+// 		}
+// 	}
+// }

@@ -6,22 +6,25 @@
 #include <Request.hpp>
 #include <poll.h> // pollfd
 
+# define LOST_CONNETION 17
+
 class Socket;
+
+typedef struct s_client
+{
+	int						fd;
+	Request					request;
+	int						status;
+}				t_client;
 
 typedef struct s_data
 {
 	std::vector<Server>		server_configs;
 	std::vector<Socket>		sockets;
-	std::vector<struct pollfd>		fds;
+	std::vector<t_client>	clients;
+	std::vector<pollfd>		fds;
 	int						socket_num;
 }				t_data;
-
-typedef struct s_client
-{
-	struct pollfd			fd;
-	Request					request;
-	int						status;
-}				t_client;
 
 std::set<int>	get_ports(std::vector<Server> servers);
 void			initialize_data(char *av, t_data &data);

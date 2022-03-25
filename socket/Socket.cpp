@@ -93,7 +93,7 @@ struct pollfd	new_pollfd(int cli_sock)
 	return new_fd;
 }
 
-t_client	accept_client(pollfd fd)
+t_client	accept_client(int fd)
 {
 	t_client new_client;
 
@@ -105,21 +105,25 @@ t_client	accept_client(pollfd fd)
 	return new_client;
 }
 
-void	check_connection(t_data &data, std::vector<t_client> &clients, int i)
+void	check_connection(t_data &data)
 {
-	if (data.fds[i].revents & POLLIN)
+	for (int i = 0; i < data.socket_num; i++)
 	{
-		int cli_sock;
-		if ((cli_sock = data.sockets[i].new_connection()) < 0)
+		if (data.fds[i].revents & POLLIN)
 		{
-			if (errno != EWOULDBLOCK)
-				std::cout << "error occured" << std::endl;
+			int cli_sock;
+
+			if ((cli_sock = data.sockets[i].new_connection()) < 0)
+			{
+				if (errno != EWOULDBLOCK)
+					std::cout << "error occured" << std::endl;
+			}
+			else
+			{
+				data.fds.push_back(new_pollfd(cli_sock)); // error protection needed
+				data.clients.push_back(accept_client(cli_sock));
+			}
 		}
-		else
-		{
-			pollfd new_fd = new_pollfd(cli_sock);
-			data.fds.push_back(new_fd);
-			clients.push_back(accept_client(data.fds.back()));
-		}
+
 	}
 }
