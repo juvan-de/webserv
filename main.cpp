@@ -15,8 +15,8 @@ int main(int ac, char **av)
 		{
 			for (int i = 0; i < data.socket_num; i++)
 				data.fds[i].events = POLLIN;
-			// for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
-			// 	std::cout << "prepoll: " << it->fd.fd << "\trevent: " << it->fd.revents << "\t" << POLLIN << "\t" << POLLOUT << std::endl;
+			// for (std::vector<t_client>::iterator it = data.clients.begin(); it != data.clients.end(); it++)
+			// 	std::cout << "prepoll: " << it->fd << std::endl;
 			poll(&data.fds[0], data.fds.size(), -1);
 			handle_connection(data);
 			// for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)

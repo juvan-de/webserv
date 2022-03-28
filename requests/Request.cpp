@@ -45,6 +45,11 @@ Response	const &Request::getResponse() const
 	return (this->_response);
 }
 
+std::string		const &Request::getInput() const
+{
+	return (this->_input);
+}
+
 void			Request::setResponse(Response response)
 {
 	this->_response = response;
@@ -52,13 +57,13 @@ void			Request::setResponse(Response response)
 
 void			Request::addto_request(int fd)
 {
-	char	*cstr = new char[BUFFER_SIZE + 1];
+	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
 
 	while ((ret = read(fd, cstr, BUFFER_SIZE)) > 0)
 		this->_input.append(cstr);
-	// std::cout << "input\n" << this->_input << "\ninput" << std::endl;
-	}
+	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+}
 
 bool			Request::isFinished(void)
 {
@@ -71,6 +76,7 @@ bool			Request::isFinished(void)
 void			Request::setRequest(void)
 {
 	size_t size = this->_input.find(' ');
+
 	switch(size)
 	{
 		case 3 :	this->_type = GET;

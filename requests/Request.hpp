@@ -46,6 +46,7 @@ class	Request
 	std::string 				const &getLocation() const;
 	std::vector<std::string>	const &getHeaders() const;
 	Response					const &getResponse() const;
+	std::string					const &getInput() const;
 	void						setResponse(Response response);
 	void						addto_request(int fd);
 	bool						isFinished(void);

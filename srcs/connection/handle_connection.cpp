@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/25 19:19:44 by ztan          ########   odam.nl         */
+/*   Updated: 2022/03/28 14:28:00 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@
 #include <Response.hpp>
 #include <defines.hpp>
 
-#define PORT 8080
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
@@ -66,10 +65,9 @@ void	handle_response(t_client client, std::vector<Server> servers)
 		{
 			/* for now */
 			std::cout << "get request" << std::endl;
-			// std::cout << "*REQUEST*\n" << client.request.getLocation() << "\n*REQUEST*" << std::endl;
 			Server server = find_server(servers, client.request);
 			Response response = Response(client.request.getLocation(), server);
-			std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
+			// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
 			int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
 		}
 		else if (client.request.getType() == POST)
@@ -88,23 +86,35 @@ void	handle_response(t_client client, std::vector<Server> servers)
 
 void	handle_connection(t_data &data)
 {
-	std::vector<pollfd> fds = data.fds;
+	t_client			*client;
 	int					end = data.fds.size();
-
+	
 	for (int i = data.socket_num; i < end; i++)
 	{
+		client = &data.clients[i - data.socket_num];
+		std::cout << "SOCK: " << i - data.socket_num << std::endl;
 		switch (data.fds[i].revents)
 		{
 			case POLLIN :
 				std::cout << "pollin" << std::endl;
-				data.clients[i - data.socket_num].request.addto_request(data.clients[i - data.socket_num].fd);
-				if (data.clients[i - data.socket_num].request.isFinished())
+				client->request.addto_request(client->fd);
+				if (client->request.isFinished())
 					data.fds[i].events = POLLOUT;
 				break;
 			case POLLOUT :
 				std::cout << "pollout" << std::endl;
-				data.clients[i - data.socket_num].request.setRequest();
-				handle_response(data.clients[i - data.socket_num], data.server_configs);
+				std::cout << client->request.getInput() << std::endl;
+				try
+				{
+					/* code */
+					client->request.setRequest();
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << "ERROR: " << e.what() << "*****************\n";
+				}
+				
+				handle_response(*client, data.server_configs);
 				break;
 			case LOST_CONNETION :
 				std::cout << "lost connection" << std::endl;
@@ -112,5 +122,6 @@ void	handle_connection(t_data &data)
 				data.fds.erase(data.fds.begin() + i);
 				break;
 		}
+		std::cout << "AFTER SOCK: " << i - data.socket_num << std::endl;
 	}
 }
