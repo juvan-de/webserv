@@ -1,6 +1,6 @@
 #include <Request.hpp>
 #include <fstream>
-#include <unistd.h>
+#include <sys/socket.h>
 
 /*temp */
 #define BUFFER_SIZE 2000
@@ -60,8 +60,14 @@ void			Request::addto_request(int fd)
 	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
 
-	while ((ret = read(fd, cstr, BUFFER_SIZE)) > 0)
+	// this can return an error if opperation would block, see man page
+	while ((ret = recv(fd, cstr, BUFFER_SIZE, MSG_DONTWAIT)) > 0)
+	{
+		cstr[ret] = '\0';
 		this->_input.append(cstr);
+	}
+	if (ret < -1)
+		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
 	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
 
