@@ -1,0 +1,29 @@
+client
+ - request
+  . header parsing (basic check for content type like chunked or encoded?)
+   . is finished VAR
+
+
+
+
+chunked data
+no outside of current chunk data is needed
+the size of a chunk is given in a hex val
+E\r\n        (bytes to send)	- E = 14 bytes
+in \r\n							- i,n, , = 3 bytes
+\r\n (blank line)					- \,r,\,n = 4 bytes
+chunks.\r\n  (data)				- c,h,u,n,k,s,. = 7 bytes
+
+
+4\r\n        (bytes to send)
+Wiki\r\n     (data)
+6\r\n        (bytes to send)
+pedia \r\n   (data)
+E\r\n        (bytes to send)
+in \r\n
+\r\n
+chunks.\r\n  (data)
+0\r\n        (final byte - 0)
+\r\n         (end message)
+
+curl -H "Transfer-Encoding: chunked" -d *FILE* localhost:8080
