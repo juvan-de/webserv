@@ -3,6 +3,14 @@ client
   . header parsing (basic check for content type like chunked or encoded?)
    . is finished VAR
 
+Requests
+ - pre-parsing of important headers like "content-length, transfer-encoding, etc?"\
+ - receive data according to pre-parsed info
+ 
+Response
+ - parse request (what server config)
+ - formulate response
+ - send respons based on response type
 
 
 chunked data
