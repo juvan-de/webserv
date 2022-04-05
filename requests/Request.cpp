@@ -1,6 +1,7 @@
 #include <Request.hpp>
 #include <fstream>
 #include <sys/socket.h>
+#include <utils.hpp>
 
 /*temp */
 #define BUFFER_SIZE 2000
@@ -8,6 +9,7 @@
 Request::Request()
 {
 	this->_type = NOTSET;
+	this->_isFinished = false;
 }
 
 Request::Request(const Request& ref)
@@ -35,7 +37,7 @@ std::string	const &Request::getLocation() const
 	return (this->_location);
 }
 
-std::vector<std::string>	const &Request::getHeaders() const
+std::map<std::string, std::string>	const &Request::getHeaders() const
 {
 	return (this->_headers);
 }
@@ -60,7 +62,7 @@ void			Request::addto_request(int fd)
 	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
 
-	// this can return an error if opperation would block, see man page
+	// this can return an error if operation would block, see man page
 	while ((ret = recv(fd, cstr, BUFFER_SIZE, MSG_DONTWAIT)) > 0)
 	{
 		cstr[ret] = '\0';
@@ -81,30 +83,60 @@ bool			Request::isFinished(void)
 
 void			Request::setRequest(void)
 {
-	size_t size = this->_input.find(' ');
-
+	std::cout << "SET_REQUEST" << std::endl;
+	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
+	size_t size = first_line.find(' ');
 	switch(size)
 	{
 		case 3 :	this->_type = GET;
-					this->_input = this->_input.substr(4);
 					break ;
 		case 4 : 	this->_type = POST;
-					this->_input = this->_input.substr(5);
 					break;
 		case 6 : 	this->_type = DELETE;
-					this->_input = this->_input.substr(6);
 					break;
 	}
-	size_t start = this->_input.find('/');
-	size_t end = this->_input.find(' ');
-	this->_location = this->_input.substr(start, end);
-	/* I skip the HTTP/1.1 here*/
-	end = this->_input.find('\n');
-	start = end + 1;
-	while (start < this->_input.size() && end != std::string::npos)
-	{
-		end = this->_input.find('\n', start);
-		this->_headers.push_back(this->_input.substr(start, end - start - 1));
-		start = end + 1;
-	}	
+	size_t start = first_line.find('/');
+	size_t end = first_line.find(' ', start);
+	this->_location = first_line.substr(start, end - start);
+	std::cout << first_line.substr(end + 1) << std::endl;
+	if (first_line.find("HTTP/1.1") == std::string::npos)
+		throw IncorrectHTTP();
 } 
+
+void		Request::setHeaders(void)
+{
+	std::string headers = this->_input.substr(this->_input.find('\n'));
+//	std::cout << "START" << std::endl;
+	std::vector<std::string> lines = split(headers, "\n");
+	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
+	{
+		std::string first = it->substr(0, it->find(':'));
+		std::string second = it->substr(it->find(':') + 2);
+		if (first.size() > 1)
+			this->_headers[first] = second;
+	}	
+	// for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
+	// {
+	// 	std::cout << "first: " << it->first << "\tsecond: " << it->second << std::endl;
+	// }
+	// std::cout << "end" << std::endl;
+}
+
+void		Request::checkIfChunked(void)
+{
+	if (this->_headers["Transfer-Encoding"] == "chunked")
+	{
+		this->_isChunked = true;
+		this->_isFinished = false;
+	}
+	else
+	{
+		this->_isChunked = false;
+		this->_isFinished = true;
+	}
+}
+
+bool		Request::readyForParse(void) const
+{
+	return (this->_isFinished);
+}
