@@ -11,6 +11,14 @@ void	Server::_errorJumpTable(std::vector<std::string>& line)
 
 }
 
+void	Server::_checkVarSet()
+{
+	if (this->_listen.size() == 0)
+		this->_listen.insert(80);
+	
+	//all standard set var setten en checken of er meer gezet moet worden
+}
+
 Server::Server(std::deque<std::string>& file)
 {
 	std::vector<std::string>	splitted;
@@ -22,11 +30,12 @@ Server::Server(std::deque<std::string>& file)
 		if (splitted.size() == 0)
 			continue ;
 		if (splitted[0] == "}")
-			return ;
-		else if (splitted[0] == "listen")
 		{
-			this->setListen(splitted);
+			this->_checkVarSet();
+			return ;
 		}
+		else if (splitted[0] == "listen")
+			this->setListen(splitted);
 		else if (splitted[0] == "server_name")
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
@@ -71,6 +80,10 @@ Server&	Server::operator=(const Server& ref)
 
 Server::~Server()
 {
+	this->_listen.clear();
+	this->_locations.clear();
+	this->_errorPage.clear()
+	this->_serverName.clear()
 	return ;
 }
 
@@ -79,6 +92,7 @@ Server::~Server()
 void	Server::setListen(std::vector<std::string>& line)
 {
 	unsigned int	number;
+
 	if (line.size() <= 1)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)

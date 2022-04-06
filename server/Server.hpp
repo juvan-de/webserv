@@ -19,6 +19,9 @@ class	Server
 		std::map<int, std::string>		_errorPage;
 		std::set<std::string>			_serverName;
 
+		void	_checkVarSet();
+		void	_errorJumpTable(std::vector<std::string>& line);
+
 	public:
 		Server ();
 		Server (const Server& ref);
@@ -32,7 +35,6 @@ class	Server
 		void	addErrorPage(std::vector<std::string>& line);
 		void	setServerName(std::vector<std::string>& line);
 
-		void	_errorJumpTable(std::vector<std::string>& line);
 		/* -Getters- */
 		const std::set<int>&					getListen() const;
 		const std::map<std::string, Location>&	getLocations() const;

@@ -48,6 +48,7 @@ class	Location
 
 	private:	/* -Setters Utils- */
 		bool	isIn(const std::string& elem, const std::string array[], size_t size) const;
+		void	_checkVarSet();
 		void	_errorJumpTable(std::vector<std::string>& line);
 
 	public:		/* -Getters- */

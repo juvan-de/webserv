@@ -14,11 +14,22 @@ void	Location::_errorJumpTable(std::vector<std::string>& line) // naam aanpassen
 		throw DirectiveNotRecognized(line);
 }
 
-Location::Location(std::deque<std::string>& file, std::string& title)
+void	Location::_checkVarSet()
+{
+	if (this->_index.empty())
+	{
+		this->_index.push_back("index.html");
+		this->_index.push_back("index");
+	}
+	if (this->_uploadStore.empty())
+		this->_uplpadStore = this->_root;
+	//all standard set var setten en checken of er meer gezet moet worden
+}
+
+Location::Location(std::deque<std::string>& file, std::string& title) : _title(title), _root("/html"), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir("0", ""))
 {
 	std::vector<std::string>	splitted;
 
-	this->setTitle(title);
 	while (!file.empty())
 	{
 		splitted = split(file[0]);
@@ -26,7 +37,10 @@ Location::Location(std::deque<std::string>& file, std::string& title)
 		if (splitted.size() == 0)
 			continue ;
 		if (splitted[0] == "}")
+		{
+
 			return ;
+		}
 		else if (splitted[0] == "root")
 			this->setRoot(splitted);
 		else if (splitted[0] == "client_max_body_size")
