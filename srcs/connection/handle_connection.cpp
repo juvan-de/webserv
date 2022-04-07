@@ -6,70 +6,35 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/18 16:45:13 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/07 14:36:52 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-// containers
 #include <vector>
-// connections
-#include <netinet/in.h> // networking
-#include <sys/socket.h> // htons
-#include <poll.h> // poll
-#include <fcntl.h> // setting flags
-// idk
 #include <unistd.h>
+#include <netinet/in.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <stdlib.h>
+#include <poll.h>
+#include <fcntl.h>
 #include <errno.h>
-// cpp idk
-#include <iostream> // cout
-#include <sstream> // debug
-#include <fstream> // files
-// custom
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <Server.hpp>
 #include <Request.hpp>
 #include <Response.hpp>
+#include <defines.hpp>
 
-#include <defines.hpp> // data struct, client struct
-
-#define TCP_MAX 1000000
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-void	add_cli_to_pollfds(t_data &data, int cli_sock)
-{
-	struct pollfd new_fd;
-	int flags;
-
-	new_fd.fd = cli_sock;
-	new_fd.events = POLLIN;
-	flags = fcntl(cli_sock, F_GETFL);
-	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-	data.fds.push_back(new_fd);
-	std::cout << "Connected!" << std::endl;
-}
-
-void	check_connection(t_data &data, int i)
-{
-	if (data.fds[i].revents & POLLIN)
-	{
-		int cli_sock;
-		if ((cli_sock = (*data.sockets[i]).new_connection()) < 0)
-		{
-			if (errno != EWOULDBLOCK)
-				std::cout << "error occured" << std::endl;
-		}
-		else
-			add_cli_to_pollfds(data, cli_sock);
-	}
-}
-
-Response	find_response(std::vector<Server> servers, Request Request)
+Server&		find_server(std::vector<Server> servers, Request Request)
 {
 	std::string	host;
-	std::vector<std::string> Requests = Request.getRequests();
-	for (std::vector<std::string>::const_iterator it = Request.getRequests().begin(); it != Request.getRequests().end(); it++)
+	std::map<std::string, std::string> Requests = Request.getHeaders();
+	for (std::map<std::string, std::string>::const_iterator it = Request.getHeaders().begin(); it != Request.getHeaders().end(); it++)
 	{
 		if (it->find("Host:", 0, 5) != std::string::npos)
 		{
@@ -81,96 +46,115 @@ Response	find_response(std::vector<Server> servers, Request Request)
 				/* still need to check for correct port as well */
 				if (it->getServerName().find(name) != it->getServerName().end())
 				{
+					return (*it);
 					Location location = it->getLocation(Request.getLocation());
 					/* autograbbing the first index entry */
 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
 					// Response response(response_file, *it, Request);
 					// std::cout << response.getResponse() << std::endl;
-					return (Response(response_file, *it));
 				}
 			}
 		}
 	}
-	return (Response("error_response"));
+	/* not found statuscode */
 }
 
-Request		read_request(struct pollfd &fd, std::vector<Server> servers)
+Server	&find_server(std::map<std::string, std::map<int, Server*> >& servers, Request Request)
 {
-	char		*request = new char[BUFFER_SIZE + 1];
-	std::string	srequest;
-	int			ret;
-
-	do 
+	std::string	host;
+	std::map<std::string, std::string> headers = Request.getHeaders();
+	if (headers.find("Host:") == headers.end())
 	{
-		ret = read(fd.fd, request, BUFFER_SIZE);
-		request[ret] = '\0';
-		if (ret)
-			srequest.append(request);
-	} while (ret > 0);
-//	std::cout << srequest << std::endl;
-	delete [] request;
-	if (srequest.size() > 0)
-	{
-		Request Request(srequest, fd.fd);
-		if (Request.getType() == GET)
-		{
-			/* for now */
-			Response response = find_response(servers, Request);
-			Request.setResponse(response);
-			std::cout << response.getResponse() << std::endl;
-			int ret = send(fd.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
-			std::cout << "ret:" << ret << "responselength: " << response.getResponse().length() << std::endl;
-			return (Request);
-		}
-		else if (Request.getType() == POST)
-		{
-			std::cout << "whooo do the post thiing" << std::endl;
-		}
-		else if(Request.getType() == DELETE)
-		{
-			std::cout << "we be deletin tho" << std::endl;
-		}
-		else
-		{
-			std::cout << "shit went wrong yo" << std::endl;
-		}
+		/* bad request statuscode, want host is mandatory in http 1.1 */
+		return NULL;
 	}
-	return (Request());
+
+	std::string host = headers["Host:"];
+	std::string name = host.substr(0, host.find(":"));
+	// int port = std::atoi(host.substr(host.find(":") + 1).c_str()); doet we nu niks mee
+	if (servers.find(name) == headers.end())
+	{
+		/* bad request statuscode, want host is mandatory in http 1.1 */
+		return NULL;
+	}
+	return (*servers[name]);
 }
 
-void	send_response(std::vector<pollfd> &fds, std::string response, int index)
+void	handle_response(t_client client, std::vector<Server> servers)
 {
-	int bytes_send = 0;
-	int len = response.length();
-
-	while (len > 0)
+	Server servr
+	if (client.request.getType() == GET)
 	{
-		if (len > TCP_MAX)
-		{
-			std::cout << "*LEN IS MORE THEN MAX TCP CAN SEND*" << std::endl;
-			send(fds[index].fd, response.c_str() + bytes_send, TCP_MAX, 0);
-			bytes_send += TCP_MAX;
-		}
-		else
-		{
-			send(fds[index].fd, response.c_str() + bytes_send, len, 0);
-			bytes_send += len;
-		}
-		len -= bytes_send;
+		/* for now */
+		std::cout << "get request" << std::endl;
+	//	Server server = find_server(servers, client.request);
+		Response response = Response(client.request.getLocation(), server);
+		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
+		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+	}
+	else if (client.request.getType() == POST)
+	{
+		std::cout << "whooo do the post thiing" << std::endl;
+	}
+	else if(client.request.getType() == DELETE)
+	{
+		std::cout << "we be deletin tho" << std::endl;
+	}
+	else
+	{
+		std::cout << "shit went wrong yo" << std::endl;
 	}
 }
 
-void	handle_connection(std::vector<Client> clients)
+void	handle_connection(t_data &data)
 {
-	pollfd clientFd;
+	t_client			*client;
+	int					end = data.fds.size();
 	
-	for (std::vector<Client>::iterator client = clients.begin(); client != clients.end(); client++)
+	for (int i = data.socket_num; i < end; i++)
 	{
-		clientFd = client.getFd();
-		
-		if (clientFd & POLLIN)
-			client.request.addto_request();
-		else if (clientFd & POLLOUT)
-			handle_response(client.getRequest(), client.getStatus())
+		client = &data.clients[i - data.socket_num];
+		std::cout << "SOCK: " << i - data.socket_num << std::endl;
+		switch (data.fds[i].revents)
+		{
+			case POLLIN :
+				std::cout << "pollin" << std::endl;
+				client->request.addto_request(client->fd);
+				if (client->request.isFinished())
+				{
+					try 
+					{
+						client->request.setRequest();
+						client->request.setHeaders();
+						client->request.checkIfChunked();
+						if (client->request.readyForParse())
+							data.fds[i].events = POLLOUT;
+					}
+					catch (const std::exception & e)
+					{
+						std::cerr << e.what() << std::endl;
+					}
+				}
+				break;
+			// case POLLOUT :
+			// 	std::cout << "pollout" << std::endl;
+			// 	std::cout << client->request.getInput() << std::endl;
+			// 	try
+			// 	{
+			// 		handle_response(*client, data.server_configs);
+			// 		/* code */
+			// 	}
+			// 	catch(const std::exception& e)
+			// 	{
+			// 		std::cerr << "\033[31m" << "ERROR: " << e.what() << "\n" << "\033[0m";
+			// 	}
+			// 	break;
+			// case LOST_CONNETION :
+			// 	std::cout << "lost connection" << std::endl;
+			// 	data.clients.erase(data.clients.begin() + (i - data.socket_num));
+			// 	data.fds.erase(data.fds.begin() + i);
+			// 	break;
+		}
+		std::cout << "AFTER SOCK: " << i - data.socket_num << std::endl;
 	}
 }

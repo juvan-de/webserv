@@ -1,10 +1,3 @@
-data {
-	std::vector<Server>	servers_configs;
-	std::vector<Socket> sockets;
-	std::vector<pollfd> fds;
-	int socket_num;
-}
-
 client {
 	int fd;
 	Request request;
@@ -20,18 +13,6 @@ handle_clients(Client client) {
 	}
 }
 
-main {
-	parse
-	open_sockets()
-	while {
-		poll clients
-		for each client
-			handle_clients
-		get_new_clients
-	}
-	return
-}
-
 *FILES*
 - objects
 	Socket
@@ -40,3 +21,7 @@ main {
 - data structures
 	Client
 	data -> alle algemene data zoals servers sockets etc
+
+*polling* case?
+ - update lost connections (delete clients and pollfd)
+ - check 

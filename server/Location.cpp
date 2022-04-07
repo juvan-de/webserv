@@ -22,7 +22,7 @@ void	Location::_checkVarSet()
 		this->_index.push_back("index");
 	}
 	if (this->_uploadStore.empty())
-		this->_uplpadStore = this->_root;
+		this->_uploadStore = this->_root;
 	//all standard set var setten en checken of er meer gezet moet worden
 }
 

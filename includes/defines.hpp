@@ -5,14 +5,11 @@
 #include <Socket.hpp>
 #include <Request.hpp>
 #include <poll.h> // pollfd
+#include <map>
 
-typedef struct s_data
-{
-	std::vector<Server>		servers_configs;
-	std::vector<Socket*>	sockets;
-	std::vector<pollfd>		fds;
-	int						socket_num;
-}				t_data;
+# define LOST_CONNETION 17
+
+class Socket;
 
 typedef struct s_client
 {
@@ -20,6 +17,15 @@ typedef struct s_client
 	Request					request;
 	int						status;
 }				t_client;
+
+typedef struct s_data
+{
+	std::map<std::string, Server*>		server_configs;
+	std::vector<Socket>		sockets;
+	std::vector<t_client>	clients;
+	std::vector<pollfd>		fds;
+	int						socket_num;
+}				t_data;
 
 std::set<int>	get_ports(std::vector<Server> servers);
 void			initialize_data(char *av, t_data &data);

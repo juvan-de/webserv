@@ -82,8 +82,8 @@ Server::~Server()
 {
 	this->_listen.clear();
 	this->_locations.clear();
-	this->_errorPage.clear()
-	this->_serverName.clear()
+	this->_errorPage.clear();
+	this->_serverName.clear();
 	return ;
 }
 
