@@ -43,19 +43,9 @@ std::map<std::string, std::string>	const &Request::getHeaders() const
 	return (this->_headers);
 }
 
-Response	const &Request::getResponse() const
-{
-	return (this->_response);
-}
-
 std::string		const &Request::getInput() const
 {
 	return (this->_input);
-}
-
-void			Request::setResponse(Response response)
-{
-	this->_response = response;
 }
 
 void			Request::addto_request(int fd)

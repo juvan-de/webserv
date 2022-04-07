@@ -37,7 +37,6 @@ class	Request
 	bool								_isChunked;
 	bool								_isFinished;
 	std::string							_body;
-	Response							_response;
 
 	public:
 	Request();	
@@ -48,7 +47,6 @@ class	Request
 	Type								const &getType() const;
 	std::string 						const &getLocation() const;
 	std::map<std::string, std::string>	const &getHeaders() const;
-	Response							const &getResponse() const;
 	std::string							const &getInput() const;
 
 	void						setResponse(Response response);
