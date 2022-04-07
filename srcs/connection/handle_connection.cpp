@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/05 16:46:18 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/04/07 19:20:11 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,21 +97,22 @@ void	handle_connection(t_data &data)
 		{
 			case POLLIN :
 				std::cout << "pollin" << std::endl;
-				client->request.addto_request(client->fd);
-				if (client->request.isFinished())
+				try 
 				{
-					try 
+					client->request.addto_request(client->fd);
+					if (!(client->request.checkIfChunked() && client->request.readyForParse()))
 					{
 						client->request.setRequest();
 						client->request.setHeaders();
-						client->request.checkIfChunked();
-						if (client->request.readyForParse())
-							data.fds[i].events = POLLOUT;
 					}
-					catch (const std::exception & e)
-					{
-						std::cerr << e.what() << std::endl;
-					}
+					if (client->request.checkIfChunked())
+						client->request.readChunked(client->fd);
+					if (client->request.readyForParse())
+						data.fds[i].events = POLLOUT;
+				}
+				catch (const std::exception &e)
+				{
+					std::cerr << e.what() << std::endl;
 				}
 				break;
 			// case POLLOUT :
