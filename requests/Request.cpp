@@ -140,13 +140,13 @@ bool		Request::readyForParse(void) const
 void			Request::readChunked(int fd)
 {
 	int bodysize = std::stoi(this->_input, NULL, 16);
-	if (bodysize == 0)
-	{
-		this->_isFinished = true;
-		return ;
-	}
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
+	if (this->_input == "0\r\n\r\n")
+	{
+		this->_isFinished = true;
+		std::cout << "we finishin\n";
+	}
 }
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)

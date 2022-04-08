@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/07 19:20:11 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/04/08 14:52:14 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,33 +30,25 @@
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-// Server	&find_server(std::vector<Server> servers, Request Request)
+// Server	&find_server(std::map<std::string, std::map<int, Server*> >& servers, Request Request)
 // {
 // 	std::string	host;
-// 	std::map<std::string, std::string> Requests = Request.getHeaders();
-// 	for (std::map<std::string, std::string>::const_iterator it = Request.getHeaders().begin(); it != Request.getHeaders().end(); it++)
+// 	std::map<std::string, std::string> headers = Request.getHeaders();
+// 	if (headers.find("Host:") == headers.end())
 // 	{
-// 		if (it->find("Host:", 0, 5) != std::string::npos)
-// 		{
-// 			host = it->substr(6, std::string::npos);
-// 			std::string name = host.substr(0, host.find(":"));
-// 			int port = std::atoi(host.substr(host.find(":") + 1).c_str());
-// 			for(std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
-// 			{
-// 				/* still need to check for correct port as well */
-// 				if (it->getServerName().find(name) != it->getServerName().end())
-// 				{
-// 					return (*it);
-// 					Location location = it->getLocation(Request.getLocation());
-// 					/* autograbbing the first index entry */
-// 					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
-// 					// Response response(response_file, *it, Request);
-// 					// std::cout << response.getResponse() << std::endl;
-// 				}
-// 			}
-// 		}
+// 		/* bad request statuscode, want host is mandatory in http 1.1 */
+// 		return NULL;
 // 	}
-// 	/* not found statuscode */
+
+// 	std::string host = headers["Host:"];
+// 	std::string name = host.substr(0, host.find(":"));
+// 	// int port = std::atoi(host.substr(host.find(":") + 1).c_str()); doet we nu niks mee
+// 	if (servers.find(name) == headers.end())
+// 	{
+// 		/* bad request statuscode, want host is mandatory in http 1.1 */
+// 		return NULL;
+// 	}
+// 	return (servers[name]);
 // }
 
 // void	handle_response(t_client client, std::vector<Server> servers)
@@ -100,15 +92,19 @@ void	handle_connection(t_data &data)
 				try 
 				{
 					client->request.addto_request(client->fd);
-					if (!(client->request.checkIfChunked() && client->request.readyForParse()))
+					if (!(client->request.checkIfChunked() && !(client->request.readyForParse())))
 					{
 						client->request.setRequest();
 						client->request.setHeaders();
 					}
 					if (client->request.checkIfChunked())
+					{
 						client->request.readChunked(client->fd);
+					}
 					if (client->request.readyForParse())
+					{
 						data.fds[i].events = POLLOUT;
+					}
 				}
 				catch (const std::exception &e)
 				{
