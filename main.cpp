@@ -9,19 +9,20 @@ int main(int ac, char **av)
 	if (ac == 2)
 	{
 		t_data					data;
-		std::vector<t_client>	clients;
 
 		initialize_data(av[1], data);
-		std::cout << "Starting server" << std::endl;;
 		while (true)
 		{
 			for (int i = 0; i < data.socket_num; i++)
 				data.fds[i].events = POLLIN;
+			// for (std::vector<t_client>::iterator it = data.clients.begin(); it != data.clients.end(); it++)
+			// 	std::cout << "prepoll: " << it->fd << std::endl;
 			poll(&data.fds[0], data.fds.size(), -1);
-			handle_connection(data.servers_configs, clients);
+			handle_connection(data);
+			// for (std::vector<t_client>::iterator it = clients.begin(); it != clients.end(); it++)
+			// 	std::cout << "postpoll: " << it->fd.fd << "\trevent: " << it->fd.revents << std::endl;
 			std::cout << "Waiting for connections..." << std::endl;
-			for (int i = 0; i < data.socket_num; i++)
-				check_connection(data, clients, i);
+			check_connection(data);
 			sleep(1);
 		}
 	}
