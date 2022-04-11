@@ -62,7 +62,7 @@ void			Request::addto_request(int fd)
 	}
 	if (ret < -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
-	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+	std::cout << "*********input*********\n" << this->_input << "\nret: " << ret << "\n*********input*********" << std::endl;
 }
 
 bool			Request::isFinished(void)

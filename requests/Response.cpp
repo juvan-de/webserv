@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/07 18:27:35 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/11 16:46:49 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Response::Response(std::string file, Server* server)
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
-	this->_path = "./files/" + server->getLocation("/").getRoot() + "/Welcome.html";
+	this->_path = server->getLocation("/").getRoot() + "/" + *server->getLocation("/").getIndex().begin();
 	setResponseBody(this->_path);
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
@@ -80,7 +80,7 @@ void		Response::setResponseBody(std::string &filename)
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 
-	std::cout << "filename: " << filename << std::endl;
+	std::cout << "(DEBUG setResponseBody) filename: " << filename << std::endl;
 	if (file.is_open())
 	{
 		while (getline(file, line))

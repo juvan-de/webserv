@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/11 15:15:10 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/11 16:48:07 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,143 +26,55 @@
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
+#include <connection.hpp>
 #include <sys/stat.h>
 
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
+void	handle_pollin(t_client &client, pollfd &fd)
 {
-	std::map<std::string, std::string> headers = Request.getHeaders();
-	if (headers.find("Host") == headers.end())
+	std::cout << "Socket revent status: pollin" << std::endl;
+	client.request.addto_request(client.fd);
+	if (!(client.request.checkIfChunked() && !(client.request.readyForParse())))
 	{
-		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname" << std::endl;
-		return NULL;
+		client.request.setRequest();
+		client.request.setHeaders();
 	}
-	std::string host = headers["Host"];
-	std::string name = host.substr(0, host.find(":"));
-	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
-	if (table.find(std::make_pair(port, name)) == table.end())
-	{
-		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding pair" << std::endl;
-		return NULL;
-	}
-	return (table[std::make_pair(port, name)]);
-}
-
-std::string	getFileName(const Location& loc)
-{
-	struct stat	buf;
-	
-	std::string res = loc.getTitle() + loc.getRoot();
-	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
-	{
-		std::string filename = res + *itr;
-		if (stat(filename.c_str(), &buf))
-			return filename;
-	}
-	/* bad request */
-	return NULL;
-}
-
-void	handle_response(t_client client, t_data data)
-{
-	Server *server = find_server(data.table, client.request);
-	if (client.request.getType() == GET)
-	{
-		/* for now */
-		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
-		if ( itr == server->getLocations().end())
-		{
-			/* bad request */
-			return ;
-		}
-		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
-		{
-			/* bad request (405 forbidden)*/
-			return ;
-		}
-		std::string filename = getFileName(itr->second);
-		Response response = Response(filename, server);
-		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
-		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
-
-		// get html locatie
-		// formuleer een response header
-		// add de html aan de body
-		// verstuur naar client
-		
-	}
-	else if (client.request.getType() == POST)
-	{
-		std::cout << "whooo do the post thiing" << std::endl;
-	}
-	else if(client.request.getType() == DELETE)
-	{
-		std::cout << "we be deletin tho" << std::endl;
-	}
-	else
-	{
-		std::cout << "shit went wrong yo" << std::endl;
-	}
+	if (client.request.checkIfChunked())
+		client.request.readChunked(client.fd);
+	if (client.request.readyForParse())
+		fd.events = POLLOUT;
 }
 
 void	handle_connection(t_data &data)
 {
-	t_client			*client;
 	int					end = data.fds.size();
 	
 	for (int i = data.socket_num; i < end; i++)
 	{
-		client = &data.clients[i - data.socket_num];
-		std::cout << "SOCK: " << i - data.socket_num << std::endl;
-		switch (data.fds[i].revents)
+		try
 		{
-			case POLLIN :
-				std::cout << "pollin" << std::endl;
-				try 
-				{
-					client->request.addto_request(client->fd);
-					if (!(client->request.checkIfChunked() && !(client->request.readyForParse())))
-					{
-						client->request.setRequest();
-						client->request.setHeaders();
-					}
-					if (client->request.checkIfChunked())
-					{
-						client->request.readChunked(client->fd);
-					}
-					if (client->request.readyForParse())
-					{
-						data.fds[i].events = POLLOUT;
-					}
-				}
-				catch (const std::exception &e)
-				{
-					std::cerr << e.what() << std::endl;
-				}
-				break;
-			case POLLOUT :
-				std::cout << "pollout" << std::endl;
-				std::cout << client->request.getInput() << std::endl;
-				try
-				{
-					handle_response(*client, data);
-					/* code */
-				}
-				catch(const std::exception& e)
-				{
-					std::cerr << "\033[31m" << "ERROR: " << e.what() << "\n" << "\033[0m";
-				}
-				break;
-			case LOST_CONNETION :
-				std::cout << "lost connection" << std::endl;
-				data.clients.erase(data.clients.begin() + (i - data.socket_num));
-				data.fds.erase(data.fds.begin() + i);
-				break;
+			switch (data.fds[i].revents)
+			{
+				case POLLIN :
+					std::cout << "> (DEBUG handle_connection) current socket: " << i - data.socket_num << std::endl;
+					handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
+					break;
+				case POLLOUT :
+					std::cout << "> (DEBUG handle_connection) current socket: " << i - data.socket_num << std::endl;
+					handle_response(data.clients[i - data.socket_num], data);
+					break;
+				case LOST_CONNETION :
+					std::cout << "lost connection" << std::endl;
+					data.clients.erase(data.clients.begin() + (i - data.socket_num));
+					data.fds.erase(data.fds.begin() + i);
+					break;
+			}
 		}
-		std::cout << "AFTER SOCK: " << i - data.socket_num << std::endl;
+		catch(const std::exception& e)
+		{
+			std::cerr << e.what() << '\n';
+		}
 	}
 }
