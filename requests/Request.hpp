@@ -36,8 +36,7 @@ class	Request
 	std::map<std::string, std::string>	_headers;
 	bool								_isChunked;
 	bool								_isFinished;
-	
-	Response							_response;
+	std::string							_body;
 
 	public:
 	Request();	
@@ -45,18 +44,19 @@ class	Request
 	Request& operator=(const Request& ref);
 	~Request();
 
-	Type						const &getType() const;
-	std::string 				const &getLocation() const;
+	Type								const &getType() const;
+	std::string 						const &getLocation() const;
 	std::map<std::string, std::string>	const &getHeaders() const;
-	Response					const &getResponse() const;
-	std::string					const &getInput() const;
+	std::string							const &getInput() const;
+
 	void						setResponse(Response response);
-	void						addto_request(int fd);
-	bool						isFinished(void);
 	void						setRequest(void);
 	void						setHeaders(void);
-	void						checkIfChunked(void);
+	void						addto_request(int fd);
+	bool						isFinished(void);
+	bool						checkIfChunked(void) const;
 	bool						readyForParse(void) const;
+	void						readChunked(int fd);
 
 	private: /* -Exception- */
 		class NotAFile : public std::exception
@@ -76,5 +76,6 @@ class	Request
 		};
 };
 
+std::ostream&	operator<< (std::ostream& out, const Request& obj);
 
 #endif
