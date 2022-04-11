@@ -25,7 +25,7 @@ static void	setFileInDeque(std::string filename, std::deque<std::string>& filede
 		filedeque.push_back(line);
 }
 
-void	parse(std::string filename, std::map<std::string, Server*>& servers)
+void	parse(std::string filename, std::vector<Server>& servers)
 {
 	std::deque<std::string>	filedeque;
 	setFileInDeque(filename, filedeque);
@@ -46,16 +46,12 @@ void	parse(std::string filename, std::map<std::string, Server*>& servers)
 			{
 				filedeque.pop_front();
 				Server server(filedeque);
-				std::set<std::string> servername = server.getServerName();
-				for (std::set<std::string>::iterator itr = servername.begin(); itr != servername.end(); itr++)
-					servers[*itr] = &server;
+				servers.push_back(server);
 			}
 			else if (splitted.size() == 2 && splitted[1] == "{")
 			{
 				Server server(filedeque);
-				std::set<std::string> servername = server.getServerName();
-				for (std::set<std::string>::iterator itr = servername.begin(); itr != servername.end(); itr++)
-					servers[*itr] = &server;
+				servers.push_back(server);
 			}
 			// throw ;
 		}

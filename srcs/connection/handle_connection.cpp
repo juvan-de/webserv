@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/07 14:36:52 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/07 18:52:12 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,71 +26,74 @@
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
+#include <sys/stat.h>
 
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-Server&		find_server(std::vector<Server> servers, Request Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
 {
-	std::string	host;
-	std::map<std::string, std::string> Requests = Request.getHeaders();
-	for (std::map<std::string, std::string>::const_iterator it = Request.getHeaders().begin(); it != Request.getHeaders().end(); it++)
-	{
-		if (it->find("Host:", 0, 5) != std::string::npos)
-		{
-			host = it->substr(6, std::string::npos);
-			std::string name = host.substr(0, host.find(":"));
-			int port = std::atoi(host.substr(host.find(":") + 1).c_str());
-			for(std::vector<Server>::iterator it = servers.begin(); it != servers.end(); it++)
-			{
-				/* still need to check for correct port as well */
-				if (it->getServerName().find(name) != it->getServerName().end())
-				{
-					return (*it);
-					Location location = it->getLocation(Request.getLocation());
-					/* autograbbing the first index entry */
-					std::string response_file = location.getRoot() + '/' + *(location.getIndex().begin());
-					// Response response(response_file, *it, Request);
-					// std::cout << response.getResponse() << std::endl;
-				}
-			}
-		}
-	}
-	/* not found statuscode */
-}
-
-Server	&find_server(std::map<std::string, std::map<int, Server*> >& servers, Request Request)
-{
-	std::string	host;
 	std::map<std::string, std::string> headers = Request.getHeaders();
-	if (headers.find("Host:") == headers.end())
+	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
+		std::cout << "error finding hostname" << std::endl;
 		return NULL;
 	}
-
-	std::string host = headers["Host:"];
+	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
-	// int port = std::atoi(host.substr(host.find(":") + 1).c_str()); doet we nu niks mee
-	if (servers.find(name) == headers.end())
+	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
+	if (table.find(std::make_pair(port, name)) == table.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
+		std::cout << "error finding pair" << std::endl;
 		return NULL;
 	}
-	return (*servers[name]);
+	return (table[std::make_pair(port, name)]);
 }
 
-void	handle_response(t_client client, std::vector<Server> servers)
+std::string	getFileName(const Location& loc)
 {
-	Server servr
+	struct stat	buf;
+	
+	std::string res = loc.getTitle() + loc.getRoot();
+	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
+	{
+		std::string filename = res + *itr;
+		if (stat(filename.c_str(), &buf))
+			return filename;
+	}
+	/* bad request */
+	return NULL;
+}
+
+void	handle_response(t_client client, t_data data)
+{
+	Server *server = find_server(data.table, client.request);
 	if (client.request.getType() == GET)
 	{
 		/* for now */
-		std::cout << "get request" << std::endl;
-	//	Server server = find_server(servers, client.request);
-		Response response = Response(client.request.getLocation(), server);
-		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
+		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
+		if ( itr == server->getLocations().end())
+		{
+			/* bad request */
+			return ;
+		}
+		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
+		{
+			/* bad request (405 forbidden)*/
+			return ;
+		}
+		std::string filename = getFileName(itr->second);
+		Response response = Response(filename, server);
 		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
+
+		// get html locatie
+		// formuleer een response header
+		// add de html aan de body
+		// verstuur naar client
+		
 	}
 	else if (client.request.getType() == POST)
 	{
@@ -136,24 +139,24 @@ void	handle_connection(t_data &data)
 					}
 				}
 				break;
-			// case POLLOUT :
-			// 	std::cout << "pollout" << std::endl;
-			// 	std::cout << client->request.getInput() << std::endl;
-			// 	try
-			// 	{
-			// 		handle_response(*client, data.server_configs);
-			// 		/* code */
-			// 	}
-			// 	catch(const std::exception& e)
-			// 	{
-			// 		std::cerr << "\033[31m" << "ERROR: " << e.what() << "\n" << "\033[0m";
-			// 	}
-			// 	break;
-			// case LOST_CONNETION :
-			// 	std::cout << "lost connection" << std::endl;
-			// 	data.clients.erase(data.clients.begin() + (i - data.socket_num));
-			// 	data.fds.erase(data.fds.begin() + i);
-			// 	break;
+			case POLLOUT :
+				std::cout << "pollout" << std::endl;
+				std::cout << client->request.getInput() << std::endl;
+				try
+				{
+					handle_response(*client, data);
+					/* code */
+				}
+				catch(const std::exception& e)
+				{
+					std::cerr << "\033[31m" << "ERROR: " << e.what() << "\n" << "\033[0m";
+				}
+				break;
+			case LOST_CONNETION :
+				std::cout << "lost connection" << std::endl;
+				data.clients.erase(data.clients.begin() + (i - data.socket_num));
+				data.fds.erase(data.fds.begin() + i);
+				break;
 		}
 		std::cout << "AFTER SOCK: " << i - data.socket_num << std::endl;
 	}

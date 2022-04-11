@@ -20,11 +20,12 @@ typedef struct s_client
 
 typedef struct s_data
 {
-	std::map<std::string, Server*>		server_configs;
-	std::vector<Socket>		sockets;
-	std::vector<t_client>	clients;
-	std::vector<pollfd>		fds;
-	int						socket_num;
+	std::vector<Server>								server_configs;
+	std::vector<Socket>								sockets;
+	std::map<std::pair<int, std::string>, Server*>	table;
+	std::vector<t_client>							clients;
+	std::vector<pollfd>								fds;
+	int												socket_num;
 }				t_data;
 
 std::set<int>	get_ports(std::vector<Server> servers);

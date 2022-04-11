@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/25 19:28:08 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/07 18:27:35 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,21 +23,18 @@ Response::Response(std::string error)
 	std::cout << "an error ocurred in Response constructor" << std::endl;
 }
 
-Response::Response(std::string file, Server server)
+Response::Response(std::string file, Server* server)
 {
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
-	this->_path = "./files/" + server.getLocation("/").getRoot() + "/Welcome.html";
+	this->_path = "./files/" + server->getLocation("/").getRoot() + "/Welcome.html";
 	setResponseBody(this->_path);
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
-	ss << "Server: " << *(server.getServerName().begin()) << "\r\n";
-	/* HARDCODED ALERT */
-	ss << "Date: Tuesday, 25-Nov-97 01:22:04 GMT" << "\r\n";
-	ss << "Last-modified: Thursday, 20-Nov-97 10:44:53 GMT" << "\r\n";
+	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
-	ss << "Content-type: text/html" << "\r\n";
+	ss << "Content-type: text/html" << "\r\n"; //nog wel hardcode
 	ss << "Connection: Keep-Alive" << "\r\n\r\n";
 	ss << getResponseBody();
 	this->_response = ss.str();
