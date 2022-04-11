@@ -32,7 +32,7 @@ Redir::~Redir()
 	return ;
 }
 
-void	Redir::setStatusCode (std::string statusCode)
+void	Redir::setStatusCode (std::string statusCode) //Willen we dit anders en hoe dan
 {
 	if (statusCode.find_first_not_of("0123456789") != std::string::npos)
 		throw NotANumber();

@@ -5,6 +5,7 @@
 #include <Socket.hpp>
 #include <Request.hpp>
 #include <poll.h> // pollfd
+#include <map>
 
 # define LOST_CONNETION 17
 

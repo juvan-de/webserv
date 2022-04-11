@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/11 10:45:29 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/11 15:15:10 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@
 #include <Request.hpp>
 #include <Response.hpp>
 #include <defines.hpp>
+#include <sys/stat.h>
 
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
@@ -51,16 +52,42 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	return (table[std::make_pair(port, name)]);
 }
 
+std::string	getFileName(const Location& loc)
+{
+	struct stat	buf;
+	
+	std::string res = loc.getTitle() + loc.getRoot();
+	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
+	{
+		std::string filename = res + *itr;
+		if (stat(filename.c_str(), &buf))
+			return filename;
+	}
+	/* bad request */
+	return NULL;
+}
+
 void	handle_response(t_client client, t_data data)
 {
 	Server *server = find_server(data.table, client.request);
 	if (client.request.getType() == GET)
 	{
 		/* for now */
-		std::cout << "get request" << std::endl;
-		// Response response = Response(client.request.getLocation(), server);
-		// // std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
-		// int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
+		if ( itr == server->getLocations().end())
+		{
+			/* bad request */
+			return ;
+		}
+		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
+		{
+			/* bad request (405 forbidden)*/
+			return ;
+		}
+		std::string filename = getFileName(itr->second);
+		Response response = Response(filename, server);
+		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
 
 		// get html locatie
 		// formuleer een response header

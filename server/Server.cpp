@@ -2,9 +2,21 @@
 #include <utils.hpp>
 #include <sstream>
 
-Server::Server()
+void	Server::_errorJumpTable(std::vector<std::string>& line)
 {
-	return ;
+	if (line[0] == "server")
+		throw MissingClosingBracket("Server");
+	else
+		throw DirectiveNotRecognized(line);
+
+}
+
+void	Server::_checkVarSet()
+{
+	if (this->_listen.size() == 0)
+		this->_listen.insert(80);
+	
+	//all standard set var setten en checken of er meer gezet moet worden
 }
 
 Server::Server(std::deque<std::string>& file)
@@ -18,16 +30,17 @@ Server::Server(std::deque<std::string>& file)
 		if (splitted.size() == 0)
 			continue ;
 		if (splitted[0] == "}")
-			return ;
-		else if (splitted[0] == "listen")
 		{
-			this->setListen(splitted);
+			this->_checkVarSet();
+			return ;
 		}
+		else if (splitted[0] == "listen")
+			this->setListen(splitted);
 		else if (splitted[0] == "server_name")
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
 			this->addErrorPage(splitted);
-		else if (splitted[0] == "location") // naar kijken
+		else if (splitted[0] == "location")
 		{
 			if (splitted.size() == 3 && splitted[2] == "{")
 			{
@@ -43,11 +56,12 @@ Server::Server(std::deque<std::string>& file)
 					continue ;
 				}
 			}
-			throw ArgumentIncorrect(splitted); //misschien incorrect
+			throw ArgumentIncorrect(splitted);
 		}
 		else
-			throw ElemNotRecognized(splitted); //misschien incorrect
+			this->_errorJumpTable(splitted);
 	}
+	throw MissingClosingBracket("Server");
 }
 
 Server::Server(const Server& ref)
@@ -66,6 +80,10 @@ Server&	Server::operator=(const Server& ref)
 
 Server::~Server()
 {
+	this->_listen.clear();
+	this->_locations.clear();
+	this->_errorPage.clear();
+	this->_serverName.clear();
 	return ;
 }
 
@@ -74,6 +92,7 @@ Server::~Server()
 void	Server::setListen(std::vector<std::string>& line)
 {
 	unsigned int	number;
+
 	if (line.size() <= 1)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
@@ -98,7 +117,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
 	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
-		throw epNotANumber(line);
+		throw ElemNotANumber(line);
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
 }

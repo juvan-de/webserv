@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:48 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/15 16:49:03 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/04/07 18:27:15 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ class	Response
 
 	Response();
 	Response(std::string error);
-	Response(std::string path, Server server);
+	Response(std::string path, Server* server);
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
 	~Response();

@@ -61,6 +61,6 @@ void	parse(std::string filename, std::vector<Server>& servers)
 		std::cerr << COLOR_NORMAL_BOLD "[line " << filesize - filedeque.size() << "]";
 		std::cerr << COLOR_RED_BOLD << " error ";
 		std::cerr << e.what() << std::endl;
-		return ;
+		exit(1);
 	}
 }

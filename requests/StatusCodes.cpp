@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 12:09:08 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/06 13:38:28 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/04/11 15:15:34 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ StatusCodes::StatusCodes(const StatusCodes& ref)
 StatusCodes&	StatusCodes::operator=(const StatusCodes& ref)
 {
 	this->_statusCodes = ref.getStatusCodes();
-	return (*this);
+	return *this;
 }
 
 StatusCodes::~StatusCodes()
