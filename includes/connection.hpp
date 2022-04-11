@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/02/15 12:56:39 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/11 15:59:31 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/11 17:27:59 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,5 +27,7 @@ Server				*find_server(std::map<std::pair<int, std::string>, Server*>& table, Re
 
 // handle response
 void				handle_response(t_client client, t_data data);
+
+// errors
 
 #endif

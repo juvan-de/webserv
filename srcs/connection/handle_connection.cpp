@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/11 16:48:07 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/11 17:26:43 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,10 @@ void	handle_pollin(t_client &client, pollfd &fd)
 		client.request.setHeaders();
 	}
 	if (client.request.checkIfChunked())
+	{
+		std::cout << "CHUNKED" << std::endl;
 		client.request.readChunked(client.fd);
+	}
 	if (client.request.readyForParse())
 		fd.events = POLLOUT;
 }
@@ -58,11 +61,11 @@ void	handle_connection(t_data &data)
 			switch (data.fds[i].revents)
 			{
 				case POLLIN :
-					std::cout << "> (DEBUG handle_connection) current socket: " << i - data.socket_num << std::endl;
+					std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
 					handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
 					break;
 				case POLLOUT :
-					std::cout << "> (DEBUG handle_connection) current socket: " << i - data.socket_num << std::endl;
+					std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
 					handle_response(data.clients[i - data.socket_num], data);
 					break;
 				case LOST_CONNETION :
