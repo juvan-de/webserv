@@ -30,6 +30,7 @@ void	handle_response(t_client client, t_data data)
 	}
 	else if (client.request.getType() == POST)
 	{
+		
 		std::cout << "whooo do the post thiing" << std::endl;
 	}
 	else if(client.request.getType() == DELETE)
