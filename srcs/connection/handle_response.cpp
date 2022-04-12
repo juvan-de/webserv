@@ -7,14 +7,17 @@ void	handle_response(t_client client, t_data data)
 	{
 		/* for now */
 		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
-		if ( itr == server->getLocations().end())
+		if (itr == server->getLocations().end())
 		{
 			/* bad request */
+			std::cout << "DEBUG HANDLE RESPONSE: location: [" << client.request.getLocation() << "]" <<std::endl;
+			std::cout << "bad request" << std::endl;
 			return ;
 		}
 		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
 		{
 			/* bad request (405 forbidden)*/
+			std::cout << "bad request (forbidden)" << std::endl;
 			return ;
 		}
 		std::string filename = getFileName(itr->second);

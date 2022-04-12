@@ -1,0 +1,9 @@
+De reequest neemt variables mee gesplitst op een '&'
+De server splitst deze en slaat de variables op als environment variables (key = value)
+Het cgi script moet met deze variables dan iets doen
+Nadat er iets is gedaan door de cgi wordt een geformuleerde html terug gestuurd
+
+https://www.ibm.com/docs/en/i/7.4?topic=programming-cgi-process
+belangrijk
+- post en get hebben verschillende manieren van het ontvangen van de variables
+- get krijgt info in een QUERY_STRING en post krijgt info via een request met een body

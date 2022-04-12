@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 11:24:26 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/12 11:53:14 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,6 @@
 
 void	handle_pollin(t_client &client, pollfd &fd)
 {
-	std::cout << "Socket revent status: pollin" << std::endl;
 	client.request.addto_request(client.fd);
 	if (!(client.request.checkIfChunked() && !(client.request.readyForParse())))
 	{
