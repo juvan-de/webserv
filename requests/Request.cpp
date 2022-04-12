@@ -60,7 +60,7 @@ void			Request::addto_request(int fd)
 		cstr[ret] = '\0';
 		this->_input.append(cstr);
 	}
-	if (ret < -1)
+	else if (ret <= -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
 	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
@@ -115,7 +115,8 @@ void		Request::setHeaders(void)
 	// {
 	// 	std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	// }
-	if (this->_headers["Transfer-Encoding"] == "chunked")
+	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
+	if (it != this->_headers.end() && it->second == "Chunked")
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;
@@ -129,9 +130,10 @@ void		Request::setHeaders(void)
 
 bool		Request::checkIfChunked(void) const
 {
-	if (this->_headers.find("Transfer-Encoding") != this->_headers.end())
-		return (false);
-	return (true);
+	std::map<std::string, std::string>::const_iterator it = this->_headers.find("Transfer-Encoding");
+	if (it != this->_headers.end() && it->second == "Chunked")
+		return (true);
+	return (false);
 }
 
 bool		Request::readyForParse(void) const
@@ -159,5 +161,10 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	if (obj.readyForParse())
 		out << "The request is fully read" << std::endl;
 	out << "location: " << obj.getLocation() << std::endl;
+	out << "HEADERS: " << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = obj.getHeaders().begin(); it != obj.getHeaders().end(); it++)
+	{
+		std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
+	}
 	return (out);
 }
