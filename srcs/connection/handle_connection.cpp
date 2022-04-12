@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/07 18:52:12 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/12 15:44:53 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,13 +67,31 @@ std::string	getFileName(const Location& loc)
 	return NULL;
 }
 
+void	remove_last_dir(std::string& request_loc)
+{
+	if (request_loc.count())
+	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
+}
+
+std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>locations, &std::string& request_loc)
+{
+	while (true)
+	{
+		if (locations.find(request_loc) != locations.end())
+			return locations.find(request_loc);
+		remove_last_dir(request_loc);
+		if (request_loc.empty())
+			return (locations.find("/"));
+	}
+}
+
 void	handle_response(t_client client, t_data data)
 {
 	Server *server = find_server(data.table, client.request);
 	if (client.request.getType() == GET)
 	{
 		/* for now */
-		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
+		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), client.request.getLocation());
 		if ( itr == server->getLocations().end())
 		{
 			/* bad request */
