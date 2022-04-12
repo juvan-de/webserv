@@ -62,7 +62,7 @@ void			Request::addto_request(int fd)
 	}
 	if (ret < -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
-	std::cout << "*********input*********\n" << this->_input << "\nret: " << ret << "\n*********input*********" << std::endl;
+	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
 
 bool			Request::isFinished(void)
@@ -129,7 +129,9 @@ void		Request::setHeaders(void)
 
 bool		Request::checkIfChunked(void) const
 {
-	return (this->_isChunked);
+	if (this->_headers.find("Transfer-Encoding") != this->_headers.end())
+		return (false);
+	return (true);
 }
 
 bool		Request::readyForParse(void) const
