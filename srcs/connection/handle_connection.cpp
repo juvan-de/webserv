@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 15:44:53 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/12 17:02:02 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,6 @@ std::string	getFileName(const Location& loc)
 
 void	remove_last_dir(std::string& request_loc)
 {
-	if (request_loc.count())
 	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
 }
 
