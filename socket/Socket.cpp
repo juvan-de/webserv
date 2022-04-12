@@ -90,6 +90,7 @@ struct pollfd	new_pollfd(int cli_sock)
 	new_fd.events = POLLIN | POLLOUT;
 	flags = fcntl(cli_sock, F_GETFL);
 	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
+	setsockopt(new_fd.fd, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)) < 0
 	return new_fd;
 }
 
