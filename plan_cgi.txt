@@ -1,4 +1,4 @@
-De reequest neemt variables mee gesplitst op een '&'
+De request neemt variables mee gesplitst op een '&'
 De server splitst deze en slaat de variables op als environment variables (key = value)
 Het cgi script moet met deze variables dan iets doen
 Nadat er iets is gedaan door de cgi wordt een geformuleerde html terug gestuurd
