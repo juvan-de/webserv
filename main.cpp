@@ -1,5 +1,6 @@
 #include <iostream> // cout
 #include <unistd.h> // sleep
+#include <csignal> // signal for ignoring pipe breaks
 // custom
 #include <connection.hpp> // handle_connection
 #include <defines.hpp> // data struct, client struct
@@ -10,11 +11,10 @@ int main(int ac, char **av)
 	{
 		t_data					data;
 
+		std::signal(SIGPIPE, SIG_IGN);
 		initialize_data(av[1], data);
 		while (true)
 		{
-			for (int i = 0; i < data.socket_num; i++)
-				data.fds[i].events = POLLIN;
 			// for (std::vector<t_client>::iterator it = data.clients.begin(); it != data.clients.end(); it++)
 			// 	std::cout << "prepoll: " << it->fd << std::endl;
 			poll(&data.fds[0], data.fds.size(), -1);
