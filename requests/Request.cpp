@@ -116,7 +116,7 @@ void		Request::setHeaders(void)
 	// 	std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	// }
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
-	if (it != this->_headers.end() && it->second == "Chunked")
+	if (it != this->_headers.end() && it->second == "chunked")
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;
@@ -130,10 +130,7 @@ void		Request::setHeaders(void)
 
 bool		Request::checkIfChunked(void) const
 {
-	std::map<std::string, std::string>::const_iterator it = this->_headers.find("Transfer-Encoding");
-	if (it != this->_headers.end() && it->second == "Chunked")
-		return (true);
-	return (false);
+	return (this->_isChunked);
 }
 
 bool		Request::readyForParse(void) const

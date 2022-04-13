@@ -9,6 +9,7 @@ Response::Response()
 
 Response::Response(std::string error)
 {
+	
 	std::cout << "an error ocurred in Response constructor" << std::endl;
 }
 

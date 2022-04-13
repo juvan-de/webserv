@@ -4,7 +4,7 @@
 #include <defines.hpp>
 #include <sys/stat.h>
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& Request)
 {
 	std::map<std::string, std::string> headers = Request.getHeaders();
 	if (headers.find("Host") == headers.end())
