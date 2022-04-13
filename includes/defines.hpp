@@ -5,6 +5,7 @@
 #include <Socket.hpp>
 #include <Request.hpp>
 #include <poll.h> // pollfd
+#include <netinet/in.h> // sockaddr_in
 #include <map>
 
 # define LOST_CONNETION 17
@@ -13,9 +14,12 @@ class Socket;
 
 typedef struct s_client
 {
-	int						fd;
-	Request					request;
 	int						status;
+	int						fd;
+	int						opt;
+	sockaddr				addr;
+	Request					request;
+
 }				t_client;
 
 typedef struct s_data

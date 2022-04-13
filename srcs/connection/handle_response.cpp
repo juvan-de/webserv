@@ -62,3 +62,23 @@ void	handle_response(t_client client, t_data data)
 		std::cout << "shit went wrong yo" << std::endl;
 	}
 }
+
+// std::string	basicResponse()
+// {
+// 	std::string ret;
+
+// 	ret += "HTTP/1.1 200 ok\r\n";
+// 	ret += "Server: localhost\r\n";
+// 	ret += "Content-length: 82\r\n";
+// 	ret += "Content-type: text/html\r\n";
+// 	ret += "Connection: Keep-Alive\r\n\r\n";
+// 	ret += "<html><body><h1>My First Heading echt</h1><p>My first paragraph.</p></body></html>";
+
+// 	return ret;
+// }
+
+// void	handle_response(t_client client, t_data data)
+// {
+// 	Server *server = find_server(data.table, client.request);
+// 	send(client.fd, basicResponse().c_str(), basicResponse().length(), 0);
+// }

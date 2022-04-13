@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 15:51:30 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/13 14:32:03 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,11 +31,6 @@
 
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
-
-bool is_empty(std::ifstream& pFile)
-{
-    return pFile.peek() == std::ifstream::traits_type::eof();
-}
 
 void	handle_pollin(t_client &client, pollfd &fd)
 {
@@ -62,17 +57,17 @@ void	handle_connection(t_data &data)
 		{
 			if (data.fds[i].revents & POLLIN)
 			{
-//				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
+				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
 				handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
 			}
 			else if (data.fds[i].revents & POLLOUT)
 			{
-//				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
-				handle_response(data.clients[i - data.socket_num], data);
+				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
+				if (data.clients[i - data.socket_num].request.isFinished())
+					handle_response(data.clients[i - data.socket_num], data);
 			}
 			else if (data.fds[i].revents == LOST_CONNETION)
 			{
-//				std::cout << "lost connection" << std::endl;
 				data.clients.erase(data.clients.begin() + (i - data.socket_num));
 				data.fds.erase(data.fds.begin() + i);
 			}

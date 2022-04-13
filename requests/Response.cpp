@@ -23,7 +23,9 @@ Response::Response(std::string file, Server* server)
 	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: text/html" << "\r\n"; //nog wel hardcode
-	ss << "Connection: Keep-Alive" << "\r\n\r\n";
+	ss << "Connection: keep-alive" << "\r\n";
+	// ss << "Connection: close" << "\r\n";
+	ss << "\r\n";
 	ss << getResponseBody();
 	this->_response = ss.str();
 }

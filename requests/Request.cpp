@@ -59,10 +59,10 @@ void			Request::addto_request(int fd)
 	{
 		cstr[ret] = '\0';
 		this->_input.append(cstr);
+		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	if (ret < -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
-	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
 
 bool			Request::isFinished(void)
@@ -115,7 +115,8 @@ void		Request::setHeaders(void)
 	// {
 	// 	std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	// }
-	if (this->_headers["Transfer-Encoding"] == "chunked")
+	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
+	if (it != this->_headers.end() && it->second == "chunked")
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;

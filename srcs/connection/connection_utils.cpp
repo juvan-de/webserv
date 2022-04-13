@@ -4,13 +4,16 @@
 #include <defines.hpp>
 #include <sys/stat.h>
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request request)
 {
-	std::map<std::string, std::string> headers = Request.getHeaders();
+	std::map<std::string, std::string> headers = request.getHeaders();
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname" << std::endl;
+		std::cout << "error finding hostname in headers:" << std::endl;
+		std::cout << "-Req name loc ["<< request.getLocation() << "], req " << GET << "type: " << request.getType() << std::endl;
+		for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
+			std::cout << "--Header [" << it->first << "], Value [" << it->second << "]" << std::endl;
 		return NULL;
 	}
 	std::string host = headers["Host"];

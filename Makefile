@@ -4,7 +4,8 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
-				strtrim.cpp
+				strtrim.cpp \
+				createPoll.cpp
 INIT_SRC	=	data.cpp
 CONNECT_SRC	=	handle_connection.cpp \
 				connection_utils.cpp \

@@ -3,7 +3,6 @@
 
 // #include <sys/socket.h> // sockaddr?
 #include <fcntl.h> // fcntl
-#include <poll.h> // polling
 #include <netinet/in.h> // sockaddr_in
 #include <set>
 
@@ -19,14 +18,10 @@ class Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int					_port;
-		int					_servfd;
-		int					_opted;
-		int					_address_len;
-		int					_flags;
-		int					_backlog;
+		int					_socket;
+		int					_fd;
+		int					_opt;
 		struct sockaddr_in	_address;
-		struct pollfd		_poll;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -37,13 +32,10 @@ class Socket
 
 		/*--------------------------Member functions--------------------------*/
 		Socket(int port);
-		int					new_connection();
-		int					getPort() const { return _port; }
-		int					getFd() const { return _servfd; }
+		int					new_connection(sockaddr *cli_addr);
+		int					getSock() const { return _socket; }
+		int					getFd() const { return _fd; }
 		struct sockaddr_in	&getAddr() { return _address; };
-		int					&getAddrlen() { return _address_len; }
-		struct pollfd		&getPoll() {return _poll; }
-		int					getFlags() const { return _flags; }
 
 	private:
 		/*--------------------------Exception Classes-------------------------*/

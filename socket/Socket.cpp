@@ -1,6 +1,7 @@
 #include <Socket.hpp>
 #include <unistd.h> //close
 #include <vector>
+#include <utils.hpp> // newPoll
 
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket()
@@ -27,82 +28,68 @@ Socket&	Socket::operator=(const Socket &ref)
 	/*Assignation operator*/
 	if (this != &ref)
 	{
-		_port = ref._port;
-		_servfd = ref._servfd;
+		_socket = ref._socket;
+		_fd = ref._fd;
+		_opt = ref._opt;
 		_address = ref._address;
-		_opted = ref._opted;
-		_address_len = ref._address_len;
-		_flags = ref._flags;
-		_backlog = ref._backlog;
-		_poll = ref._poll;
 	}
 	return *this;
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Socket::Socket(int port) : _port(port)
+Socket::Socket(int port) : _socket(port)
 {
+	int backlog = 100, addr_len, flags;
 	/*Constructor*/
-	std::cout << "Initializing port" << _port << std::endl;
+	std::cout << "Initializing Socket: " << _socket << std::endl;
 
 	/*Initializing sock address*/
+	bzero(&_address, sizeof(_address));
 	_address.sin_family = AF_INET;
 	_address.sin_addr.s_addr = INADDR_ANY;
-	_address.sin_port = htons(_port);
-	_address_len = sizeof(_address);
-	
-	/*Initializing configurations*/
-	_opted = 1;
-	_backlog = 100;
+	_address.sin_port = htons(_socket);
+	addr_len = sizeof(_address);
 
 	/*Instantiating a connection*/
-	if ((_servfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	_opt = 1;
+	if ((_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		throw badInit;
-	if ((_flags = fcntl(_servfd, F_GETFL)) < 0)
+	if ((flags = fcntl(_fd, F_GETFL)) < 0)
 		throw badInit;
-	if (fcntl(_servfd, F_SETFL, _flags | O_NONBLOCK) < 0)
+	if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) < 0)
 		throw badInit;
-	if (setsockopt(_servfd, SOL_SOCKET, SO_REUSEADDR, &_opted, sizeof(_opted)) < 0)
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt)) < 0)
 		throw badInit;
-	if ((bind(_servfd, (struct sockaddr *)&_address, sizeof(_address)) < 0))
+	if ((bind(_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0))
 		throw badInit;
-	if (listen(_servfd, _backlog) < 0)
+	if (listen(_fd, backlog) < 0)
 		throw badInit;
-
-	/*Initializing pollfd struct*/
-	_poll.fd = _servfd;
-	_poll.events = POLLIN | POLLOUT;
 }
 
-int	Socket::new_connection()
+int	Socket::new_connection(sockaddr *cli_addr)
 {
-	return accept(_servfd, (struct sockaddr *)&_address, (socklen_t*)&_address);
+	socklen_t len;
+	len = sizeof(cli_addr);
+
+	return accept(_fd, (struct sockaddr *)cli_addr, &len);
 }
 
 /*------------------------------Other connection funcs------------------------------*/
 
-struct pollfd	new_pollfd(int cli_sock)
-{
-	struct pollfd new_fd;
-	int flags;
-
-	new_fd.fd = cli_sock;
-	new_fd.events = POLLIN | POLLOUT;
-	flags = fcntl(cli_sock, F_GETFL);
-	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
-	setsockopt(new_fd.fd, SOL_SOCKET, SO_REUSEADDR, &opted, sizeof(opted)) < 0
-	return new_fd;
-}
-
-t_client	accept_client(int fd)
+t_client	accept_client(int fd, sockaddr &addr)
 {
 	t_client new_client;
 
+	bzero(&new_client, sizeof(new_client));
+	new_client.opt = 1;
 	new_client.fd = fd;
+	new_client.addr = addr;
+	std::cout << "TEST: " << new_client.addr.sa_len << std::endl;
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &new_client.opt, sizeof(new_client.opt));
 	new_client.request = Request();
 	// beter als we hier een define gebruiken
 	new_client.status = 200;
-	std::cout << "Connected!" << std::endl;
+	std::cout << "> DEBUG: Connected!: " << fd << std::endl;
 	return new_client;
 }
 
@@ -113,16 +100,17 @@ void	check_connection(t_data &data)
 		if (data.fds[i].revents & POLLIN)
 		{
 			int cli_sock;
+			sockaddr cli_addr;
 
-			if ((cli_sock = data.sockets[i].new_connection()) < 0)
+			if ((cli_sock = data.sockets[i].new_connection(&cli_addr)) < 0)
 			{
 				if (errno != EWOULDBLOCK)
 					std::cout << "error occured" << std::endl;
 			}
 			else
 			{
+				data.clients.push_back(accept_client(cli_sock, cli_addr));
 				data.fds.push_back(new_pollfd(cli_sock)); // error protection needed
-				data.clients.push_back(accept_client(cli_sock));
 			}
 		}
 
