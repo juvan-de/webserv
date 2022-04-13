@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:48 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 16:36:33 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/12 17:06:05 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ class	Response
 	std::string							_responseBody;
 	std::map<std::string, std::string>	_contentTypes;
 
-	void	_setConnentTypes();
+	void	_setContentTypes();
 
 	public:
 
@@ -43,6 +43,8 @@ class	Response
 	const std::pair<int, std::string>	&getStatusCode() const;
 	const std::string					&getResponse() const;
 	const std::string					&getResponseBody() const;
+	const std::string					getRightContentType(const std::string suffix) const;
+
 	void								setResponseBody(std::string &filename);
 
 	private: /* -Exception- */

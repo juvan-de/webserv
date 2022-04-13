@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 17:01:47 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/13 14:46:20 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,15 +28,14 @@ Response::Response(std::string file, Server* server)
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
-	std::cout << file << std::endl;
 	this->_setContentTypes();
-	this->_path = "./files/" + server->getLocation("/").getRoot() + "/Welcome.html"; //hardcodes
+	this->_path = file;
 	setResponseBody(this->_path);
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
 	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
-	ss << "Content-type: " << getRightContentType() << "\r\n"; //nog wel hardcode
+	ss << "Content-type: " << this->getRightContentType(file.substr(file.find_last_of(".") + 1)) << "\r\n"; //nog wel hardcode
 	ss << "Connection: Keep-Alive" << "\r\n\r\n";
 	ss << getResponseBody();
 	this->_response = ss.str();
@@ -143,7 +142,6 @@ void		Response::setResponseBody(std::string &filename)
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 
-	std::cout << "filename: " << filename << std::endl;
 	if (file.is_open())
 	{
 		while (getline(file, line))

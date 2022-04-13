@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 17:02:02 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/13 14:49:17 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,15 +55,22 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 std::string	getFileName(const Location& loc)
 {
 	struct stat	buf;
+	int			ret;
+	std::string res;
 	
-	std::string res = loc.getTitle() + loc.getRoot();
+	if (loc.getTitle().size() == 1 && loc.getTitle()[0])
+		res = loc.getTitle() + loc.getRoot();
+	else
+		res = loc.getTitle() + "/" + loc.getRoot();
 	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
 	{
-		std::string filename = res + *itr;
-		if (stat(filename.c_str(), &buf))
+		std::string filename = "." + res + "/" + *itr;
+		ret = stat(filename.c_str(), &buf);
+		if (ret == 0)
 			return filename;
 	}
-	/* bad request */
+	/* bad request, wa gaan we hier doen */
+	std::cout << "bad request (getFileName)" << std::endl;
 	return NULL;
 }
 
@@ -72,7 +79,7 @@ void	remove_last_dir(std::string& request_loc)
 	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
 }
 
-std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>locations, &std::string& request_loc)
+std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>& locations, std::string request_loc)
 {
 	while (true)
 	{
@@ -94,11 +101,13 @@ void	handle_response(t_client client, t_data data)
 		if ( itr == server->getLocations().end())
 		{
 			/* bad request */
+			std::cout << "bad request" << std::endl;
 			return ;
 		}
 		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
 		{
 			/* bad request (405 forbidden)*/
+			std::cout << "bad request (405 forbidden)" << std::endl;
 			return ;
 		}
 		std::string filename = getFileName(itr->second);
@@ -158,7 +167,7 @@ void	handle_connection(t_data &data)
 				break;
 			case POLLOUT :
 				std::cout << "pollout" << std::endl;
-				std::cout << client->request.getInput() << std::endl;
+				// std::cout << client->request.getInput() << std::endl;
 				try
 				{
 					handle_response(*client, data);
