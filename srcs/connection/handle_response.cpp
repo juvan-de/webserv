@@ -17,13 +17,15 @@ std::map<std::string, Location>::const_iterator	find_right_location(const std::m
 	}
 }
 
-void	handle_response(t_client client, t_data data)
+void	handle_response(t_client &client, t_data &data)
 {
+	// std::cout << "BEFORE FINDING THA SERVA\n";
+	// std::cout << client.request << std::endl;
 	Server *server = find_server(data.table, client.request);
 	if (client.request.getType() == GET)
 	{
 		/* for now */
-		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), client.request.getLocation());
+		std::map<std::string, Location>::const_iterator itr = server->getLocations().find(client.request.getLocation());
 		if (itr == server->getLocations().end())
 		{
 			/* bad request */
@@ -50,10 +52,9 @@ void	handle_response(t_client client, t_data data)
 	}
 	else if (client.request.getType() == POST)
 	{
-		
-		std::cout << "whooo do the post thiing" << std::endl;
+
 	}
-	else if(client.request.getType() == DELETE)
+	else if (client.request.getType() == DELETE)
 	{
 		std::cout << "we be deletin tho" << std::endl;
 	}

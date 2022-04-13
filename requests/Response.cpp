@@ -8,6 +8,7 @@ Response::Response()
 
 Response::Response(std::string error)
 {
+	
 	std::cout << "an error ocurred in Response constructor" << std::endl;
 }
 
@@ -23,7 +24,7 @@ Response::Response(std::string file, Server* server)
 	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: text/html" << "\r\n"; //nog wel hardcode
-	ss << "Connection: keep-alive" << "\r\n";
+	// ss << "Connection: keep-alive" << "\r\n";
 	// ss << "Connection: close" << "\r\n";
 	ss << "\r\n";
 	ss << getResponseBody();

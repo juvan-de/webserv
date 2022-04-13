@@ -2,7 +2,7 @@
 #include <unistd.h> //close
 #include <vector>
 #include <utils.hpp> // newPoll
-
+#include <errno.h>
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket()
 {
@@ -64,6 +64,8 @@ Socket::Socket(int port) : _socket(port)
 		throw badInit;
 	if (listen(_fd, backlog) < 0)
 		throw badInit;
+	if (errno)
+				std::cout << "ERRNO in socket: " << errno << std::endl;
 }
 
 int	Socket::new_connection(sockaddr *cli_addr)
@@ -79,6 +81,7 @@ int	Socket::new_connection(sockaddr *cli_addr)
 t_client	accept_client(int fd, sockaddr &addr)
 {
 	t_client new_client;
+	int opt = 1;
 
 	bzero(&new_client, sizeof(new_client));
 	new_client.opt = 1;
@@ -112,6 +115,8 @@ void	check_connection(t_data &data)
 				data.clients.push_back(accept_client(cli_sock, cli_addr));
 				data.fds.push_back(new_pollfd(cli_sock)); // error protection needed
 			}
+			if (errno)
+				std::cout << "ERRNO in check connection: " << errno << std::endl;
 		}
 
 	}

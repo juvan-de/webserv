@@ -1,0 +1,10 @@
+formulate response:
+
+	- Find server -> (400)
+	- Authorize Request -> (401/403)?
+		GET
+	- Find Requested file (404)
+		POST
+	- 
+	- Formulate response -> (400/204/)
+	- 

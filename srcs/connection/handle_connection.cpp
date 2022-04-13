@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/13 14:32:03 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/13 14:39:28 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@
 
 void	handle_pollin(t_client &client, pollfd &fd)
 {
+	// std::cout << "CLIENT FD: [" << client.fd << "]" << std::endl;
 	client.request.addto_request(client.fd);
 	if (client.request.getType() == NOTSET)
 	{
@@ -42,9 +43,11 @@ void	handle_pollin(t_client &client, pollfd &fd)
 	}
 	if (client.request.checkIfChunked())
 	{
-		std::cout << "CHUNKED" << std::endl;
+		// std::cout << "CHUNKED" << std::endl;
 		client.request.readChunked(client.fd);
 	}
+	// std::cout << "AFTER PARSIN:\n";
+	// std::cout << client.request;
 }
 
 void	handle_connection(t_data &data)
@@ -55,6 +58,11 @@ void	handle_connection(t_data &data)
 	{
 		try
 		{
+			if (data.fds[i].revents & POLLOUT)
+			{
+//				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
+				handle_response(data.clients[i - data.socket_num], data);
+			}
 			if (data.fds[i].revents & POLLIN)
 			{
 				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
