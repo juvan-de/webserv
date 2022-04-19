@@ -4,6 +4,23 @@
 
 #include <webservException.hpp>
 
+/* Wrong File */
+WrongFile::WrongFile(const std::string line) : _line(line) {}
+WrongFile::~WrongFile(void) throw() {}
+
+const char*	WrongFile::what (void) const throw()
+{
+	{
+		std::string ret;
+		ret += COLOR_WHITE_BOLD;
+		ret += "Invalid file name\n";
+		ret += COLOR_NORMAL_DIM;
+		ret += "File name: ";
+		ret += this->_line;
+		return ret.c_str();
+	}
+}
+
 /* Argument Incorrect */
 ArgumentIncorrect::ArgumentIncorrect(const std::vector<std::string>& line) : _line(line) {}
 ArgumentIncorrect::~ArgumentIncorrect(void) throw() {}

@@ -9,6 +9,18 @@
 # define COLOR_NORMAL_DIM			"\033[0;02m"
 # define COLOR_NORMAL				"\033[0m"
 
+class WrongFile : public std::exception
+{
+	private:
+		WrongFile();
+	protected:
+		const std::string	_line;
+	public:
+		WrongFile(const std::string line);
+		virtual ~WrongFile() throw();
+		const char*	what (void) const throw();
+};
+
 class ArgumentIncorrect : public std::exception
 {
 	private:

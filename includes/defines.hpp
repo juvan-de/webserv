@@ -29,6 +29,6 @@ typedef struct s_data
 }				t_data;
 
 std::set<int>	get_ports(std::vector<Server> servers);
-void			initialize_data(char *av, t_data &data);
+void			initialize_data(const std::string filename, t_data &data);
 
 #endif
