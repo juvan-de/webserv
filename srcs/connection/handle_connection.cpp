@@ -1,4 +1,3 @@
-
 #include <vector>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -23,7 +22,6 @@
 
 void	handle_pollin(t_client &client, pollfd &fd)
 {
-	// std::cout << "CLIENT FD: [" << client.fd << "]" << std::endl;
 	client.request.addto_request(client.fd);
 	if (client.request.getType() == NOTSET)
 	{
@@ -36,7 +34,6 @@ void	handle_pollin(t_client &client, pollfd &fd)
 		client.request.readChunked(client.fd);
 		/* bad request statuscode, want host is mandatory in http 1.1 */
 	}
-
 }
 
 void	remove_last_dir(std::string& request_loc)
