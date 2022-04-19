@@ -26,13 +26,12 @@ std::vector<Socket>	init_sockets(std::set<int> ports)
 	return sockets;
 }
 
-void	initialize_data(char *av, t_data &data)
+void	initialize_data(const std::string filename, t_data &data)
 {
 	try
 	{
 		std::cout << "Parsing config" << std::endl;
-		parse(av, data.server_configs);
-		
+		parse(filename, data.server_configs);
 		std::cout << "Initializing ports" << std::endl;
 		data.sockets = init_sockets(get_ports(data.server_configs, data.table));
 		std::cout << "Initializing pollfd array" << std::endl;
