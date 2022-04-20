@@ -1,3 +1,9 @@
 socket
  - 
 poller
+poller(vec server_sockets)
+start_polling(vec sockets)
+
+POLLER IDEE
+1. in poller gaat CLIENTS en als cgi spull ook CGI
+2. POLLER update status

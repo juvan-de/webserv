@@ -1,41 +1,20 @@
 #include "ServerSocket.hpp"
-#include "output.hpp"
 
-/*--------------------------------Coplien form--------------------------------*/
-ServerSocket::ServerSocket()
+ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : Socket(domain service, protocol, port, interface)
 {
-	/*Constructor*/
-	std::cout << YELLOW << "ServerSocket default constructor called" << RESET << std::endl;
-}
-
-ServerSocket::~ServerSocket()
-{
-	/*Destructor*/
-	std::cout << YELLOW << "ServerSocket destructor called" << RESET << std::endl;
-}
-
-ServerSocket::ServerSocket(const ServerSocket &ref)
-{
-	/*Copy constructor*/
-	std::cout << BOLD << "ServerSocket copy constructor called" << RESET << std::endl;
-	*this = ref;
-}
-
-ServerSocket&	ServerSocket::operator=(const ServerSocket &ref)
-{
-	/*Assignation operator*/
-	std::cout << BOLD << "ServerSocket assignation overload called" << RESET << std::endl;
-	if (this != &ref)
-	{
-		/* assign member variables*/
+	/*Instantiating a connection*/
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt)) < 0) {
+		close(_fd);
+		throw badInit;
 	}
-	return *this;
-}
-/*--------------------------------Coplien form--------------------------------*/
+	if ((flags = fcntl(_fd, F_GETFL)) < 0)
+		throw badInit;
+	if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) < 0)
+		throw badInit;
 
-std::ostream&	operator<<(std::ostream &out, const ServerSocket &ref)
-{
-	/*Output operator*/
-	/*out << ServerSocket;
-	return out;*/
+	// Setting up the connection and listening
+	if ((bind(_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0))
+		throw badInit;
+	if (listen(_fd, backlog) < 0)
+		throw badInit;
 }

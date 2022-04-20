@@ -1,24 +1,18 @@
 #ifndef CLIENTSOCKET_HPP
 # define CLIENTSOCKET_HPP
 
-# include <iostream>
+# include <Socket.hpp>
 
-class ClientSocket
+class ClientSocket : public Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
+		int		status;
+		Request	request;
 
 	public:
-		/*----------------------------Coplien form----------------------------*/
-		ClientSocket();
-		ClientSocket(const ClientSocket &ref);
-		ClientSocket& operator=(const ClientSocket &ref);
-		~ClientSocket();
-
 		/*--------------------------Member functions--------------------------*/
 
 };
-
-std::ostream&	operator<<(std::ostream &out, const ClientSocket &ref);
 
 #endif

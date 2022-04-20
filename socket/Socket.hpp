@@ -9,8 +9,6 @@
 #include <defines.hpp> // data and client struct
 
 # include <iostream>
-# define BACKLOG 100
-
 typedef struct s_data t_data;
 typedef struct s_client t_client;
 
@@ -18,9 +16,7 @@ class Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-//		int					_socket;
 		int					_fd;
-//		int					_opt;
 		struct sockaddr_in	_address;
 
 	public:
@@ -31,9 +27,9 @@ class Socket
 		~Socket();
 
 		/*--------------------------Member functions--------------------------*/
-		Socket(int port);
+		// AF_INET, SOCK_STREAM, 0, sizeof(adress)
+		Socket(int domain, int service, int protocol, int port, u_long interface);
 		int					new_connection(sockaddr *cli_addr);
-		int					getSock() const { return _socket; }
 		int					getFd() const { return _fd; }
 		struct sockaddr_in	&getAddr() { return _address; };
 

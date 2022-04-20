@@ -28,44 +28,24 @@ Socket&	Socket::operator=(const Socket &ref)
 	/*Assignation operator*/
 	if (this != &ref)
 	{
-		_socket = ref._socket;
 		_fd = ref._fd;
-		_opt = ref._opt;
 		_address = ref._address;
 	}
 	return *this;
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Socket::Socket(int port) : _socket(port)
+Socket::Socket(int domain, int service, int protocol, int port, u_long interface)
 {
-	int backlog = 100, addr_len, flags;
-	/*Constructor*/
-	std::cout << "Initializing Socket: " << _socket << std::endl;
-
-	/*Initializing sock address*/
+	// Set address struct
 	bzero(&_address, sizeof(_address));
-	_address.sin_family = AF_INET;
-	_address.sin_addr.s_addr = INADDR_ANY;
-	_address.sin_port = htons(_socket);
-	addr_len = sizeof(_address);
+	_address.sin_family = domain;
+    _address.sin_port = htons(port);
+    _address.sin_addr.s_addr = interface;
 
-	/*Instantiating a connection*/
-	_opt = 1;
-	if ((_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    // Establish a connection
+	if ((_fd = socket(domain, service, protocol)) < 0)
 		throw badInit;
-	if ((flags = fcntl(_fd, F_GETFL)) < 0)
-		throw badInit;
-	if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) < 0)
-		throw badInit;
-	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &_opt, sizeof(_opt)) < 0)
-		throw badInit;
-	if ((bind(_fd, (struct sockaddr *)&_address, sizeof(_address)) < 0))
-		throw badInit;
-	if (listen(_fd, backlog) < 0)
-		throw badInit;
-	if (errno)
-				std::cout << "ERRNO in socket: " << errno << std::endl;
 }
 
 int	Socket::new_connection(sockaddr *cli_addr)
