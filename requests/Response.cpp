@@ -1,4 +1,3 @@
-                                                                        
 #include <Response.hpp>
 #include <sstream>
 
