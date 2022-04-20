@@ -18,9 +18,9 @@ class Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int					_socket;
+//		int					_socket;
 		int					_fd;
-		int					_opt;
+//		int					_opt;
 		struct sockaddr_in	_address;
 
 	public:
