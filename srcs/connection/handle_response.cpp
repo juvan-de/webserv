@@ -42,6 +42,7 @@ void	handle_response(t_client &client, t_data &data)
 		std::string filename = getFileName(itr->second);
 		Response response = Response(filename, server);
 		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
+		client.request = Request();
 		// std::cout << "----------\n" << response.getResponseBody() << "\n----------" << std::endl;
 
 		// get html locatie

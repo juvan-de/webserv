@@ -4,16 +4,13 @@
 #include <defines.hpp>
 #include <sys/stat.h>
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
 {
-	std::map<std::string, std::string> headers = request.getHeaders();
+	std::map<std::string, std::string> headers = Request.getHeaders();
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname in headers:" << std::endl;
-		std::cout << "-Req name loc ["<< request.getLocation() << "], req " << GET << "type: " << request.getType() << std::endl;
-		for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-			std::cout << "--Header [" << it->first << "], Value [" << it->second << "]" << std::endl;
+		std::cout << "error finding hostname" << std::endl;
 		return NULL;
 	}
 	std::string host = headers["Host"];
@@ -31,14 +28,21 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 std::string	getFileName(const Location& loc)
 {
 	struct stat	buf;
+	int			ret;
+	std::string res;
 	
-	std::string res = loc.getTitle() + loc.getRoot();
+	if (loc.getTitle().size() == 1 && loc.getTitle()[0])
+		res = loc.getTitle() + loc.getRoot();
+	else
+		res = loc.getTitle() + "/" + loc.getRoot();
 	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
 	{
-		std::string filename = res + *itr;
-		if (stat(filename.c_str(), &buf))
+		std::string filename = "." + res + "/" + *itr;
+		ret = stat(filename.c_str(), &buf);
+		if (ret == 0)
 			return filename;
 	}
-	/* bad request */
+	/* bad request, wa gaan we hier doen */
+	std::cout << "bad request (getFileName)" << std::endl;
 	return NULL;
 }

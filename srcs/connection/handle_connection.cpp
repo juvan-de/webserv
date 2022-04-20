@@ -20,7 +20,7 @@
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-void	handle_pollin(t_client &client, pollfd &fd)
+void	handle_pollin(t_client &client)
 {
 	client.request.addto_request(client.fd);
 	if (client.request.getType() == NOTSET)
@@ -36,24 +36,6 @@ void	handle_pollin(t_client &client, pollfd &fd)
 	}
 }
 
-void	remove_last_dir(std::string& request_loc)
-{
-	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
-}
-
-std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>& locations, std::string request_loc)
-{
-	while (true)
-	{
-		if (locations.find(request_loc) != locations.end())
-			return locations.find(request_loc);
-		remove_last_dir(request_loc);
-		if (request_loc.empty())
-			return (locations.find("/"));
-	}
-}
-
-
 void	handle_connection(t_data &data)
 {
 	int					end = data.fds.size();
@@ -64,8 +46,7 @@ void	handle_connection(t_data &data)
 		{
 			if (data.fds[i].revents & POLLIN)
 			{
-				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
-				handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
+				handle_pollin(data.clients[i - data.socket_num]);
 			}
 			if (data.fds[i].revents & POLLOUT)
 			{

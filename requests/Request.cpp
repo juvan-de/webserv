@@ -23,6 +23,10 @@ Request&	Request::operator=(const Request& ref)
 	this->_type = ref.getType();
 	this->_location = ref.getLocation();
 	this->_headers = ref.getHeaders();
+	this->_input = ref.getInput();
+	this->_isChunked = ref.checkIfChunked();
+	this->_isFinished = ref.readyForParse();
+	this->_body = ref.getBody();
 	return (*this);
 }
 
