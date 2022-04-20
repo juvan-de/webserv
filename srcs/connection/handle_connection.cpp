@@ -62,16 +62,16 @@ void	handle_connection(t_data &data)
 	{
 		try
 		{
-			if (data.fds[i].revents & POLLOUT)
-			{
-//				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
-				handle_response(data.clients[i - data.socket_num], data);
-			}
 			if (data.fds[i].revents & POLLIN)
 			{
 //				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
 				// std::cout << "client num: " << i << std::endl;
 				handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
+			}
+			if (data.fds[i].revents & POLLOUT)
+			{
+				std::cout << data.clients[i - data.socket_num].request << std::endl;
+				handle_response(data.clients[i - data.socket_num], data);
 			}
 			if (data.fds[i].revents == LOST_CONNETION)
 			{

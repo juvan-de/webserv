@@ -48,6 +48,11 @@ std::string		const &Request::getInput() const
 	return (this->_input);
 }
 
+std::string		const &Request::getBody() const
+{
+	return (this->_body);
+}
+
 void			Request::addto_request(int fd)
 {
 	char	cstr[BUFFER_SIZE + 1];
@@ -163,5 +168,6 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	{
 		std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
+	out << "BODY: \n" << obj.getBody();
 	return (out);
 }

@@ -9,7 +9,6 @@ Response::Response()
 
 Response::Response(std::string error)
 {
-	
 	std::cout << "an error ocurred in Response constructor" << std::endl;
 }
 
@@ -129,6 +128,7 @@ const std::string					&Response::getResponseBody() const
 
 void		Response::setResponseBody(std::string &filename)
 {
+	std::cout << filename << std::endl;
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 
