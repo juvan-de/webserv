@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/13 14:46:20 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/21 13:00:29 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,10 @@ Response::Response()
 	// std::cout << "default constructor called" << std::endl;
 }
 
-Response::Response(std::string error)
-{
-	std::cout << "an error ocurred in Response constructor" << std::endl;
-}
+// Response::Response(std::string error)
+// {
+// 	std::cout << "an error ocurred in Response constructor" << std::endl;
+// }
 
 Response::Response(std::string file, Server* server)
 {
@@ -48,9 +48,11 @@ Response::Response(const Response& ref)
 
 Response&	Response::operator=(const Response& ref)
 {
-	this->_path = ref._path;
 	this->_statusCode = ref._statusCode;
-	this->_response = ref.getResponse();
+	this->_path = ref._path;
+	this->_response = ref._response;
+	this->_responseBody = ref._responseBody;
+	this->_contentTypes = ref._contentTypes;
 	return (*this);
 }
 

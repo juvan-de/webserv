@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 11:57:48 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 17:06:05 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/04/21 12:57:53 by avan-ber      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,19 +21,18 @@
 class	Response
 {
 	private:
+		std::pair<int, std::string>			_statusCode;
+		std::string							_path;
+		std::string							_response;
+		std::string							_responseBody;
+		std::map<std::string, std::string>	_contentTypes;
 
-	std::pair<int, std::string>			_statusCode;
-	std::string							_path;
-	std::string							_response;
-	std::string							_responseBody;
-	std::map<std::string, std::string>	_contentTypes;
-
-	void	_setContentTypes();
+		Response();
+		void	_setContentTypes();
 
 	public:
 
-	Response();
-	Response(std::string error);
+	// Response(std::string error);
 	Response(std::string path, Server* server);
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
