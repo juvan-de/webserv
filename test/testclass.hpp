@@ -1,25 +1,22 @@
-#ifndef POLLER_HPP
-# define POLLER_HPP
+#ifndef TESTCLASS_HPP
+# define TESTCLASS_HPP
 
 # include <iostream>
 
-class Poller
+class testclass
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		// vec clients socks
-		// vec serv socks
-		// vec socket
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		Poller();
-		Poller(const Poller &ref);
-		Poller& operator=(const Poller &ref);
-		~Poller();
+		testclass();
+		testclass(const testclass &ref);
+		testclass& operator=(const testclass &ref);
+		~testclass();
 
 		/*--------------------------Member functions--------------------------*/
-		accept_new_clients
+
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/15 13:47:05 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/20 12:40:33 by ztan          ########   odam.nl         */
+/*   Updated: 2022/04/21 14:29:55 by ztan          ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,11 +62,6 @@ void	handle_connection(t_data &data)
 			{
 				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
 				handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
-			}
-			else if (data.fds[i].revents & POLLOUT)
-			{
-//				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
-				handle_response(data.clients[i - data.socket_num], data);
 			}
 			else if (data.fds[i].revents & POLLOUT)
 			{

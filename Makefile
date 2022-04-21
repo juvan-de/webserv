@@ -17,7 +17,9 @@ SERVER_SRC	= 	Location.cpp \
 				redir.cpp \
 				Server.cpp \
 				webservException.cpp
-SOCKET_SRC	=	Socket.cpp
+SOCKET_SRC	=	Socket.cpp \
+				ServerSocket.cpp \
+				ClientSocket.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
