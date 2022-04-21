@@ -28,7 +28,8 @@ ClientSocket	*ServerSocket::check_new_connection()
 {
 	if (getRevent() & POLLIN)
 	{
-		new ClientSocket new_cli(AF_INET, SOCK_STREAM, 0, getFd() sizeof(getAddr()));
-		return new_cl;
+		ClientSocket *new_cli = new ClientSocket(AF_INET, SOCK_STREAM, 0, getFd(), sizeof(getAddr()));
+		return new_cli;
 	}
+	return NULL;
 }

@@ -2,14 +2,18 @@
 # define POLLER_HPP
 
 # include <iostream>
+# include <vector>
+# include <Socket.hpp>
+# include <ClientSocket.hpp>
+# include <ServerSocket.hpp>
 
 class Poller
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		// vec clients socks
-		// vec serv socks
-		// vec socket
+		std::vector<Socket*>		_cgi_socks;
+		std::vector<ServerSocket*>	_serv_socks;
+		std::vector<ClientSocket*>	_client_socks;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -19,7 +23,9 @@ class Poller
 		~Poller();
 
 		/*--------------------------Member functions--------------------------*/
-		accept_new_clients
+		Poller(std::vector<int>	server_ports);
+		void	add_cgi_sock(int fd);
+		void	execute_poll();
 };
 
 #endif

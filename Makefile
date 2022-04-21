@@ -20,6 +20,7 @@ SERVER_SRC	= 	Location.cpp \
 SOCKET_SRC	=	Socket.cpp \
 				ServerSocket.cpp \
 				ClientSocket.cpp
+POLLER_SRC	=	Poller.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
@@ -28,6 +29,7 @@ CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
+POLLER		= 	$(addprefix socket/, $(POLLER_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
@@ -36,7 +38,8 @@ SOURCES		= 	main.cpp \
 				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
-				$(SERVER)
+				$(SERVER) \
+				$(POLLER)
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
@@ -44,7 +47,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Irequests -Iserver -Isocket
+INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
