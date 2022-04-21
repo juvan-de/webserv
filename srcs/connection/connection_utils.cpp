@@ -4,7 +4,7 @@
 #include <defines.hpp>
 #include <sys/stat.h>
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
 {
 	std::map<std::string, std::string> headers = Request.getHeaders();
 	if (headers.find("Host") == headers.end())
@@ -28,14 +28,26 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 std::string	getFileName(const Location& loc)
 {
 	struct stat	buf;
+	int			ret;
+	std::string res;
+	std::string filename;
 	
-	std::string res = loc.getTitle() + loc.getRoot();
+	// std::cout << "Root: " << loc.getRoot() << std::endl;
+	// std::cout << "Title: " << loc.getTitle() << std::endl;
+
+	res = loc.getRoot() + loc.getTitle();
 	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
 	{
-		std::string filename = res + *itr;
-		if (stat(filename.c_str(), &buf))
+		if (loc.getTitle().size() == 1 && loc.getTitle()[0] == '/')
+			filename = res + *itr;
+		else
+			filename = res + "/" + *itr;
+		ret = stat(filename.c_str(), &buf);
+		std::cout << filename << std::endl;
+		if (ret == 0)
 			return filename;
 	}
-	/* bad request */
+	/* bad request, wa gaan we hier doen */
+	std::cout << "bad request (getFileName)" << std::endl;
 	return NULL;
 }

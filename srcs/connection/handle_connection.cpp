@@ -20,10 +20,10 @@
 #define BACKLOG 100
 #define BUFFER_SIZE 2000
 
-void	handle_pollin(t_client &client, pollfd &fd)
+void	handle_pollin(t_client &client)
 {
-	// std::cout << "CLIENT FD: [" << client.fd << "]" << std::endl;
 	client.request.addto_request(client.fd);
+	std::cout << "raw input:\n" << client.request.getInput() << std::endl;
 	if (client.request.getType() == NOTSET)
 	{
 		client.request.setRequest();
@@ -33,9 +33,8 @@ void	handle_pollin(t_client &client, pollfd &fd)
 	{
 		// std::cout << "CHUNKED" << std::endl;
 		client.request.readChunked(client.fd);
+		/* bad request statuscode, want host is mandatory in http 1.1 */
 	}
-	// std::cout << "AFTER PARSIN:\n";
-	// std::cout << client.request;
 }
 
 void	handle_connection(t_data &data)
@@ -46,20 +45,17 @@ void	handle_connection(t_data &data)
 	{
 		try
 		{
-			if (data.fds[i].revents & POLLOUT)
-			{
-//				std::cout << "> (DEBUG handle_connection -> pollout) current socket: " << i - data.socket_num << std::endl;
-				handle_response(data.clients[i - data.socket_num], data);
-			}
 			if (data.fds[i].revents & POLLIN)
 			{
-//				std::cout << "> (DEBUG handle_connection -> pollin) current socket: " << i - data.socket_num << std::endl;
-				// std::cout << "client num: " << i << std::endl;
-				handle_pollin(data.clients[i - data.socket_num], data.fds[i]);
+				handle_pollin(data.clients[i - data.socket_num]);
+			}
+			if (data.fds[i].revents & POLLOUT)
+			{
+//				std::cout << data.clients[i - data.socket_num].request << std::endl;
+				handle_response(data.clients[i - data.socket_num], data);
 			}
 			if (data.fds[i].revents == LOST_CONNETION)
 			{
-//				std::cout << "lost connection" << std::endl;
 				data.clients.erase(data.clients.begin() + (i - data.socket_num));
 				data.fds.erase(data.fds.begin() + i);
 			}

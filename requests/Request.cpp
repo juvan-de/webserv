@@ -23,6 +23,10 @@ Request&	Request::operator=(const Request& ref)
 	this->_type = ref.getType();
 	this->_location = ref.getLocation();
 	this->_headers = ref.getHeaders();
+	this->_input = ref.getInput();
+	this->_isChunked = ref.checkIfChunked();
+	this->_isFinished = ref.readyForParse();
+	this->_body = ref.getBody();
 	return (*this);
 }
 
@@ -48,6 +52,11 @@ std::string		const &Request::getInput() const
 	return (this->_input);
 }
 
+std::string		const &Request::getBody() const
+{
+	return (this->_body);
+}
+
 void			Request::addto_request(int fd)
 {
 	char	cstr[BUFFER_SIZE + 1];
@@ -59,10 +68,10 @@ void			Request::addto_request(int fd)
 	{
 		cstr[ret] = '\0';
 		this->_input.append(cstr);
+		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
-	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
 
 bool			Request::isFinished(void)
@@ -152,7 +161,7 @@ void			Request::readChunked(int fd)
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
 {
-	out << "Input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
+	out << "Unparsed input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())
@@ -163,5 +172,6 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	{
 		std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
+	out << "BODY:\n" << obj.getBody();
 	return (out);
 }

@@ -1,5 +1,6 @@
 #include <defines.hpp> // data struct, client struct
 #include <webserv.hpp> // parse
+#include <utils.hpp> // newPoll
 
 std::set<int> get_ports(std::vector<Server> &servers, std::map<std::pair<int, std::string>, Server*>& table)
 {
@@ -36,7 +37,7 @@ void	initialize_data(const std::string filename, t_data &data)
 		data.sockets = init_sockets(get_ports(data.server_configs, data.table));
 		std::cout << "Initializing pollfd array" << std::endl;
 		for (std::vector<Socket>::iterator it = data.sockets.begin(); it != data.sockets.end(); it++)
-			data.fds.push_back(it->getPoll());
+			data.fds.push_back(new_pollfd(it->getFd()));
 		data.socket_num = data.fds.size();
 	}
 	catch(const std::exception& e)

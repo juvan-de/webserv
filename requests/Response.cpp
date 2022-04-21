@@ -1,4 +1,3 @@
-                                                                        
 #include <Response.hpp>
 #include <sstream>
 
@@ -17,7 +16,8 @@ Response::Response(std::string file, Server* server)
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
-	this->_path = server->getLocation("/").getRoot() + "/" + *server->getLocation("/").getIndex().begin();
+	this->_setContentTypes();
+	this->_path = file;
 	setResponseBody(this->_path);
 	this->_setContentTypes();
 	this->_statusCode = statusCodes.getStatusCode(200);
@@ -26,7 +26,7 @@ Response::Response(std::string file, Server* server)
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: " << this->getRightContentType(file.substr(file.find_last_of(".") + 1)) << "\r\n"; //nog wel hardcode
 	ss << "Connection: Keep-Alive" << "\r\n\r\n";
-	ss << getResponseBody();
+	ss << getResponseBody() << "\r\n\r\n";
 	this->_response = ss.str();
 }
 
@@ -132,15 +132,10 @@ void		Response::setResponseBody(std::string &filename)
 {
 	std::ifstream	file(filename.c_str());
 	std::string		line;
-
-	std::cout << "(DEBUG setResponseBody) filename: " << filename << std::endl;
+	std::ostringstream Stream;
+	Stream << file.rdbuf();
 	if (file.is_open())
-	{
-		while (getline(file, line))
-		{
-			this->_responseBody.append(line);
-		}
-	}
+		this->_responseBody.append(Stream.str());
 	else
 		throw NotAFile();
 }
@@ -148,5 +143,7 @@ void		Response::setResponseBody(std::string &filename)
 std::ostream&	operator<<(std::ostream &out, const Response &obj)
 {
 	out << "Response path:\n" << obj.getPath() << "\nStatus code:\n[" << obj.getStatusCode().first << "]" << std::endl;
+	out << "Response:\n" << obj.getResponse();
+//	out << "Response body:\n" << obj.getResponseBody() << std::endl;
 	return (out);
 }
