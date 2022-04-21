@@ -19,6 +19,7 @@ Response::Response(std::string file, Server* server)
 
 	this->_path = server->getLocation("/").getRoot() + "/" + *server->getLocation("/").getIndex().begin();
 	setResponseBody(this->_path);
+	this->_setContentTypes();
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
 	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
@@ -132,10 +133,7 @@ void		Response::setResponseBody(std::string &filename)
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 
-<<<<<<< HEAD
-=======
 	std::cout << "(DEBUG setResponseBody) filename: " << filename << std::endl;
->>>>>>> origin/juvan-de0.2
 	if (file.is_open())
 	{
 		while (getline(file, line))
