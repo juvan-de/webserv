@@ -23,6 +23,7 @@
 void	handle_pollin(t_client &client)
 {
 	client.request.addto_request(client.fd);
+	std::cout << "raw input:\n" << client.request.getInput() << std::endl;
 	if (client.request.getType() == NOTSET)
 	{
 		client.request.setRequest();
@@ -50,7 +51,7 @@ void	handle_connection(t_data &data)
 			}
 			if (data.fds[i].revents & POLLOUT)
 			{
-				std::cout << data.clients[i - data.socket_num].request << std::endl;
+//				std::cout << data.clients[i - data.socket_num].request << std::endl;
 				handle_response(data.clients[i - data.socket_num], data);
 			}
 			if (data.fds[i].revents == LOST_CONNETION)

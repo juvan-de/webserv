@@ -161,7 +161,7 @@ void			Request::readChunked(int fd)
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
 {
-	out << "Input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
+	out << "Unparsed input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())
@@ -172,6 +172,6 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	{
 		std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
-	out << "BODY: \n" << obj.getBody();
+	out << "BODY:\n" << obj.getBody();
 	return (out);
 }

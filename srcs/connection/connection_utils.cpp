@@ -30,15 +30,20 @@ std::string	getFileName(const Location& loc)
 	struct stat	buf;
 	int			ret;
 	std::string res;
+	std::string filename;
 	
-	if (loc.getTitle().size() == 1 && loc.getTitle()[0])
-		res = loc.getTitle() + loc.getRoot();
-	else
-		res = loc.getTitle() + "/" + loc.getRoot();
+	// std::cout << "Root: " << loc.getRoot() << std::endl;
+	// std::cout << "Title: " << loc.getTitle() << std::endl;
+
+	res = loc.getRoot() + loc.getTitle();
 	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
 	{
-		std::string filename = "." + res + "/" + *itr;
+		if (loc.getTitle().size() == 1 && loc.getTitle()[0] == '/')
+			filename = res + *itr;
+		else
+			filename = res + "/" + *itr;
 		ret = stat(filename.c_str(), &buf);
+		std::cout << filename << std::endl;
 		if (ret == 0)
 			return filename;
 	}
