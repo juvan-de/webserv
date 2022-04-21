@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        ::::::::            */
@@ -10,6 +11,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+=======
+                                                                        
+>>>>>>> origin/juvan-de0.2
 #include <Response.hpp>
 #include <sstream>
 
@@ -18,18 +22,30 @@ Response::Response()
 	// std::cout << "default constructor called" << std::endl;
 }
 
+<<<<<<< HEAD
 // Response::Response(std::string error)
 // {
 // 	std::cout << "an error ocurred in Response constructor" << std::endl;
 // }
+=======
+Response::Response(std::string error)
+{
+	
+	std::cout << "an error ocurred in Response constructor" << std::endl;
+}
+>>>>>>> origin/juvan-de0.2
 
 Response::Response(std::string file, Server* server)
 {
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
+<<<<<<< HEAD
 	this->_setContentTypes();
 	this->_path = file;
+=======
+	this->_path = server->getLocation("/").getRoot() + "/" + *server->getLocation("/").getIndex().begin();
+>>>>>>> origin/juvan-de0.2
 	setResponseBody(this->_path);
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
@@ -144,6 +160,10 @@ void		Response::setResponseBody(std::string &filename)
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 
+<<<<<<< HEAD
+=======
+	std::cout << "(DEBUG setResponseBody) filename: " << filename << std::endl;
+>>>>>>> origin/juvan-de0.2
 	if (file.is_open())
 	{
 		while (getline(file, line))

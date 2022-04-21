@@ -2,9 +2,13 @@ NAME 		= 	webserv.exe
 
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
-				error.cpp
+				error.cpp \
+				htoi.cpp \
+				strtrim.cpp
 INIT_SRC	=	data.cpp
-CONNECT_SRC	=	handle_connection.cpp
+CONNECT_SRC	=	handle_connection.cpp \
+				connection_utils.cpp \
+				handle_response.cpp
 REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
@@ -34,7 +38,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	 -std=c++98
+FLAGS 		=	-std=c++98
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Irequests -Iserver -Isocket

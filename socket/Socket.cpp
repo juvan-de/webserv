@@ -71,7 +71,7 @@ Socket::Socket(int port) : _port(port)
 
 	/*Initializing pollfd struct*/
 	_poll.fd = _servfd;
-	_poll.events = POLLIN;
+	_poll.events = POLLIN | POLLOUT;
 }
 
 int	Socket::new_connection()
@@ -87,7 +87,7 @@ struct pollfd	new_pollfd(int cli_sock)
 	int flags;
 
 	new_fd.fd = cli_sock;
-	new_fd.events = POLLIN;
+	new_fd.events = POLLIN | POLLOUT;
 	flags = fcntl(cli_sock, F_GETFL);
 	fcntl(cli_sock, F_SETFL, flags | O_NONBLOCK);
 	return new_fd;
@@ -96,12 +96,14 @@ struct pollfd	new_pollfd(int cli_sock)
 t_client	accept_client(int fd)
 {
 	t_client new_client;
+	int opt = 1;
 
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 	new_client.fd = fd;
 	new_client.request = Request();
 	// beter als we hier een define gebruiken
 	new_client.status = 200;
-	std::cout << "Connected!" << std::endl;
+	std::cout << "Connected!: "<< new_client.fd << std::endl;
 	return new_client;
 }
 

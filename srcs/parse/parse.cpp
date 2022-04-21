@@ -29,6 +29,7 @@ static void	setFileInDeque(const std::string filename, std::deque<std::string>& 
 {
 	std::ifstream			infile;
 	std::string				line;
+	std::size_t				found;
 
 	if (!checkFileName(filename))
 		throw WrongFile(filename);
@@ -36,7 +37,12 @@ static void	setFileInDeque(const std::string filename, std::deque<std::string>& 
 	if (infile.std::ios::fail())
 		throw WrongFile(filename);
 	while (getline(infile, line))
-		filedeque.push_back(line);
+	{
+		if ((found = line.find("#")) != std::string::npos)
+			line.resize(found);
+		if((found = line.find_first_not_of(" \t\n\v\f\r")) != std::string::npos)
+			filedeque.push_back(line);
+	}
 }
 
 void	parse(const std::string filename, std::vector<Server>& servers)
