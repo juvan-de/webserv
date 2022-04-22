@@ -2,37 +2,34 @@
 # define DEFINES_HPP
 
 #include <Server.hpp>
-#include <Socket.hpp>
-#include <Request.hpp>
-#include <poll.h> // pollfd
-#include <netinet/in.h> // sockaddr_in
+// #include <Socket.hpp>
+// #include <Request.hpp>
+// #include <poll.h> // pollfd
+// #include <netinet/in.h> // sockaddr_in
 #include <map>
 
-# define LOST_CONNETION 17
+// # define LOST_CONNETION 17
 
-class Socket;
+// class Socket;
 
-typedef struct s_client
-{
-	int						status;
-	int						fd;
-	int						opt;
-	sockaddr				addr;
-	Request					request;
+// typedef struct s_client
+// {
+// 	int						status;
+// 	int						fd;
+// 	int						opt;
+// 	sockaddr				addr;
+// 	Request					request;
 
-}				t_client;
+// }				t_client;
 
 typedef struct s_data
 {
-	std::vector<Server>								server_configs;
-	std::vector<Socket>								sockets;
+	// std::vector<Server>								server_configs;
+	// std::vector<Socket>								sockets;
 	std::map<std::pair<int, std::string>, Server*>	table;
-	std::vector<t_client>							clients;
-	std::vector<pollfd>								fds;
-	int												socket_num;
+	// std::vector<t_client>							clients;
+	// std::vector<pollfd>								fds;
+	// int												socket_num;
 }				t_data;
-
-std::set<int>	get_ports(std::vector<Server> servers);
-void			initialize_data(char *av, t_data &data);
 
 #endif

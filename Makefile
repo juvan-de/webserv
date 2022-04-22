@@ -6,7 +6,6 @@ UTILS_SRC	=	split.cpp \
 				htoi.cpp \
 				strtrim.cpp \
 				createPoll.cpp
-INIT_SRC	=	data.cpp
 CONNECT_SRC	=	handle_connection.cpp \
 				connection_utils.cpp \
 				handle_response.cpp
