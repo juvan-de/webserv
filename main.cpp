@@ -5,6 +5,7 @@
 // #include <connection.hpp> // handle_connection
 #include <defines.hpp> // data struct, client struct
 #include <webserv.hpp> // parse
+#include <Poller.hpp>
 
 std::vector<int> get_ports(std::vector<Server> &servers, std::map<std::pair<int, std::string>, Server*>& table)
 {
@@ -26,15 +27,17 @@ int main(int ac, char **av)
 {
 	if (ac == 2)
 	{
-		t_data					data;
+		std::map<std::pair<int, std::string>, Server*>	table;
 		std::vector<Server>		server_configs;
 		std::vector<int>		ports;
+		Poller					poller;
 
 		try
 		{
 			std::cout << "Parsing config" << std::endl;
 			parse(av[1], server_configs);
-			ports = get_ports(server_configs, data.table);
+			ports = get_ports(server_configs, table);
+			poller = Poller(ports);
 		}
 		catch(const std::exception& e)
 		{
@@ -42,7 +45,7 @@ int main(int ac, char **av)
 		}
 		while (true)
 		{
-			poll(&data.fds[0], data.fds.size(), -1);
+			poller.execute_poll();
 			// handle_connection(data);
 			std::cout << "Waiting for connections..." << std::endl;
 			// check_connection(data);

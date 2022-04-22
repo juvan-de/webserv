@@ -28,13 +28,12 @@ CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
-POLLER		= 	$(addprefix socket/, $(POLLER_SRC))
+POLLER		= 	$(addprefix poller/, $(POLLER_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
 				$(INIT) \
-				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
 				$(SERVER) \
@@ -46,7 +45,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller
+INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
