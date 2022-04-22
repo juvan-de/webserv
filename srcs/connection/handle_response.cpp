@@ -41,9 +41,9 @@ void	handle_response(t_client &client, t_data &data)
 		}
 		std::string filename = getFileName(itr->second);
 		Response response = Response(filename, server);
-		std::cout << response << std::endl;
+//		std::cout << response << std::endl;
 		int ret = send(client.fd, response.getResponse().c_str(), response.getResponse().length(), 0);
-		std::cout << ret << "\t" << response.getResponse().length() << std::endl;
+//		std::cout << ret << "\t" << response.getResponse().length() << std::endl;
 		client.request = Request();
 	}
 	else if (client.request.getType() == POST)
