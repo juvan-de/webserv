@@ -28,9 +28,9 @@ Cgi&	Cgi::operator=(const Cgi &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-std::ostream&	operator<<(std::ostream &out, const Cgi &ref)
+Cgi(std::string path, map<std::string, std::string> arguments) : _cgiIn(-1), _cgiOut(-1), _cgiPID(-1)
 {
-	/*Output operator*/
-	/*out << Cgi;
-	return out;*/
+	int	inputFD[2];
+	int	outputFD[2];
 }
+
