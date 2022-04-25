@@ -2,12 +2,15 @@
 # define CGI_HPP
 
 # include <iostream>
+# include <map>
 
 class Cgi
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-
+		int		_cgiIn;
+		int		_cgiOut;
+		pid_t	_cgiPID;
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		Cgi();
@@ -16,9 +19,7 @@ class Cgi
 		~Cgi();
 
 		/*--------------------------Member functions--------------------------*/
-
+		Cgi(std::string path, map<std::string, std::string> arguments);
 };
-
-std::ostream&	operator<<(std::ostream &out, const Cgi &ref);
 
 #endif

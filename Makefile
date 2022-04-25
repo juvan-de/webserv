@@ -4,9 +4,7 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
-				strtrim.cpp \
-				createPoll.cpp
-INIT_SRC	=	data.cpp
+				strtrim.cpp
 CONNECT_SRC	=	handle_connection.cpp \
 				connection_utils.cpp \
 				handle_response.cpp
@@ -20,6 +18,7 @@ SERVER_SRC	= 	Location.cpp \
 SOCKET_SRC	=	Socket.cpp \
 				ServerSocket.cpp \
 				ClientSocket.cpp
+POLLER_SRC	=	Poller.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
@@ -28,15 +27,16 @@ CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
+POLLER		= 	$(addprefix poller/, $(POLLER_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
 				$(INIT) \
-				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
-				$(SERVER)
+				$(SERVER) \
+				$(POLLER)
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
@@ -44,7 +44,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-std=c++98
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Irequests -Iserver -Isocket
+INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m

@@ -3,7 +3,6 @@
 
 # include <netinet/in.h> // sock_addr
 # include <fcntl.h> // fcntl
-# include <poll.h> // pollfd
 # include <iostream>
 # include <cstddef>
 
@@ -12,9 +11,7 @@ class Socket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		int			_fd;
-		sockaddr_in	_address;
-		pollfd		_poll;
-		Socket() {};
+		Socket();
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -24,12 +21,12 @@ class Socket
 
 		/*--------------------------Member functions--------------------------*/
 		// AF_INET, SOCK_STREAM, 0, sizeof(adress)
-		Socket(int domain, int service, int protocol, int port, u_long interface);
+		Socket(int domain, int service, int protocol);
+		Socket(int fd);
 		int					new_connection(sockaddr *cli_addr);
 		int					getFd() const { return _fd; }
-		short				getRevent() const { return _poll.revents; };
-		pollfd				&getPoll() { return _poll; };
-		struct sockaddr_in	&getAddr() { return _address; };
+		// short				getRevent() const { return _poll.revents; };
+		// pollfd				&getPoll() { return _poll; };
 };
 
 #endif

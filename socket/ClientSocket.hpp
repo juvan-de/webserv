@@ -8,12 +8,16 @@ class ClientSocket : public Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int		_status;
-		Request	_request;
+		int			_status;
+		Request		_request;
+		sockaddr	_address;
 
 	public:
 		/*--------------------------Member functions--------------------------*/
-		ClientSocket(int domain, int service, int protocol, int port, u_long interface) : Socket(domain, service, protocol, port, interface), _status(200), _request(Request()) {};
+		ClientSocket(int fd, sockaddr addr);
+		struct sockaddr	&getAddr() { return _address; };
+		void	handle_pollin();
+		void	handle_pollout(std::map<std::pair<int, std::string>, Server*>	table);
 };
 
 #endif
