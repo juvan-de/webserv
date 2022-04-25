@@ -10,7 +10,7 @@ class Cgi
 		/*--------------------------Member variables--------------------------*/
 		int		_cgiIn;
 		int		_cgiOut;
-		pid_t	_cgiPID;
+		pid_t	_pid;
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		Cgi();
@@ -19,7 +19,7 @@ class Cgi
 		~Cgi();
 
 		/*--------------------------Member functions--------------------------*/
-		Cgi(std::string path, map<std::string, std::string> arguments);
+		Cgi(std::string path, std::string query);
 };
 
 #endif

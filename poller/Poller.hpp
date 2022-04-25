@@ -7,6 +7,8 @@
 # include <ClientSocket.hpp>
 # include <ServerSocket.hpp>
 
+
+// im gonna make cgi sockets the same as a client socket but flag it as a cgi socket so I dont have to do freaky shit lol
 class Poller
 {
 	private:
