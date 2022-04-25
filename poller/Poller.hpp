@@ -7,6 +7,8 @@
 # include <ClientSocket.hpp>
 # include <ServerSocket.hpp>
 
+class ClientSocket;
+class ServerSocket;
 
 // im gonna make cgi sockets the same as a client socket but flag it as a cgi socket so I dont have to do freaky shit lol
 class Poller
@@ -15,7 +17,7 @@ class Poller
 		/*--------------------------Member variables--------------------------*/
 		std::vector<pollfd>			_cgi_socks; // actualy just a pollstruct, maybe should be put with cli socks
 		std::vector<ServerSocket*>	_serv_socks;
-		std::vector<ClientSocket*>	_client_socks; 
+		std::vector<ClientSocket*>	_client_socks;
 		std::vector<pollfd>			_pollfds;
 
 	public:

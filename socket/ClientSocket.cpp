@@ -104,11 +104,11 @@ std::map<std::string, Location>::const_iterator	find_right_location(const std::m
 	}
 }
 
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
+void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
 
-	Server *server = find_server(table, _request); // we could put the server in the client object to avoid having to find the right server for every request.
+	Server *server = find_server(table, _request);
 	if (_request.getType() == GET)
 	{
 		/* for now */
@@ -135,7 +135,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	}
 	else if (_request.getType() == POST)
 	{
-
+		std::cout << "Post request" << std::endl;
+		std::cout << _request.getLocation() << std::endl;
 	}
 	else if (_request.getType() == DELETE)
 	{

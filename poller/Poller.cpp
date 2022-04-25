@@ -104,7 +104,7 @@ void			Poller::execute_poll(std::map<std::pair<int, std::string>, Server*>	table
 			else if (_pollfds[i].revents & POLLIN)
 				get_cli_from_index(i).handle_pollin();
 			else if (_pollfds[i].revents & POLLOUT)
-				get_cli_from_index(i).handle_pollout(table);
+				get_cli_from_index(i).handle_pollout(table, *this);
 		}
 		check_server_socks();
 	}

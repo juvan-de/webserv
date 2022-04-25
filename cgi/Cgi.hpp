@@ -3,13 +3,15 @@
 
 # include <iostream>
 # include <map>
+# include <Request.hpp>
+
+class Request;
 
 class Cgi
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int		_cgiIn;
-		int		_cgiOut;
+		int		_cgiFd;
 		pid_t	_pid;
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -19,7 +21,7 @@ class Cgi
 		~Cgi();
 
 		/*--------------------------Member functions--------------------------*/
-		Cgi(std::string path, std::string query);
+		Cgi(Request request, std::string client_ip);
 };
 
 #endif
