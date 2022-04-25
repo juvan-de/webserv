@@ -35,7 +35,6 @@ static char *const	*prepare_env(Request request, std::string client_ip)
 	std::vector<char *const> env;
 
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");	 // TODO: what value
-	env.push_back("GATEWAY_INTERFACE=CGI/1.1");	 // TODO: what value
 	env.push_back("REMOTE_ADDR=" + client_ip);		 // TODO: IP of the client
 	env.push_back("REQUEST_METHOD=" + request.getType());		 // TODO: allow POST
 	env.push_back("SCRIPT_NAME=" + request.getCgi());
