@@ -16,6 +16,16 @@
 # define COLOR_NORMAL_BOLD			"\033[0;01m"
 // # define COLOR_NORMAL				"\033[0m"
 
+void	addToTheTableAndPorts(Server* server, std::map<std::pair<int, std::string>, Server*>& table, std::set<int>& ports)
+{
+	for (std::set<int>::iterator port_it = server->getListen().begin(); port_it != server->getListen().end(); port_it++)
+	{
+		ports.insert(*port_it);
+		for (std::set<std::string>::iterator name_it = server->getServerName().begin(); name_it != server->getServerName().end(); name_it++)
+			table.insert(std::make_pair(std::make_pair(*port_it, *name_it), server));
+	}
+}
+
 bool	checkFileName(const std::string filename)
 {
 	if (filename.size() <= 5)
@@ -45,9 +55,10 @@ static void	setFileInDeque(const std::string filename, std::deque<std::string>& 
 	}
 }
 
-void	parse(const std::string filename, std::vector<Server>& servers)
+void	parse(const std::string filename, std::map<std::pair<int, std::string>, Server*>& table, std::set<int>& ports)
 {
 	std::deque<std::string>	filedeque;
+
 	try
 	{
 		setFileInDeque(filename, filedeque);
@@ -70,16 +81,12 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 				continue ;
 			if (splitted[0] != "server")
 				throw ;
-			if (splitted.size() == 1 && filedeque[0] == "{")
+			if ((splitted.size() == 1 && filedeque[0] == "{") || (splitted.size() == 2 && splitted[1] == "{"))
 			{
-				filedeque.pop_front();
+				if (splitted.size() == 1 && filedeque[0] == "{")
+					filedeque.pop_front();
 				Server server(filedeque);
-				servers.push_back(server);
-			}
-			else if (splitted.size() == 2 && splitted[1] == "{")
-			{
-				Server server(filedeque);
-				servers.push_back(server);
+				addToTheTableAndPorts(&server, table, ports);
 			}
 			// throw ;
 		}
