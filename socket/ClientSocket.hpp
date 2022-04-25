@@ -17,7 +17,7 @@ class ClientSocket : public Socket
 		ClientSocket(int fd, sockaddr addr);
 		struct sockaddr	&getAddr() { return _address; };
 		void	handle_pollin();
-		void	handle_pollout();
+		void	handle_pollout(std::map<std::pair<int, std::string>, Server*>	table);
 };
 
 #endif

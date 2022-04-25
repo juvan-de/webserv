@@ -3,7 +3,6 @@
 #include <csignal> // signal for ignoring pipe breaks
 // custom
 // #include <connection.hpp> // handle_connection
-#include <defines.hpp> // data struct, client struct
 #include <webserv.hpp> // parse
 #include <Poller.hpp>
 
@@ -45,7 +44,7 @@ int main(int ac, char **av)
 		}
 		while (true)
 		{
-			poller.execute_poll();
+			poller.execute_poll(table);
 			// handle_connection(data);
 			std::cout << "Waiting for connections..." << std::endl;
 			// check_connection(data);

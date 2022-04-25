@@ -28,9 +28,7 @@ class Poller
 		pollfd						addPoll(int fd);
 		void						add_cgi_sock(int fd);
 		void						check_server_socks();
-		void						handle_pollin();
-		void						handle_pollout();
-		void						execute_poll();
+		void						execute_poll(std::map<std::pair<int, std::string>, Server*>	table);
 		void						deleteCli(int index);
 		ClientSocket				&get_cli_from_index(int i);
 		// std::vector<pollfd>			&getCgi() { return _cgi_socks; };

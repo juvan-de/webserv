@@ -32,5 +32,9 @@ Cgi(std::string path, map<std::string, std::string> arguments) : _cgiIn(-1), _cg
 {
 	int	inputFD[2];
 	int	outputFD[2];
+	// use pipes() to set input and output fd
+	// use setenv to prepare the arguments for the cgi
+	// use execve to execute the cgi script
+	// multithreadin
 }
 

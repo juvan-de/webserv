@@ -8,8 +8,8 @@ class Cgi
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int	_cgiIn;
-		int	_cgiOut;
+		int		_cgiIn;
+		int		_cgiOut;
 		pid_t	_cgiPID;
 	public:
 		/*----------------------------Coplien form----------------------------*/
