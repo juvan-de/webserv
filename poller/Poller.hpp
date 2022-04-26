@@ -24,7 +24,7 @@ class Poller
 		~Poller();
 
 		/*--------------------------Member functions--------------------------*/
-		Poller(std::vector<int>	server_ports);
+		Poller(std::set<int> server_ports);
 		pollfd						addPoll(int fd);
 		void						add_cgi_sock(int fd);
 		void						check_server_socks();
