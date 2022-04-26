@@ -48,6 +48,7 @@ static void	setFileInDeque(const std::string filename, std::deque<std::string>& 
 void	parse(const std::string filename, std::vector<Server>& servers)
 {
 	std::deque<std::string>	filedeque;
+
 	try
 	{
 		setFileInDeque(filename, filedeque);
@@ -70,14 +71,10 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 				continue ;
 			if (splitted[0] != "server")
 				throw ;
-			if (splitted.size() == 1 && filedeque[0] == "{")
+			if ((splitted.size() == 1 && filedeque[0] == "{") || (splitted.size() == 2 && splitted[1] == "{"))
 			{
-				filedeque.pop_front();
-				Server server(filedeque);
-				servers.push_back(server);
-			}
-			else if (splitted.size() == 2 && splitted[1] == "{")
-			{
+				if (splitted.size() == 1 && filedeque[0] == "{")
+					filedeque.pop_front();
 				Server server(filedeque);
 				servers.push_back(server);
 			}

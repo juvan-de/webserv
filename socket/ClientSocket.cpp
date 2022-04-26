@@ -60,6 +60,17 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	return (table[std::make_pair(port, name)]);
 }
 
+bool	doesFileExits(std::string& filename)
+{
+	struct stat	stats;
+	int			ret;
+
+	ret = stat(filename.c_str(), &stats);
+	if (ret == 0 && !S_ISDIR(stats.st_mode))
+		return true;
+	return false;
+}
+
 std::string	getFileName(const Location& loc)
 {
 	struct stat	buf;
@@ -77,9 +88,8 @@ std::string	getFileName(const Location& loc)
 			filename = res + *itr;
 		else
 			filename = res + "/" + *itr;
-		ret = stat(filename.c_str(), &buf);
 		std::cout << filename << std::endl;
-		if (ret == 0)
+		if (doesFileExits(filename))
 			return filename;
 	}
 	/* bad request, wa gaan we hier doen */
@@ -112,11 +122,14 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	if (_request.getType() == GET)
 	{
 		/* for now */
-		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), _request.getLocation());
+		std::string	filename;
+		std::string	request_location = this->_request.getLocation();
+		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), request_location);
+		std::cout << "request_location: " << request_location << std::endl;
 		if (itr == server->getLocations().end())
 		{
 			/* bad request */
-			std::cout << "DEBUG HANDLE RESPONSE: location: [" << _request.getLocation() << "]" <<std::endl;
+			std::cout << "DEBUG HANDLE RESPONSE: location: [" << request_location << "]" <<std::endl;
 			std::cout << "bad request" << std::endl;
 			return ;
 		}
@@ -126,7 +139,26 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "bad request (forbidden)" << std::endl;
 			return ;
 		}
-		std::string filename = getFileName(itr->second);
+		if (itr->first == request_location)
+		{
+			if (itr->second.getAutoindex())
+				filename = getFileName(itr->second);
+			else
+			{
+				std::cout << "Index list?? Ingmar" << std::endl;
+				exit(1);
+			}
+		}
+		else
+		{
+			filename = itr->second.getRoot() + request_location;
+			if (!doesFileExits(filename))
+			{
+				std::cout << "file does not exits" << std::endl;
+				exit(1);
+			}
+		}
+		std::cout << "FILENAME: " << filename << std::endl;
 		Response response = Response(filename, server);
 //		std::cout << response << std::endl;
 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);

@@ -6,10 +6,10 @@ Response::Response()
 	// std::cout << "default constructor called" << std::endl;
 }
 
-Response::Response(std::string error)
-{
-	std::cout << "an error ocurred in Response constructor" << std::endl;
-}
+// Response::Response(std::string error)
+// {
+// 	std::cout << "an error ocurred in Response constructor" << std::endl;
+// }
 
 Response::Response(std::string file, Server* server)
 {
@@ -19,6 +19,7 @@ Response::Response(std::string file, Server* server)
 	this->_setContentTypes();
 	this->_path = file;
 	setResponseBody(this->_path);
+	this->_setContentTypes();
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
 	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
@@ -36,9 +37,11 @@ Response::Response(const Response& ref)
 
 Response&	Response::operator=(const Response& ref)
 {
-	this->_path = ref._path;
 	this->_statusCode = ref._statusCode;
-	this->_response = ref.getResponse();
+	this->_path = ref._path;
+	this->_response = ref._response;
+	this->_responseBody = ref._responseBody;
+	this->_contentTypes = ref._contentTypes;
 	return (*this);
 }
 
@@ -133,9 +136,7 @@ void		Response::setResponseBody(std::string &filename)
 	std::ostringstream Stream;
 	Stream << file.rdbuf();
 	if (file.is_open())
-	{
 		this->_responseBody.append(Stream.str());
-	}
 	else
 		throw NotAFile();
 }
