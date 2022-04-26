@@ -6,15 +6,15 @@
 #include <webserv.hpp> // parse
 #include <Poller.hpp>
 
-std::vector<int> get_ports(std::vector<Server> &servers, std::map<std::pair<int, std::string>, Server*>& table)
+std::set<int> getPortsAndSetTable(std::vector<Server>& servers, std::map<std::pair<int, std::string>, Server*>& table)
 {
-	std::vector<int> ports;
+	std::set<int> ports;
 
 	for (std::vector<Server>::iterator serv_it = servers.begin(); serv_it != servers.end(); serv_it++)
 	{
 		for (std::set<int>::iterator port_it = serv_it->getListen().begin(); port_it != serv_it->getListen().end(); port_it++)
 		{
-			ports.push_back(*port_it);
+			ports.insert(*port_it);
 			for (std::set<std::string>::iterator name_it = serv_it->getServerName().begin(); name_it != serv_it->getServerName().end(); name_it++)
 				table.insert(std::make_pair(std::make_pair(*port_it, *name_it), &(*serv_it)));
 		}
@@ -28,14 +28,14 @@ int main(int ac, char **av)
 	{
 		std::map<std::pair<int, std::string>, Server*>	table;
 		std::vector<Server>		server_configs;
-		std::vector<int>		ports;
+		std::set<int>			ports;
 		Poller					poller;
 
 		try
 		{
 			std::cout << "Parsing config" << std::endl;
 			parse(av[1], server_configs);
-			ports = get_ports(server_configs, table);
+			ports = getPortsAndSetTable(server_configs, table);
 			poller = Poller(ports);
 		}
 		catch(const std::exception& e)
