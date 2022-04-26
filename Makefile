@@ -38,7 +38,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98
+FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions

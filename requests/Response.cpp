@@ -81,6 +81,7 @@ void	Response::_setContentTypes()
 	this->_contentTypes["x-icon"] = "image";
 	this->_contentTypes["vnd.djvu"] = "image";
 	this->_contentTypes["svg+xml"] = "image";
+	this->_contentTypes["ico"] = "image";
 
 	this->_contentTypes["mixed"] = "multipart";
 	this->_contentTypes["alternative"] = "multipart";

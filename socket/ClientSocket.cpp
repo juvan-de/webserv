@@ -123,7 +123,7 @@ std::string	getFileName(const Location& loc)
 	}
 	/* bad request, wa gaan we hier doen */
 	std::cout << "bad request (getFileName)" << std::endl;
-	return NULL;
+	return "error";
 }
 
 void	remove_last_dir(std::string& request_loc)

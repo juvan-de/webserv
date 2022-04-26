@@ -68,7 +68,7 @@ void			Request::addto_request(int fd)
 	{
 		cstr[ret] = '\0';
 		this->_input.append(cstr);
-		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
