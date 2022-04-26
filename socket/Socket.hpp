@@ -25,8 +25,6 @@ class Socket
 		Socket(int fd);
 		int					new_connection(sockaddr *cli_addr);
 		int					getFd() const { return _fd; }
-		// short				getRevent() const { return _poll.revents; };
-		// pollfd				&getPoll() { return _poll; };
 };
 
 #endif

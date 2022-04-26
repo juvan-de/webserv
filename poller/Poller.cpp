@@ -52,10 +52,10 @@ pollfd			Poller::addPoll(int fd)
 	return newPoll;
 }
 
-void			Poller::add_cgi_sock(int fd)
-{
-	_cgi_socks.push_back(addPoll(fd));
-}
+// void			Poller::add_cgi_sock(int fd)
+// {
+// 	_cgi_socks.push_back(addPoll(fd));
+// }
 
 void			Poller::check_server_socks()
 {

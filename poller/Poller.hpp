@@ -30,7 +30,7 @@ class Poller
 		/*--------------------------Member functions--------------------------*/
 		Poller(std::vector<int>	server_ports);
 		pollfd						addPoll(int fd);
-		void						add_cgi_sock(int fd);
+		// void						add_cgi_sock(int fd);
 		void						check_server_socks();
 		void						execute_poll(std::map<std::pair<int, std::string>, Server*>	table);
 		void						deleteCli(int index);

@@ -2,6 +2,30 @@
 #include <BadInit.hpp>
 #include <sys/stat.h> // stat struct
 
+/*--------------------------------Coplien form--------------------------------*/
+ClientSocket::~ClientSocket()
+{
+	/*Destructor*/
+}
+
+ClientSocket::ClientSocket(const ClientSocket &ref) : Socket(ref)
+{
+	*this = ref;
+}
+
+ClientSocket&	ClientSocket::operator=(const ClientSocket &ref)
+{
+	/*Assignation operator*/
+	if (this != &ref)
+	{
+		_status = ref._status;
+		_address = ref._address;
+		_request = ref._request;
+	}
+	return *this;
+}
+/*--------------------------------Coplien form--------------------------------*/
+
 ClientSocket::ClientSocket(int fd, sockaddr addr) :
 	 Socket(fd), _status(200), _request(Request())
 {
@@ -19,6 +43,11 @@ ClientSocket::ClientSocket(int fd, sockaddr addr) :
 	// Set address struct
 	bzero(&_address, sizeof(_address));
 	_address = addr;
+}
+
+void	ClientSocket::addCgi(int fd)
+{
+	
 }
 
 void	ClientSocket::handle_pollin()
@@ -108,10 +137,10 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 {
 	std::cout << "POLLING OUT" << std::endl;
 
-	Server *server = find_server(table, _request);
 	if (_request.getType() == GET)
 	{
 		/* for now */
+		Server *server = find_server(table, _request);
 		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), _request.getLocation());
 		if (itr == server->getLocations().end())
 		{
@@ -137,6 +166,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	{
 		std::cout << "Post request" << std::endl;
 		std::cout << _request.getLocation() << std::endl;
+
 	}
 	else if (_request.getType() == DELETE)
 	{
@@ -144,6 +174,6 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	}
 	else
 	{
-		std::cout << "shit went wrong yo" << std::endl;
+		// std::cout << "shit went wrong yo" << std::endl;
 	}
 }

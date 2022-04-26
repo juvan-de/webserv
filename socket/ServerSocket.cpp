@@ -4,6 +4,29 @@
 #include <netinet/in.h> // sockaddr_in
 #include <unistd.h> // close
 
+/*--------------------------------Coplien form--------------------------------*/
+ServerSocket::ServerSocket(const ServerSocket &ref) : Socket(ref)
+{
+	/*Copy constructor*/
+	*this = ref;
+}
+
+ServerSocket&	ServerSocket::operator=(const ServerSocket &ref)
+{
+	/*Assignation operator*/
+	if (this != &ref)
+	{
+		_address = ref._address;
+	}
+	return *this;
+}
+
+ServerSocket::~ServerSocket()
+{
+	/*Destructor*/
+}
+/*--------------------------------Coplien form--------------------------------*/
+
 ServerSocket::ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : Socket(domain, service, protocol)
 {
 	/*Instantiating a connection*/

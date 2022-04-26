@@ -12,6 +12,7 @@ class Cgi
 	private:
 		/*--------------------------Member variables--------------------------*/
 		int		_cgiFd;
+		int		_clientfd;
 		pid_t	_pid;
 	public:
 		/*----------------------------Coplien form----------------------------*/

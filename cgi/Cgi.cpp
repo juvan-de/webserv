@@ -38,8 +38,8 @@ static char *const	*prepare_env(Request request, std::string client_ip)
 	env.push_back("REMOTE_ADDR=" + client_ip);		 // TODO: IP of the client
 	env.push_back("REQUEST_METHOD=" + request.getType());		 // TODO: allow POST
 	env.push_back("SCRIPT_NAME=" + request.getCgi());
-	env.push_back("SERVER_NAME=" + request.getHeaders("Referer"));		 // TODO: read from config
-	env.push_back("SERVER_PORT=" + request.getHeaders("Host"));			 // TODO: read from request
+	env.push_back("SERVER_NAME=" + request.getHeaders("Host"));		 // TODO: read from config
+	env.push_back("SERVER_PORT=" + request.getHeaders("Host"));			 // TODO: read from request <- port uit halen
 	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	env.push_back("SERVER_SOFTWARE=webserv/42");
 	env.push_back("PATH_INFO=" + request.getPath());

@@ -15,6 +15,11 @@ class ServerSocket : public Socket
 		sockaddr_in	_address;
 
 	public:
+		/*----------------------------Coplien form----------------------------*/
+		ServerSocket(const ServerSocket &ref);
+		ServerSocket&	operator=(const ServerSocket &ref);
+		~ServerSocket();
+
 		/*--------------------------Member functions--------------------------*/
 		ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog);
 		ClientSocket		*get_new_cli();

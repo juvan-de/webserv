@@ -5,9 +5,6 @@ UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
 				strtrim.cpp
-CONNECT_SRC	=	handle_connection.cpp \
-				connection_utils.cpp \
-				handle_response.cpp
 REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
