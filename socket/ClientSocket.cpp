@@ -1,6 +1,7 @@
 #include <ClientSocket.hpp>
 #include <BadInit.hpp>
 #include <sys/stat.h> // stat struct
+#include <utils.hpp>
 
 /*--------------------------------Coplien form--------------------------------*/
 ClientSocket::~ClientSocket()
@@ -45,12 +46,33 @@ ClientSocket::ClientSocket(int fd, sockaddr addr) :
 	_address = addr;
 }
 
-void	ClientSocket::addCgi(int fd)
+void	ClientSocket::setCgi(int fd)
 {
 	
 }
 
-void	ClientSocket::handle_pollin()
+void			ClientSocket::setServer(std::map<std::pair<int, std::string>, Server*> table)
+{
+	std::map<std::string, std::string> headers = _request.getHeaders();
+	if (headers.find("Host") == headers.end())
+	{
+		/* bad request statuscode, want host is mandatory in http 1.1 */
+		std::cout << "error finding hostname" << std::endl;
+		// throw error here
+	}
+	std::string host = headers["Host"];
+	std::string name = host.substr(0, host.find(":"));
+	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
+	if (table.find(std::make_pair(port, name)) == table.end())
+	{
+		/* bad request statuscode, want host is mandatory in http 1.1 */
+		std::cout << "error finding pair" << std::endl;
+		// throw error here
+	}
+	_serv = table[std::make_pair(port, name)];
+}
+
+void	ClientSocket::handle_pollin(std::map<std::pair<int, std::string>, Server*> table)
 {
 	std::cout << "POLLING IN" << std::endl;
 	_request.addto_request(getFd());
@@ -58,6 +80,7 @@ void	ClientSocket::handle_pollin()
 	{
 		_request.setRequest();
 		_request.setHeaders();
+		this->setServer(table);
 	}
 	if (_request.checkIfChunked())
 	{
@@ -68,94 +91,17 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
-{
-	std::map<std::string, std::string> headers = Request.getHeaders();
-	if (headers.find("Host") == headers.end())
-	{
-		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname" << std::endl;
-		return NULL;
-	}
-	std::string host = headers["Host"];
-	std::string name = host.substr(0, host.find(":"));
-	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
-	if (table.find(std::make_pair(port, name)) == table.end())
-	{
-		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding pair" << std::endl;
-		return NULL;
-	}
-	return (table[std::make_pair(port, name)]);
-}
-
-bool	doesFileExits(std::string& filename)
-{
-	struct stat	stats;
-	int			ret;
-
-	ret = stat(filename.c_str(), &stats);
-	if (ret == 0 && !S_ISDIR(stats.st_mode))
-		return true;
-	return false;
-}
-
-std::string	getFileName(const Location& loc)
-{
-	struct stat	buf;
-	int			ret;
-	std::string res;
-	std::string filename;
-	
-	// std::cout << "Root: " << loc.getRoot() << std::endl;
-	// std::cout << "Title: " << loc.getTitle() << std::endl;
-
-	res = loc.getRoot() + loc.getTitle();
-	for (std::vector<std::string>::const_iterator itr = loc.getIndex().begin(); itr != loc.getIndex().end(); itr++)
-	{
-		if (loc.getTitle().size() == 1 && loc.getTitle()[0] == '/')
-			filename = res + *itr;
-		else
-			filename = res + "/" + *itr;
-		std::cout << filename << std::endl;
-		if (doesFileExits(filename))
-			return filename;
-	}
-	/* bad request, wa gaan we hier doen */
-	std::cout << "bad request (getFileName)" << std::endl;
-	return "error";
-}
-
-void	remove_last_dir(std::string& request_loc)
-{
-	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
-}
-
-std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>& locations, std::string request_loc)
-{
-	while (true)
-	{
-		if (locations.find(request_loc) != locations.end())
-			return locations.find(request_loc);
-		remove_last_dir(request_loc);
-		if (request_loc.empty())
-			return (locations.find("/"));
-	}
-}
-
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
+void	ClientSocket::handle_pollout(Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
 
 	if (_request.getType() == GET)
 	{
-		/* for now */
-		Server *server = find_server(table, _request);
 		std::string	filename;
 		std::string	request_location = this->_request.getLocation();
-		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), request_location);
+		std::map<std::string, Location>::const_iterator itr = find_right_location(this->_serv->getLocations(), request_location);
 		std::cout << "request_location: " << request_location << std::endl;
-		if (itr == server->getLocations().end())
+		if (itr == this->_serv->getLocations().end())
 		{
 			/* bad request */
 			std::cout << "DEBUG HANDLE RESPONSE: location: [" << request_location << "]" <<std::endl;
@@ -188,7 +134,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			}
 		}
 		std::cout << "FILENAME: " << filename << std::endl;
-		Response response = Response(filename, server);
+		Response response = Response(filename, this->_serv);
 //		std::cout << response << std::endl;
 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
 //		std::cout << ret << "\t" << response.getResponse().length() << std::endl;
@@ -198,7 +144,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	{
 		std::cout << "Post request" << std::endl;
 		std::cout << _request.getLocation() << std::endl;
-
+		if (_request.getLocation().find(".php?") || _request.getLocation().find(".py?"))
+			_cgi = Cgi();
 	}
 	else if (_request.getType() == DELETE)
 	{

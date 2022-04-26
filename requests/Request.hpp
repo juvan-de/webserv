@@ -6,6 +6,7 @@
 # include <iostream>
 # include <vector>
 # include <Response.hpp>
+# include <Server.hpp>
 
 enum Type 
 {

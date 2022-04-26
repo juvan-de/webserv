@@ -1,6 +1,7 @@
 #include "Cgi.hpp"
 #include <cstdlib>
 #include <unistd.h>
+#include <utils.hpp>
 
 /*--------------------------------Coplien form--------------------------------*/
 Cgi::Cgi()
@@ -48,10 +49,13 @@ static char *const	*prepare_env(Request request, std::string client_ip)
 	return static_cast<char *const *>(&env[0]);
 }
 
-Cgi::Cgi(Request request, std::string client_ip)
+Cgi::Cgi(Server server, Request request, uint32_t client_ip)
 {
 	int	pipeFD[2]; // this will pipe from the cgi (pipefd[0] -> fd cgi script will write to file, pipefd[1] -> fd that serv will use to read the output from the written file)
 	int pid, cgiFd;
+	std::string cgi_script = strtrim(request.getLocation(), "?");
+	std::string path = server.getLocation(request.getLocation()).getCgi().find(".php");
+	std::cout << "path: " << path << std::endl;
 
 	// use pipes() to set input and output fd
 	if (pipe(pipeFD) < 0)

@@ -12,7 +12,7 @@ class Cgi
 	private:
 		/*--------------------------Member variables--------------------------*/
 		int		_cgiFd;
-		int		_clientfd;
+		int		_ready;
 		pid_t	_pid;
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -22,7 +22,7 @@ class Cgi
 		~Cgi();
 
 		/*--------------------------Member functions--------------------------*/
-		Cgi(Request request, std::string client_ip);
+		Cgi(Server server, Request request, uint32_t client_ip);
 };
 
 #endif
