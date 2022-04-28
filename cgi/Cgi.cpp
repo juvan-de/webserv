@@ -1,6 +1,7 @@
 #include "Cgi.hpp"
 #include <cstdlib>
 #include <unistd.h>
+#include <utils.hpp>
 
 /*--------------------------------Coplien form--------------------------------*/
 Cgi::Cgi()
@@ -30,31 +31,38 @@ Cgi&	Cgi::operator=(const Cgi &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-static char *const	*prepare_env(Request request, std::string client_ip)
+static void			add_string(std::vector<char *const> &env, std::string str)
+{
+	env.push_back(const_cast<char *const>(str.c_str()));
+}
+
+static char *const	*prepare_env(std::string path, std::string file, Request request, std::string client_ip, std::string query)
 {
 	std::vector<char *const> env;
 
-	env.push_back("GATEWAY_INTERFACE=CGI/1.1");	 // TODO: what value
-	env.push_back("REMOTE_ADDR=" + client_ip);		 // TODO: IP of the client
-	env.push_back("REQUEST_METHOD=" + request.getType());		 // TODO: allow POST
-	env.push_back("SCRIPT_NAME=" + request.getCgi());
-	env.push_back("SERVER_NAME=" + request.getHeaders("Referer"));		 // TODO: read from config
-	env.push_back("SERVER_PORT=" + request.getHeaders("Host"));			 // TODO: read from request
-	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	env.push_back("SERVER_SOFTWARE=webserv/42");
-	env.push_back("PATH_INFO=" + request.getPath());
-	env.push_back("QUERY_STRING=" + request.getQuery());
+	add_string(env, "GATEWAY_INTERFACE=CGI/1.1");
+	add_string(env, "REMOTE_ADDR=" + client_ip); // client ip
+	add_string(env, "REQUEST_METHOD=" + request.getType()); 
+	add_string(env, "SCRIPT_NAME=" + file);
+	add_string(env, "SERVER_NAME=" + request.getHeaders("Referer"));
+	add_string(env, "SERVER_PORT=" + request.getHeaders("Host"));
+	add_string(env, "SERVER_PROTOCOL=HTTP/1.1");
+	add_string(env, "SERVER_SOFTWARE=webserv/42");
+	add_string(env, "PATH_INFO=" + path);
+	add_string(env, "QUERY_STRING=" + query);
 
 	return static_cast<char *const *>(&env[0]);
 }
 
-Cgi::Cgi(Request request, std::string client_ip)
+Cgi::Cgi(std::string path, Request request, std::string client_ip)
 {
 	int	pipeFD[2]; // this will pipe from the cgi (pipefd[0] -> fd cgi script will write to file, pipefd[1] -> fd that serv will use to read the output from the written file)
 	int pid, cgiFd;
+	std::string file = strtrim(request.getLocation(), "?");
 
 	// use pipes() to set input and output fd
 	if (pipe(pipeFD) < 0)
+		std::cout << "Error: pipe didnt work" << std::endl;
 		// throw error
 	
 	// use setenv to prepare the arguments for the cgi
@@ -66,7 +74,8 @@ Cgi::Cgi(Request request, std::string client_ip)
 		dup2(cgiFd, STDERR_FILENO);
 
 		// use execv to execute the cgi script
-		if (execv(path.c_str(), prepare_env(request, client_ip)) < 1);
+		if (execv((path + file).c_str(), prepare_env(path, file, request, client_ip, *request.getLocation)) < 1);
+			std::cout << "Error: couldnt execv" << std::endl;
 			// throw error
 		
 		close(pipeFD[0]);

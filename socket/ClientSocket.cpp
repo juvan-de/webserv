@@ -45,8 +45,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname" << std::endl;
-		return NULL;
+		std::cout << "error finding hostname: " << std::endl;
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
@@ -55,7 +54,6 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
 		std::cout << "error finding pair" << std::endl;
-		return NULL;
 	}
 	return (table[std::make_pair(port, name)]);
 }
@@ -84,7 +82,7 @@ std::string	getFileName(const Location& loc)
 	}
 	/* bad request, wa gaan we hier doen */
 	std::cout << "bad request (getFileName)" << std::endl;
-	return NULL;
+	return "error";
 }
 
 void	remove_last_dir(std::string& request_loc)
@@ -104,6 +102,8 @@ std::map<std::string, Location>::const_iterator	find_right_location(const std::m
 	}
 }
 
+#include <sstream>
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
@@ -118,13 +118,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			/* bad request */
 			std::cout << "DEBUG HANDLE RESPONSE: location: [" << _request.getLocation() << "]" <<std::endl;
 			std::cout << "bad request" << std::endl;
-			return ;
+			// return ;
 		}
 		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
 		{
 			/* bad request (405 forbidden)*/
 			std::cout << "bad request (forbidden)" << std::endl;
-			return ;
+			// return ;
 		}
 		std::string filename = getFileName(itr->second);
 		Response response = Response(filename, server);
@@ -136,7 +136,24 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	else if (_request.getType() == POST)
 	{
 		std::cout << "Post request" << std::endl;
-		std::cout << _request.getLocation() << std::endl;
+		if (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos)
+		{
+			std::string cgi = ".php";
+			std::stringstream ss;
+			std::string cli_ip;
+		
+			ss << ntohs(_address.sa_family);
+			ss >> cli_ip;
+
+			if (_request.getLocation().find(".py?") != std::string::npos)
+				cgi = ".py";
+			std::cout << "cgi: " << cgi << std::endl;
+			std::cout << server->getLocation("/") << std::endl;
+			std::cout << "file name (or location): " << _request.getLocation() << std::endl;
+			std::cout << "path to correct cgi: " << server->getLocation("/").getCgi().find(cgi)->second << std::endl;
+			std::cout << "cli ip: " << cli_ip << std::endl;
+			std::cout << "YAH" << std::endl;
+		}
 	}
 	else if (_request.getType() == DELETE)
 	{
