@@ -268,6 +268,19 @@ const Redir&	Location::getRedir() const
 	return this->_redir;
 }
 
+std::vector<std::string>::const_iterator	Location::getRightIndexFile(const std::string prefix) const
+{
+	std::vector<std::string>::const_iterator itr = this->_index.begin();
+	std::string filename;
+	for (; itr != this->_index.end(); itr++)
+	{
+		filename = prefix + *itr;
+		if (doesFileExist(filename))
+			return (itr);
+	}
+	return (itr);
+}
+
 std::ostream&	operator<< (std::ostream& out, const Location& obj)
 {
 	out << std::boolalpha;
