@@ -48,7 +48,7 @@ int main(int ac, char **av)
 			// handle_connection(data);
 			std::cout << "Waiting for connections..." << std::endl;
 			// check_connection(data);
-			sleep(1);
+			usleep(500000);
 		}
 	}
 	else

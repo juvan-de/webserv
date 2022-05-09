@@ -39,9 +39,10 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request request)
 {
-	std::map<std::string, std::string> headers = Request.getHeaders();
+	std::map<std::string, std::string> headers = request.getHeaders();
+	std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
@@ -54,7 +55,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (table.find(std::make_pair(port, name)) == table.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding pair" << std::endl;
+		std::cout << " pair" << std::endl;
 		return NULL;
 	}
 	return (table[std::make_pair(port, name)]);
@@ -138,11 +139,10 @@ std::string	getFileName(const Location& loc)
 // 	}
 // }
 
-
-
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
+	Response response;
 	Server *server = find_server(table, this->_request);
 	if (this->_request.getType() == GET)
 	{
@@ -152,18 +152,12 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		if (itr == server->getLocations().end())
 		{
 			/* bad request */
-			Response response = Response(404, server);
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-			this->_request = Request();
-			std::cout << "DEBUG HANDLE RESPONSE: location: [" << request_location << "]" <<std::endl;
-			std::cout << "bad request" << std::endl;
-			return ;
+			response = Response(404, server);
 		}
 		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
 		{
 			/* bad request (405 forbidden)*/
-			std::cout << "bad request (forbidden)" << std::endl;
-			return ;
+			response = Response(405, server);
 		}
 		if (request_location[request_location.size() - 1] == '/')
 		{
@@ -171,24 +165,23 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::vector<std::string>::const_iterator itr_fileame = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
 			if (itr_fileame == itr->second.getIndex().end())
 			{
-				std::cout << "indexfile bestaat niet dus autoindex" << std::endl;
-				exit(1);
+				if (itr->second.getAutoindex())
+					response = Response(404, server);
+				else
+					response = Response(404, server);
 			}
 			filename = itr->second.getRoot() + request_location + *itr_fileame;
+			response = Response(filename, server);
 		}
 		else
 		{
 			filename = itr->second.getRoot() + request_location;
 			if (!doesFileExist(filename))
-			{
-				Response response = Response(404, server);
-				int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-				this->_request = Request();
-				return ;
-			}
+				response = Response(404, server);
+			else
+				response = Response(filename, server);	
 		}
 		std::cout << "FILENAME: " << filename << std::endl;
-		Response response = Response(filename, server);
 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
 		this->_request = Request(); // waarom doen we dit
 	}

@@ -145,7 +145,7 @@ void		Response::setResponseBody(const std::string &filename)
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 	std::ostringstream Stream;
-	std::cout << "FILENAME: [ " << filename << std::endl;
+
 	Stream << file.rdbuf();
 	if (file.is_open())
 		this->_responseBody.append(Stream.str());
