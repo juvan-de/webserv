@@ -1,6 +1,6 @@
 #include <ClientSocket.hpp>
 #include <BadInit.hpp>
-#include <sys/stat.h> // stat struct
+#include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr addr) :
 	 Socket(fd), _status(200), _request(Request())
@@ -60,20 +60,8 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	return (table[std::make_pair(port, name)]);
 }
 
-bool	doesFileExits(std::string& filename)
-{
-	struct stat	stats;
-	int			ret;
-
-	ret = stat(filename.c_str(), &stats);
-	if (ret == 0 && !S_ISDIR(stats.st_mode))
-		return true;
-	return false;
-}
-
 std::string	getFileName(const Location& loc)
 {
-	struct stat	buf;
 	int			ret;
 	std::string res;
 	std::string filename;
@@ -89,7 +77,7 @@ std::string	getFileName(const Location& loc)
 		else
 			filename = res + "/" + *itr;
 		std::cout << filename << std::endl;
-		if (doesFileExits(filename))
+		if (doesFileExist(filename))
 			return filename;
 	}
 	/* bad request, wa gaan we hier doen */
@@ -97,22 +85,60 @@ std::string	getFileName(const Location& loc)
 	return NULL;
 }
 
-void	remove_last_dir(std::string& request_loc)
-{
-	request_loc = request_loc.substr(0, request_loc.find_last_of("/"));
-}
+// void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
+// {
+// 	std::cout << "POLLING OUT" << std::endl;
 
-std::map<std::string, Location>::const_iterator	find_right_location(const std::map<std::string, Location>& locations, std::string request_loc)
-{
-	while (true)
-	{
-		if (locations.find(request_loc) != locations.end())
-			return locations.find(request_loc);
-		remove_last_dir(request_loc);
-		if (request_loc.empty())
-			return (locations.find("/"));
-	}
-}
+// 	Server *server = find_server(table, _request); // we could put the server in the client object to avoid having to find the right server for every request.
+// 	if (_request.getType() == GET)
+// 	{
+// 		/* for now */
+// 		std::string	filename;
+// 		std::string	request_location = this->_request.getLocation();
+// 		server->getRightLocation(request_location);
+// 		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), request_location);
+// 		std::cout << "request_location: " << request_location << std::endl;
+// 		if (itr == server->getLocations().end())
+// 		{
+// 			/* bad request */
+// 			std::cout << "DEBUG HANDLE RESPONSE: location: [" << request_location << "]" <<std::endl;
+// 			std::cout << "bad request" << std::endl;
+// 			return ;
+// 		}
+// 		if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
+// 		{
+// 			/* bad request (405 forbidden)*/
+// 			std::cout << "bad request (forbidden)" << std::endl;
+// 			return ;
+// 		}
+// 		filename = itr->second.getRoot() + request_location;
+// 		if (!doesFileExits(filename))
+// 		{
+// 			std::cout << "file does not exits" << std::endl;
+// 			exit(1);
+// 		}
+// 		std::cout << "FILENAME: " << filename << std::endl;
+// 		Response response = Response(filename, server);
+// //		std::cout << response << std::endl;
+// 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
+// //		std::cout << ret << "\t" << response.getResponse().length() << std::endl;
+// 		_request = Request();
+// 	}
+// 	else if (_request.getType() == POST)
+// 	{
+
+// 	}
+// 	else if (_request.getType() == DELETE)
+// 	{
+// 		std::cout << "we be deletin tho" << std::endl;
+// 	}
+// 	else
+// 	{
+// 		std::cout << "shit went wrong yo" << std::endl;
+// 	}
+// }
+
+
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
@@ -121,11 +147,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	Server *server = find_server(table, _request);
 	if (_request.getType() == GET)
 	{
-		/* for now */
 		std::string	filename;
 		std::string	request_location = this->_request.getLocation();
-		std::map<std::string, Location>::const_iterator itr = find_right_location(server->getLocations(), request_location);
-		std::cout << "request_location: " << request_location << std::endl;
+		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 		if (itr == server->getLocations().end())
 		{
 			/* bad request */
@@ -139,20 +163,21 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "bad request (forbidden)" << std::endl;
 			return ;
 		}
-		if (itr->first == request_location)
+		if (request_location[request_location.size() - 1] == '/')
 		{
-			if (itr->second.getAutoindex())
-				filename = getFileName(itr->second);
-			else
+			//iterator return
+			std::vector<std::string>::const_iterator itr_fileame = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
+			if (itr_fileame == itr->second.getIndex().end())
 			{
-				std::cout << "Index list?? Ingmar" << std::endl;
+				std::cout << "indexfile bestaat niet dus autoindex" << std::endl;
 				exit(1);
 			}
+			filename = itr->second.getRoot() + request_location + *itr_fileame;
 		}
 		else
 		{
 			filename = itr->second.getRoot() + request_location;
-			if (!doesFileExits(filename))
+			if (!doesFileExist(filename))
 			{
 				std::cout << "file does not exits" << std::endl;
 				exit(1);
@@ -160,10 +185,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		std::cout << "FILENAME: " << filename << std::endl;
 		Response response = Response(filename, server);
-//		std::cout << response << std::endl;
 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-//		std::cout << ret << "\t" << response.getResponse().length() << std::endl;
-		_request = Request();
+		_request = Request(); // waarom doen we dit
 	}
 	else if (_request.getType() == POST)
 	{

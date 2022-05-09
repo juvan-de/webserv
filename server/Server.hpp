@@ -36,11 +36,13 @@ class	Server
 		void	setServerName(std::vector<std::string>& line);
 
 		/* -Getters- */
-		const std::set<int>&					getListen() const;
-		const std::map<std::string, Location>&	getLocations() const;
-		Location&								getLocation(const std::string& key);
-		const std::map<int, std::string>&		getErrorPage() const;
-		const std::set<std::string>&			getServerName() const;
+		const std::set<int>&							getListen() const;
+		const std::map<std::string, Location>&			getLocations() const;
+		Location&										getLocation(const std::string& key);
+		const std::map<int, std::string>&				getErrorPages() const;
+		const std::string&								getErrorPage() const;
+		const std::set<std::string>&					getServerName() const;
+		std::map<std::string, Location>::const_iterator	getRightLocation(const std::string& request_loc) const;
 
 		/* Not parse exception */  //Hoe willen we dit preies vormgeven
 		class LocationDoesNotExist : public std::exception

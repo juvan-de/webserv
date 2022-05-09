@@ -9,6 +9,7 @@
 # include <redir.hpp>
 
 # include "webservException.hpp"
+# include <utils.hpp>
 # define COLOR_WHITE_BOLD			"\033[0;37;01m"
 # define COLOR_NORMAL_DIM			"\033[0;02m"
 # define COLOR_NORMAL				"\033[0m"
@@ -62,6 +63,8 @@ class	Location
 		const std::set<std::string>&				getLimitExcept() const;
 		const std::string&							getUploadStore() const;
 		const Redir&								getRedir() const;
+
+		std::vector<std::string>::const_iterator	getRightIndexFile(const std::string prefix) const;
 };//end Location class
 
 std::ostream&	operator<< (std::ostream& out, const Location& obj);

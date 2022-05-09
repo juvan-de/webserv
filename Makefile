@@ -4,6 +4,7 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
+				doesFileExist.cpp \
 				strtrim.cpp
 REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
