@@ -13,10 +13,12 @@ Response::Response(int code, Server* server)
 
 	std::map<int, std::string>::const_iterator itr = server->getErrorPages().find(code);
 	this->_statusCode = statusCodes.getStatusCode(code);
-	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n\r\n";
+	setResponseBody(itr->second);
+	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
+	ss << "Content-length: " << getResponseBody().size() << "\r\n";
+	ss << "Content-type: " << "text/html" << "\r\n\r\n";
 	if (itr != server->getErrorPages().end())
 	{
-		setResponseBody(itr->second);
 		ss << getResponseBody() << "\r\n\r\n";
 	}
 	this->_response = ss.str();

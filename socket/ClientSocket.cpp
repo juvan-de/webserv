@@ -24,6 +24,7 @@ ClientSocket::ClientSocket(int fd, sockaddr addr) :
 void	ClientSocket::handle_pollin()
 {
 	std::cout << "POLLING IN" << std::endl;
+	std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 	this->_request.addto_request(getFd());
 	if (this->_request.getType() == NOTSET)
 	{
@@ -39,7 +40,7 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request Request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& Request)
 {
 	std::map<std::string, std::string> headers = Request.getHeaders();
 	if (headers.find("Host") == headers.end())
@@ -143,6 +144,7 @@ std::string	getFileName(const Location& loc)
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
+	std::cout << "FD: " << this->getFd() << std::endl;
 	Server *server = find_server(table, this->_request);
 	if (this->_request.getType() == GET)
 	{
