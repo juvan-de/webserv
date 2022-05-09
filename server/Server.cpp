@@ -189,7 +189,7 @@ std::ostream&	operator<< (std::ostream& out, const Server& obj)
 	}
 	out << "]" << std::endl;
 	out << "error_page =";
-	std::map<int, std::string> tempErrorPage = obj.getErrorPage();
+	std::map<int, std::string> tempErrorPage = obj.getErrorPages();
 	for (std::map<int, std::string>::iterator it = tempErrorPage.begin(); it != tempErrorPage.end(); it++)
 		out << " {" << it->first << " <-> " << it->second << "}";
 	out << std::endl;

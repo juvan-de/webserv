@@ -16,12 +16,12 @@ class	Response
 		std::string							_responseBody;
 		std::map<std::string, std::string>	_contentTypes;
 
-		Response();
 		void	_setContentTypes();
 
 	public:
 
-	// Response(std::string error);
+	Response();
+	Response(int code, Server* server);
 	Response(std::string path, Server* server);
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
@@ -33,7 +33,7 @@ class	Response
 	const std::string					&getResponseBody() const;
 	const std::string					getRightContentType(const std::string suffix) const;
 
-	void								setResponseBody(std::string &filename);
+	void								setResponseBody(const std::string &filename);
 
 	private: /* -Exception- */
 		class NotAFile : public std::exception

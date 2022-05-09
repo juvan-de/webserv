@@ -6,10 +6,21 @@ Response::Response()
 	// std::cout << "default constructor called" << std::endl;
 }
 
-// Response::Response(std::string error)
-// {
-// 	std::cout << "an error ocurred in Response constructor" << std::endl;
-// }
+Response::Response(int code, Server* server)
+{
+	StatusCodes statusCodes;
+	std::stringstream ss;
+
+	std::map<int, std::string>::const_iterator itr = server->getErrorPages().find(code);
+	this->_statusCode = statusCodes.getStatusCode(code);
+	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n\r\n";
+	if (itr != server->getErrorPages().end())
+	{
+		setResponseBody(itr->second);
+		ss << getResponseBody() << "\r\n\r\n";
+	}
+	this->_response = ss.str();
+}
 
 Response::Response(std::string file, Server* server)
 {
@@ -129,11 +140,12 @@ const std::string					&Response::getResponseBody() const
 	return (this->_responseBody);
 }
 
-void		Response::setResponseBody(std::string &filename)
+void		Response::setResponseBody(const std::string &filename)
 {
 	std::ifstream	file(filename.c_str());
 	std::string		line;
 	std::ostringstream Stream;
+	std::cout << "FILENAME: [ " << filename << std::endl;
 	Stream << file.rdbuf();
 	if (file.is_open())
 		this->_responseBody.append(Stream.str());

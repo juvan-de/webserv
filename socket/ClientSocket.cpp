@@ -3,7 +3,7 @@
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr addr) :
-	 Socket(fd), _status(200), _request(Request())
+	Socket(fd), _status(200), _request(Request())
 {
 	int flags;
 	int opt = 1;
@@ -24,16 +24,16 @@ ClientSocket::ClientSocket(int fd, sockaddr addr) :
 void	ClientSocket::handle_pollin()
 {
 	std::cout << "POLLING IN" << std::endl;
-	_request.addto_request(getFd());
-	if (_request.getType() == NOTSET)
+	this->_request.addto_request(getFd());
+	if (this->_request.getType() == NOTSET)
 	{
-		_request.setRequest();
-		_request.setHeaders();
+		this->_request.setRequest();
+		this->_request.setHeaders();
 	}
-	if (_request.checkIfChunked())
+	if (this->_request.checkIfChunked())
 	{
 		// std::cout << "CHUNKED" << std::endl;
-		_request.readChunked(getFd());
+		this->_request.readChunked(getFd());
 	}
 }
 
@@ -80,9 +80,9 @@ std::string	getFileName(const Location& loc)
 		if (doesFileExist(filename))
 			return filename;
 	}
-	/* bad request, wa gaan we hier doen */
+	/* bad request, wa gaan we hier doen -> 404 exitstatus */
 	std::cout << "bad request (getFileName)" << std::endl;
-	return NULL;
+	return ("files/html/Website/Error/404.html");
 }
 
 // void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
@@ -143,9 +143,8 @@ std::string	getFileName(const Location& loc)
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
-
-	Server *server = find_server(table, _request);
-	if (_request.getType() == GET)
+	Server *server = find_server(table, this->_request);
+	if (this->_request.getType() == GET)
 	{
 		std::string	filename;
 		std::string	request_location = this->_request.getLocation();
@@ -153,6 +152,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		if (itr == server->getLocations().end())
 		{
 			/* bad request */
+			Response response = Response(404, server);
+			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
+			this->_request = Request();
 			std::cout << "DEBUG HANDLE RESPONSE: location: [" << request_location << "]" <<std::endl;
 			std::cout << "bad request" << std::endl;
 			return ;
@@ -179,26 +181,32 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			filename = itr->second.getRoot() + request_location;
 			if (!doesFileExist(filename))
 			{
-				std::cout << "file does not exits" << std::endl;
-				exit(1);
+				Response response = Response(404, server);
+				int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
+				this->_request = Request();
+				return ;
 			}
 		}
 		std::cout << "FILENAME: " << filename << std::endl;
 		Response response = Response(filename, server);
 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-		_request = Request(); // waarom doen we dit
+		this->_request = Request(); // waarom doen we dit
 	}
-	else if (_request.getType() == POST)
+	else if (this->_request.getType() == POST)
 	{
 		std::cout << "Post request" << std::endl;
-		std::cout << _request.getLocation() << std::endl;
+		std::cout << this->_request.getLocation() << std::endl;
 	}
-	else if (_request.getType() == DELETE)
+	else if (this->_request.getType() == DELETE)
 	{
 		std::cout << "we be deletin tho" << std::endl;
 	}
-	else
+	else if (this->_request.getType() == ERROR)
 	{
 		std::cout << "shit went wrong yo" << std::endl;
+	}
+	else
+	{
+		std::cout << "nothing to do here" << std::endl;
 	}
 }
