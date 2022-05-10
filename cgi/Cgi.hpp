@@ -2,6 +2,7 @@
 # define CGI_HPP
 
 # include <iostream>
+# include <vector>
 # include <map>
 # include <Request.hpp>
 # include <Server.hpp>
@@ -13,11 +14,10 @@ class Cgi
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		std::vector<char *const>	_env;
+		std::vector<std::string>	_env;
 		int							_cgiFd;
 		pid_t						_pid;
 
-		void	add_string(std::string str);
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		Cgi();
@@ -27,8 +27,8 @@ class Cgi
 
 		/*--------------------------Member functions--------------------------*/
 		Cgi(Request request, Server server, sockaddr client_struct);
-		void	executeCgi();
-		const std::vector<char *const>	getEnv() const { return _env; }
+		void							executeCgi();
+		const std::vector<std::string>	getEnv() const { return _env; }
 };
 
 std::ostream&	operator<<(std::ostream &out, const Cgi &ref);

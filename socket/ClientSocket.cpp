@@ -102,8 +102,7 @@ std::map<std::string, Location>::const_iterator	find_right_location(const std::m
 	}
 }
 
-#include <sstream>
-#include <utils.hpp>
+#include <Cgi.hpp>
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
@@ -139,31 +138,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		std::cout << "Post request" << std::endl;
 		if (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos)
 		{
-			std::stringstream ss;
-			std::string cgi = ".php";
-			std::string cli_ip;
-			std::string file;
-			std::string query;
-			std::vector<std::string> splitted;
-		
-			ss << ntohs(_address.sa_family);
-			ss >> cli_ip;
-
-			file = _request.getLocation().substr(0, _request.getLocation().find_first_of("?"));
-			query = _request.getLocation().substr(_request.getLocation().find_first_of("?") + 1, _request.getLocation().size() - _request.getLocation().find_first_of("?") - 1);
-
-			if (_request.getLocation().find(".py?") != std::string::npos)
-				cgi = ".py";
-			// std::cout << "cgi: " << cgi << std::endl;
-			std::cout << "cli ip: " << cli_ip << std::endl;
-			std::cout << "request type: " << _request.getType() << std::endl;
-			std::cout << "file name (or location): " << file << std::endl;
-			std::cout << "server name: " << _request.getHeaders().find("Referer")->second << std::endl;
-			std::cout << "server ip: " << _request.getHeaders().find("Host")->second << std::endl;
-			std::cout << "path to correct cgi: " << server->getLocation("/").getCgi().find(cgi)->second << std::endl;
-			std::cout << "query string: " << query << std::endl;
-
-			std::cout << "YAH" << std::endl;
+			Cgi cgi = Cgi(_request, *server, _address);
+			std::cout << cgi;
 		}
 	}
 	else if (_request.getType() == DELETE)

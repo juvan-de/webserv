@@ -18,6 +18,7 @@ Cgi::~Cgi()
 Cgi::Cgi(const Cgi &ref)
 {
 	/*Copy constructor*/
+	std::cout << "copy constreqgr	qej" << std::endl;
 	*this = ref;
 }
 
@@ -26,7 +27,10 @@ Cgi&	Cgi::operator=(const Cgi &ref)
 	/*Assignation operator*/
 	if (this != &ref)
 	{
-		/* assign member variables*/
+		for (std::vector<std::string>::const_iterator it = ref.getEnv().begin(); it != ref.getEnv().end(); it++) {
+			std::cout << "DEBUG " << *it << std::endl;
+			this->_env.push_back(*it);
+		}
 	}
 	return *this;
 }
@@ -72,10 +76,16 @@ void	Cgi::executeCgi()
 	// }
 }
 
-void			Cgi::add_string(std::string str)
-{
-	_env.push_back(const_cast<char *const>(str.c_str()));
-}
+// char *const			*Cgi::prepare_env()
+// {
+// 	char *const *env;
+// 	// env.reserve(_env.size());
+
+// 	for (std::vector<std::string>::const_iterator it = _env.begin(); it != _env.end(); it++)
+// 		env.push_back(const_cast<char *const>((*it).c_str()));
+	
+// 	return static_cast<char *const *>(&env[0]);
+// }
 
 Cgi::Cgi(Request request, Server server, sockaddr client_struct)
 {
@@ -101,27 +111,28 @@ Cgi::Cgi(Request request, Server server, sockaddr client_struct)
 			break;
 	}
 
-	add_string("GATEWAY_INTERFACE=CGI/1.1");
-	add_string("REMOTE_ADDR=" + cli_ip);
-	add_string("REQUEST_METHOD=" + req_type); 
-	add_string("SCRIPT_NAME=" + request.getLocation().substr(0, request.getLocation().find_first_of("?")));
-	add_string("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
-	add_string("SERVER_PORT=" + request.getHeaders().find("Host")->second);
-	add_string("SERVER_PROTOCOL=HTTP/1.1");
-	add_string("SERVER_SOFTWARE=webserv/42");
+	_env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	_env.push_back("REMOTE_ADDR=" + cli_ip);
+	_env.push_back("REQUEST_METHOD=" + req_type); 
+	_env.push_back("SCRIPT_NAME=" + request.getLocation().substr(0, request.getLocation().find_first_of("?")));
+	_env.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
+	_env.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
+	_env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	_env.push_back("SERVER_SOFTWARE=webserv/42");
 	if (request.getLocation().find(".py?") != std::string::npos)
-		add_string("PATH_INFO=" + server.getLocation("/").getCgi().find(".py")->second);
+		_env.push_back("PATH_INFO=" + server.getLocation("/").getCgi().find(".py")->second);
 	else
-		add_string("PATH_INFO=" + server.getLocation("/").getCgi().find(".php")->second);
-	add_string("QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
+		_env.push_back("PATH_INFO=" + server.getLocation("/").getCgi().find(".php")->second);
+	_env.push_back("QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
 
-	// _cgiInfo = static_cast<char *const *>(&env[0]);
-	std::cout << this << std::endl;
 	executeCgi();
 }
 
 std::ostream&	operator<<(std::ostream &out, const Cgi &ref)
 {
-	for (std::vector<char *const>::const_iterator it = ref.getEnv().begin(); it != ref.getEnv().end(); it++)
-		std::cout << *it << std::endl;
+	std::vector<std::string> tmp = ref.getEnv();
+	for (std::vector<std::string>::iterator it = tmp.begin(); it != tmp.end(); it++)
+		out << *it << std::endl;
+
+	return out;
 }
