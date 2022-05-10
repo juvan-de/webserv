@@ -14,7 +14,8 @@ class Cgi
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		std::vector<std::string>	_env;
+		std::vector<char const*>	_env;
+		std::string					_filepath;
 		int							_cgiFd;
 		pid_t						_pid;
 
@@ -28,7 +29,9 @@ class Cgi
 		/*--------------------------Member functions--------------------------*/
 		Cgi(Request request, Server server, sockaddr client_struct);
 		void							executeCgi();
-		const std::vector<std::string>	getEnv() const { return _env; }
+		void							push_string(std::string str);
+		const std::vector<char const*>	getEnv() const { return _env; }
+		const std::string				getFilepath() const { return _filepath; }
 };
 
 std::ostream&	operator<<(std::ostream &out, const Cgi &ref);

@@ -207,7 +207,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		if (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos)
 		{
 			Cgi cgi = Cgi(_request, *server, _address);
-			std::cout << cgi;
+			// std::cout << cgi;
 		}
 	}
 	else if (this->_request.getType() == DELETE)
