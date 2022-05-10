@@ -37,6 +37,7 @@ class	Request
 	std::string 						const &getLocation() const;
 	std::map<std::string, std::string>	const &getHeaders() const;
 	std::string							const &getInput() const;
+	std::string							const &getBody() const;
 
 	void						setResponse(Response response);
 	void						setRequest(void);

@@ -4,10 +4,8 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
+				doesFileExist.cpp \
 				strtrim.cpp
-CONNECT_SRC	=	handle_connection.cpp \
-				connection_utils.cpp \
-				handle_response.cpp
 REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
@@ -44,7 +42,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98
+FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi

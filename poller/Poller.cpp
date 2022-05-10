@@ -32,9 +32,9 @@ Poller&	Poller::operator=(const Poller &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Poller::Poller(std::vector<int>	server_ports) : _cgi_socks(std::vector<pollfd>()), _client_socks(std::vector<ClientSocket*>()) 
+Poller::Poller(std::set<int> server_ports) : _cgi_socks(std::vector<pollfd>()), _client_socks(std::vector<ClientSocket*>()) 
 {
-	for (std::vector<int>::const_iterator it = server_ports.begin(); it != server_ports.end(); it++)
+	for (std::set<int>::const_iterator it = server_ports.begin(); it != server_ports.end(); it++)
 	{
 		_serv_socks.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, *it, INADDR_ANY, BACKLOG));
 		_pollfds.push_back(addPoll(_serv_socks.back()->getFd()));

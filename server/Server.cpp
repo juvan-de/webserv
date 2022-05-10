@@ -148,7 +148,7 @@ Location&	Server::getLocation(const std::string& key)
 	throw LocationDoesNotExist();
 }
 
-const std::map<int, std::string>&	Server::getErrorPage() const
+const std::map<int, std::string>&	Server::getErrorPages() const
 {
 	return this->_errorPage;
 }
@@ -157,6 +157,23 @@ const std::set<std::string>&	Server::getServerName() const
 {
 	return this->_serverName;
 }
+
+std::map<std::string, Location>::const_iterator	Server::getRightLocation(const std::string& request_loc) const
+{
+	std::map<std::string, Location>::const_iterator	best_fitting = this->_locations.end();
+	std::map<std::string, Location>::const_iterator	itr = this->_locations.begin();
+	for (; itr != this->_locations.end(); itr++)
+	{
+		//checken of ie begint met request_loc
+		if (request_loc.compare(0, itr->first.length(), itr->first) == 0)
+		{
+			if (best_fitting == this->_locations.end() || best_fitting->first.size() < itr->first.size())
+				best_fitting = itr;
+		}
+	}
+	return best_fitting;
+}
+
 
 std::ostream&	operator<< (std::ostream& out, const Server& obj)
 {
@@ -172,7 +189,7 @@ std::ostream&	operator<< (std::ostream& out, const Server& obj)
 	}
 	out << "]" << std::endl;
 	out << "error_page =";
-	std::map<int, std::string> tempErrorPage = obj.getErrorPage();
+	std::map<int, std::string> tempErrorPage = obj.getErrorPages();
 	for (std::map<int, std::string>::iterator it = tempErrorPage.begin(); it != tempErrorPage.end(); it++)
 		out << " {" << it->first << " <-> " << it->second << "}";
 	out << std::endl;
