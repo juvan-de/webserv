@@ -24,6 +24,7 @@ ClientSocket::ClientSocket(int fd, sockaddr addr) :
 void	ClientSocket::handle_pollin()
 {
 	std::cout << "POLLING IN" << std::endl;
+	std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 	this->_request.addto_request(getFd());
 	if (this->_request.getType() == NOTSET)
 	{
@@ -39,7 +40,7 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request request)
+Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
 	std::map<std::string, std::string> headers = request.getHeaders();
 	std::cout << request << std::endl;
@@ -162,16 +163,22 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		if (request_location[request_location.size() - 1] == '/')
 		{
 			//iterator return
-			std::vector<std::string>::const_iterator itr_fileame = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
-			if (itr_fileame == itr->second.getIndex().end())
+			std::vector<std::string>::const_iterator itr_filename = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
+			if (itr_filename == itr->second.getIndex().end())
 			{
 				if (itr->second.getAutoindex())
-					response = Response(404, server);
+				{
+					std::cout << "Laten we een indexlisting maken" << std::endl;
+					response = Response(itr->second.getRoot() + request_location, server);
+				}
 				else
 					response = Response(404, server);
 			}
-			filename = itr->second.getRoot() + request_location + *itr_fileame;
-			response = Response(filename, server);
+			else
+			{
+				filename = itr->second.getRoot() + request_location + *itr_filename;
+				response = Response(filename, server);
+			}
 		}
 		else
 		{

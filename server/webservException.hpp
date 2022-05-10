@@ -14,9 +14,9 @@ class WrongFile : public std::exception
 	private:
 		WrongFile();
 	protected:
-		const std::string	_line;
+		const std::string	_filename;
 	public:
-		WrongFile(const std::string line);
+		WrongFile(const std::string filenames);
 		virtual ~WrongFile() throw();
 		const char*	what (void) const throw();
 };

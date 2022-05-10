@@ -5,20 +5,19 @@
 #include <webservException.hpp>
 
 /* Wrong File */
-WrongFile::WrongFile(const std::string line) : _line(line) {}
+WrongFile::WrongFile(const std::string filename) : _filename(filename) {}
 WrongFile::~WrongFile(void) throw() {}
 
 const char*	WrongFile::what (void) const throw()
 {
-	{
-		std::string ret;
-		ret += COLOR_WHITE_BOLD;
-		ret += "Invalid file name\n";
-		ret += COLOR_NORMAL_DIM;
-		ret += "File name: ";
-		ret += this->_line;
-		return ret.c_str();
-	}
+	std::string ret;
+	ret += COLOR_WHITE_BOLD;
+	ret += "Invalid file name\n";
+	ret += COLOR_NORMAL_DIM;
+	ret += "File name: ";
+	ret += this->_filename;
+	ret.c_str();
+	return ret.c_str();
 }
 
 /* Argument Incorrect */
@@ -27,16 +26,14 @@ ArgumentIncorrect::~ArgumentIncorrect(void) throw() {}
 
 const char*	ArgumentIncorrect::what (void) const throw()
 {
-	{
-		std::string ret;
-		ret += COLOR_WHITE_BOLD;
-		ret += "Invalid argument amount\n";
-		ret += COLOR_NORMAL_DIM;
-		ret += "line:";
-		for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
-			ret += " " + *it;
-		return ret.c_str();
-	}
+	std::string ret;
+	ret += COLOR_WHITE_BOLD;
+	ret += "Invalid argument amount\n";
+	ret += COLOR_NORMAL_DIM;
+	ret += "line:";
+	for (std::vector<std::string>::const_iterator it = this->_line.begin(); it != this->_line.end(); it++)
+		ret += " " + *it;
+	return ret.c_str();
 }
 
 /* Missing Closing Bracket */

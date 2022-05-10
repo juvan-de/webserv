@@ -56,7 +56,7 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 	catch(const std::exception& e)
 	{
 		std::cerr << COLOR_RED_BOLD << "error ";
-		std::cerr << e.what() << std::endl;
+		// std::cerr << e.what() << std::endl;
 		exit(1);
 	}
 	size_t filesize = filedeque.size();

@@ -1,5 +1,6 @@
 #include <Response.hpp>
 #include <sstream>
+#include <dirent.h>
 
 Response::Response()
 {
@@ -13,30 +14,43 @@ Response::Response(int code, Server* server)
 
 	std::map<int, std::string>::const_iterator itr = server->getErrorPages().find(code);
 	this->_statusCode = statusCodes.getStatusCode(code);
-	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n\r\n";
+	this->setResponseBodyFromFile(itr->second);
+	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
+	ss << "Content-length: " << getResponseBody().size() << "\r\n";
+	ss << "Content-type: " << "text/html" << "\r\n\r\n";
 	if (itr != server->getErrorPages().end())
 	{
-		setResponseBody(itr->second);
 		ss << getResponseBody() << "\r\n\r\n";
 	}
 	this->_response = ss.str();
 }
 
-Response::Response(std::string file, Server* server)
+Response::Response(const std::string& path, Server* server)
 {
 	StatusCodes statusCodes;
 	std::stringstream ss;
+	std::string contentType;
 
-	this->_setContentTypes();
-	this->_path = file;
-	setResponseBody(this->_path);
-	this->_setContentTypes();
+	this->_path = path;
+	this->_setContentTypes(); // static class oplossing
+	if (this->_path[this->_path.size() - 1] == '/')
+	{
+		this->setResponseBodyFromDir(this->_path);
+		contentType = "text/html";
+	}
+	else
+	{
+		std::cout << "PATH: " << this->_path << std::endl;
+		this->setResponseBodyFromFile(this->_path);
+		std::cout << path.substr(path.find_last_of(".") + 1) << std::endl;
+		contentType = this->getRightContentType(path.substr(path.find_last_of(".") + 1));
+	}
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
-	ss << "Server: " << *(server->getServerName().begin()) << "\r\n";
+	ss << "Server: " << *(server->getServerName().begin()) << "\r\n"; // even checken, vanuit het request
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
-	ss << "Content-type: " << this->getRightContentType(file.substr(file.find_last_of(".") + 1)) << "\r\n"; //nog wel hardcode
-	ss << "Connection: Keep-Alive" << "\r\n\r\n";
+	ss << "Content-type: " << contentType << "\r\n";
+	ss << "Connection: Keep-Alive" << "\r\n\r\n"; //is dit uberhaupt nodig?
 	ss << getResponseBody() << "\r\n\r\n";
 	this->_response = ss.str();
 }
@@ -140,7 +154,31 @@ const std::string					&Response::getResponseBody() const
 	return (this->_responseBody);
 }
 
-void		Response::setResponseBody(const std::string &filename)
+void		Response::setResponseBodyFromDir(const std::string &dirname)
+{
+	DIR*			dir;
+	struct dirent*	cur_file;
+
+	this->_responseBody = "<html><head><title>Index of " + dirname + "</title></head>";
+	this->_responseBody += "<body><h1>Index of " + dirname + "</h1><hr><pre>";
+	dir = opendir(dirname.c_str());
+	if (dir != NULL)
+	{
+		while ((cur_file = readdir(dir)))
+		{
+			this->_responseBody += " <a href=\"";
+			this->_responseBody += cur_file->d_name;
+			this->_responseBody += "\">";
+			this->_responseBody += cur_file->d_name;
+			this->_responseBody += "</a><br>";
+		}
+			
+		closedir(dir);
+	}
+	this->_responseBody += "</pre><hr></body></html>";
+}
+
+void		Response::setResponseBodyFromFile(const std::string &filename)
 {
 	std::ifstream	file(filename.c_str());
 	std::string		line;
@@ -148,7 +186,10 @@ void		Response::setResponseBody(const std::string &filename)
 
 	Stream << file.rdbuf();
 	if (file.is_open())
-		this->_responseBody.append(Stream.str());
+	{
+		// this->_responseBody.append(Stream.str());
+		this->_responseBody = Stream.str();
+	}
 	else
 		throw NotAFile();
 }
