@@ -17,12 +17,11 @@ class	Response
 		std::map<std::string, std::string>	_contentTypes;
 
 		void	_setContentTypes();
+		void	_makeDefaultErrorPage(std::pair<int, std::string> errcode, std::ostringstream& Stream);
 
 	public:
 
 	Response();
-	Response(int code, Server* server);
-	Response(const std::string& path, Server* server);
 	Response(const std::string& path, int code, Server* server);
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
