@@ -20,13 +20,11 @@ class Socket
 		virtual ~Socket();
 
 		/*--------------------------Member functions--------------------------*/
-		// AF_INET, SOCK_STREAM, 0, sizeof(adress)
 		Socket(int domain, int service, int protocol);
 		Socket(int fd);
 		int					new_connection(sockaddr *cli_addr);
-		int					getFd() const { return _fd; }
-		// short				getRevent() const { return _poll.revents; };
-		// pollfd				&getPoll() { return _poll; };
+		const int			getFd() const { return _fd; }
+
 };
 
 #endif

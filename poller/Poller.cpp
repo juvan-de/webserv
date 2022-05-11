@@ -45,7 +45,6 @@ pollfd			Poller::addPoll(int fd)
 {
 	pollfd newPoll;
 
-	// Set poll
 	bzero(&newPoll, sizeof(newPoll));
 	newPoll.fd = fd;
 	newPoll.events = POLLIN | POLLOUT;

@@ -21,9 +21,9 @@ class ClientSocket : public Socket
 		/*--------------------------Member functions--------------------------*/
 		ClientSocket(int fd, sockaddr addr);
 		struct sockaddr	&getAddr() { return _address; };
-		void	handle_pollin();
-		void	handle_pollout(std::map<std::pair<int, std::string>, Server*> table, Poller &poll);
-		Response	makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location)
+		void			handle_pollin();
+		void			handle_pollout(std::map<std::pair<int, std::string>, Server*> table, Poller &poll);
+		Response		makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location)
 ;
 };
 
