@@ -1,6 +1,7 @@
 #include <Response.hpp>
 #include <sstream>
 #include <dirent.h>
+#include <stdlib.h>
 
 Response::Response()
 {
@@ -9,6 +10,7 @@ Response::Response()
 
 Response::Response(int code, Server* server)
 {
+	std::cout << "we in the first" << std::endl;
 	StatusCodes statusCodes;
 	std::stringstream ss;
 
@@ -27,6 +29,7 @@ Response::Response(int code, Server* server)
 
 Response::Response(const std::string& path, Server* server)
 {
+	std::cout << "we in the second" << std::endl;
 	StatusCodes statusCodes;
 	std::stringstream ss;
 	std::string contentType;
@@ -51,6 +54,38 @@ Response::Response(const std::string& path, Server* server)
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: " << contentType << "\r\n";
 	ss << "Connection: Keep-Alive" << "\r\n\r\n"; //is dit uberhaupt nodig?
+	ss << getResponseBody() << "\r\n\r\n";
+	this->_response = ss.str();
+}
+
+Response::Response(const std::string& path, int code, Server* server)
+{
+	StatusCodes statusCodes;
+	std::stringstream ss;
+	std::string contentType;
+
+	this->_path = path;
+	this->_setContentTypes(); // static class oplossing
+	if (code != 200)
+	{
+		setResponseBodyFromError(code, server->getErrorPages());
+		contentType = "text/html";
+	}
+	else if (this->_path[this->_path.size() - 1] == '/')
+	{
+		this->setResponseBodyFromDir(this->_path);
+		contentType = "text/html";
+	}
+	else
+	{
+		this->setResponseBodyFromFile(this->_path);
+		std::cout << path.substr(path.find_last_of(".") + 1) << std::endl;
+		contentType = this->getRightContentType(path.substr(path.find_last_of(".") + 1));
+	}
+	this->_statusCode = statusCodes.getStatusCode(code);
+	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
+	ss << "Content-length: " << getResponseBody().size() << "\r\n";
+	ss << "Content-type: " << contentType << "\r\n\r\n";
 	ss << getResponseBody() << "\r\n\r\n";
 	this->_response = ss.str();
 }
@@ -100,6 +135,7 @@ void	Response::_setContentTypes()
 	
 	this->_contentTypes["gif"] = "image";
 	this->_contentTypes["jpeg"] = "image";
+	this->_contentTypes["jpg"] = "image";
 	this->_contentTypes["png"] = "image";
 	this->_contentTypes["tiff"] = "image";
 	this->_contentTypes["vnd.microsoft.icon"] = "image";
@@ -184,14 +220,40 @@ void		Response::setResponseBodyFromFile(const std::string &filename)
 	std::string		line;
 	std::ostringstream Stream;
 
-	Stream << file.rdbuf();
 	if (file.is_open())
 	{
 		// this->_responseBody.append(Stream.str());
+		Stream << file.rdbuf();
 		this->_responseBody = Stream.str();
 	}
 	else
 		throw NotAFile();
+}
+
+void		Response::setResponseBodyFromError(int code, const std::map<int, std::string>& errorPages)
+{
+	std::string res;
+	std::map<int, std::string>::const_iterator itr = errorPages.find(code);
+	std::ostringstream Stream;
+	StatusCodes codes;
+	std::pair<int, std::string> errcode = codes.getStatusCode(code);
+	if (itr != errorPages.end())
+	{
+		std::ifstream	file(itr->second.c_str());
+		Stream << file.rdbuf();
+		this->_responseBody = Stream.str();
+	}
+	else
+	{
+		std::string defaultError = "files/html/Website/Error/error.html";
+		std::ifstream file(defaultError.c_str());
+		Stream << file.rdbuf();
+		this->_responseBody = Stream.str();
+		size_t replacable = _responseBody.find("{{ERROR_CODE}}");
+		this->_responseBody.replace(replacable, 14, std::to_string(errcode.first));
+		replacable = _responseBody.find("{{ERROR_MESSAGE}}");
+		this->_responseBody.replace(replacable, 17, errcode.second);
+	}
 }
 
 std::ostream&	operator<<(std::ostream &out, const Response &obj)

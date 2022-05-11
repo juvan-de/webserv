@@ -23,6 +23,7 @@ class	Response
 	Response();
 	Response(int code, Server* server);
 	Response(const std::string& path, Server* server);
+	Response(const std::string& path, int code, Server* server);
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
 	~Response();
@@ -33,9 +34,9 @@ class	Response
 	const std::string					&getResponseBody() const;
 	const std::string					getRightContentType(const std::string suffix) const;
 
-	void								setResponseBodyFromFile(const std::string &filename);
-	void								setResponseBodyFromDir(const std::string &dirname);
-
+	void								setResponseBodyFromFile(const std::string& filename);
+	void								setResponseBodyFromDir(const std::string& dirname);
+	void								setResponseBodyFromError(int code, const std::map<int, std::string>& errorPages);
 
 	private: /* -Exception- */
 		class NotAFile : public std::exception
