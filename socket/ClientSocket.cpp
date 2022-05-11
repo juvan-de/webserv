@@ -140,78 +140,79 @@ std::string	getFileName(const Location& loc)
 // 	}
 // }
 
+// Response makeGetResponse()
+// {
+// 	if (itr == server->getLocations().end()) /* bad request */
+// 		return Response(404, server);
+// 	if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
+// 		return Response(405, server);
+// 	if (request_location[request_location.size() - 1] == '/')
+// 	{
+// 		std::vector<std::string>::const_iterator itr_filename = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
+// 		if (itr_filename != itr->second.getIndex().end())
+// 			return Response(itr->second.getRoot() + request_location + *itr_filename, server);
+// 		if (itr->second.getAutoindex())
+// 			return Response(itr->second.getRoot() + request_location, server);
+// 		else
+// 			return Response(404, server);
+// 	}
+
+// 	if (!doesFileExist(itr->second.getRoot() + request_location))
+// 		response = Response(404, server);
+// 	else
+// 		response = Response(itr->second.getRoot() + request_location, server);	
+// }
+
+Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location)
+{
+	const std::string& request_location = this->_request.getLocation();
+
+	if (location == server->getLocations().end()) /* bad request */
+		return Response(404, server);
+	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
+		return Response(405, server);
+	if (request_location[request_location.size() - 1] == '/')
+	{
+		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + request_location);
+		if (itr_filename != location->second.getIndex().end())
+			return Response(location->second.getRoot() + request_location + *itr_filename, server);
+		if (location->second.getAutoindex())
+			return Response(location->second.getRoot() + request_location, server);
+		else
+			return Response(404, server);
+	}
+	if (!doesFileExist(location->second.getRoot() + request_location))
+		return Response(404, server);
+	else
+		return Response(location->second.getRoot() + request_location, server);	
+}
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << this->_request << std::endl;
 	if (this->_request.readyForParse()) //very hacky solution, needs to be looked at
 	{
-		std::cout << "POLLING OUT" << std::endl;
-		Response response;
-		Server *server = find_server(table, this->_request);
-		if (this->_request.getType() == GET)
-		{
-			std::string	filename;
-			std::string	request_location = this->_request.getLocation();
-			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-			if (itr == server->getLocations().end())
-			{
-				/* bad request */
-				std::cout << "this is where we at right?" << std::endl;
-				response = Response("", 400, server);
-			}
-			if (itr->second.getLimitExcept().find("GET") == itr->second.getLimitExcept().end())
-			{
-				/* bad request (405 forbidden)*/
-				response = Response("", 405, server);
-			}
-			if (request_location[request_location.size() - 1] == '/')
-			{
-				//iterator return
-				std::vector<std::string>::const_iterator itr_filename = itr->second.getRightIndexFile(itr->second.getRoot() + request_location);
-				if (itr_filename == itr->second.getIndex().end())
-				{
-					if (itr->second.getAutoindex())
-					{
-						std::cout << "Laten we een indexlisting maken" << std::endl;
-						response = Response(itr->second.getRoot() + request_location, 200, server);
-					}
-					else
-						response = Response("", 400, server);
-				}
-				else
-				{
-					filename = itr->second.getRoot() + request_location + *itr_filename;
-					response = Response(filename, 200, server);
-				}
-			}
-			else
-			{
-				filename = itr->second.getRoot() + request_location;
-				if (!doesFileExist(filename))
-					response = Response("", 404, server);
-				else
-					response = Response(filename, 200, server);
-			}
-			std::cout << "FILENAME: " << filename << std::endl;
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-			this->_request = Request(); // waarom doen we dit
-		}
-		else if (this->_request.getType() == POST)
-		{
-			std::cout << "Post request" << std::endl;
-			std::cout << this->_request.getLocation() << std::endl;
-		}
-		else if (this->_request.getType() == DELETE)
-		{
-			std::cout << "we be deletin tho" << std::endl;
-		}
-		else if (this->_request.getType() == ERROR)
-		{
-			std::cout << "shit went wrong yo" << std::endl;
-		}
-		else
-		{
-			std::cout << "nothing to do here" << std::endl;
-		}
+		std::string	request_location = this->_request.getLocation();
+		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+		response = this->makeGetResponse(server, itr);
+		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
+		this->_request = Request(); // waarom doen we dit
+	}
+	else if (this->_request.getType() == POST)
+	{
+		std::cout << "Post request" << std::endl;
+		std::cout << this->_request.getLocation() << std::endl;
+	}
+	else if (this->_request.getType() == DELETE)
+	{
+		std::cout << "we be deletin tho" << std::endl;
+	}
+	else if (this->_request.getType() == ERROR)
+	{
+		std::cout << "shit went wrong yo" << std::endl;
+	}
+	else
+	{
+		std::cout << "nothing to do here" << std::endl;
 	}
 }

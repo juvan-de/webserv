@@ -15,6 +15,7 @@ class WrongFile : public std::exception
 		WrongFile();
 	protected:
 		const std::string	_filename;
+		std::string			_ret;
 	public:
 		WrongFile(const std::string filenames);
 		virtual ~WrongFile() throw();
@@ -27,6 +28,7 @@ class ArgumentIncorrect : public std::exception
 		ArgumentIncorrect();
 	protected:
 		const std::vector<std::string>	_line;
+		std::string			_ret;
 	public:
 		ArgumentIncorrect(const std::vector<std::string>& line);
 		virtual ~ArgumentIncorrect() throw();
@@ -39,6 +41,7 @@ class MissingClosingBracket : public std::exception
 		MissingClosingBracket();
 	protected:
 		const std::string	_location;
+		std::string			_ret;
 	public:
 		MissingClosingBracket(const std::string& loc);
 		virtual ~MissingClosingBracket() throw();
@@ -51,6 +54,7 @@ class DirectiveNotRecognized : public std::exception
 		DirectiveNotRecognized();
 	protected:
 		std::vector<std::string>	_line;
+		std::string			_ret;
 	public:
 		DirectiveNotRecognized(std::vector<std::string>& line);
 		virtual ~DirectiveNotRecognized() throw();
@@ -64,6 +68,7 @@ class cmbsUnitPrefix : public std::exception
 	protected:
 		std::vector<std::string>	_line;
 		std::string					_unitPrefix;
+		std::string					_ret;
 
 	public:
 		cmbsUnitPrefix(std::vector<std::string>& line);
@@ -80,6 +85,7 @@ class ElemDefNotRecognized : public std::exception
 		const std::string				_expected;
 		const std::vector<std::string>	_line;
 		const std::string				_defenition;
+		std::string						_ret;
 
 	public:
 		ElemDefNotRecognized(const std::string& elem, const std::string& expected, std::vector<std::string>& line);
@@ -94,6 +100,7 @@ class leInvalidMethod : public std::exception //done misschien shit verplaatsen
 	protected:
 		const std::vector<std::string>	_line;
 		const std::string				_elem;
+		std::string						_ret;
 
 	public:
 		leInvalidMethod(std::vector<std::string>& line, std::string elem);
@@ -107,6 +114,7 @@ class ElemNotANumber : public std::exception
 		ElemNotANumber();
 	protected:
 		const std::vector<std::string>	_line;
+		std::string						_ret;
 	public:
 		ElemNotANumber(std::vector<std::string>& line);
 		virtual ~ElemNotANumber() throw();
