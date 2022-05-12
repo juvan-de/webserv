@@ -16,17 +16,21 @@ void	Location::_errorJumpTable(std::vector<std::string>& line) // naam aanpassen
 
 void	Location::_checkVarSet()
 {
+	if (this->_redir.isSet())
+		return ;
 	if (this->_index.empty())
 	{
 		this->_index.push_back("index.html");
 		this->_index.push_back("index");
 	}
+	if (this->_root.empty())
+		throw MissingRootInLocation(this->_title);
 	if (this->_uploadStore.empty())
 		this->_uploadStore = this->_root;
 	//all standard set var setten en checken of er meer gezet moet worden
 }
 
-Location::Location(std::deque<std::string>& file, std::string& title) : _title(title), _root("/html"), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir("0", ""))
+Location::Location(std::deque<std::string>& file, std::string& title) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir())
 {
 	std::vector<std::string>	splitted;
 
@@ -38,7 +42,7 @@ Location::Location(std::deque<std::string>& file, std::string& title) : _title(t
 			continue ;
 		if (splitted[0] == "}")
 		{
-
+			this->_checkVarSet();
 			return ;
 		}
 		else if (splitted[0] == "root")
@@ -58,7 +62,7 @@ Location::Location(std::deque<std::string>& file, std::string& title) : _title(t
 		else if (splitted[0] == "upload_store")
 			this->setUploadStore(splitted);
 		else if (splitted[0] == "redir")
-			this->setUploadStore(splitted);
+			this->setRedir(splitted);
 		else
 			this->_errorJumpTable(splitted);
 	}
@@ -213,7 +217,7 @@ void	Location::setRedir(std::vector<std::string>& line)
 {
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
-	this->_redir = Redir(line[1], line[2]);
+	this->_redir = Redir(line, line[1], line[2]);
 }
 
 /* Getters */

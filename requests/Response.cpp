@@ -47,10 +47,8 @@ Response::Response(const std::string& path, Server* server)
 	}
 	this->_statusCode = statusCodes.getStatusCode(200);
 	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
-	ss << "Server: " << *(server->getServerName().begin()) << "\r\n"; // even checken, vanuit het request
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
-	ss << "Content-type: " << contentType << "\r\n";
-	ss << "Connection: Keep-Alive" << "\r\n\r\n"; //is dit uberhaupt nodig?
+	ss << "Content-type: " << contentType << "\r\n\r\n";
 	ss << getResponseBody() << "\r\n\r\n";
 	this->_response = ss.str();
 }
@@ -166,6 +164,8 @@ void		Response::setResponseBodyFromDir(const std::string &dirname)
 	{
 		while ((cur_file = readdir(dir)))
 		{
+			if (strcmp(cur_file->d_name, ".") == 0)
+				continue ;
 			this->_responseBody += " <a href=\"";
 			this->_responseBody += cur_file->d_name;
 			this->_responseBody += "\">";

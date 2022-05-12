@@ -15,8 +15,9 @@ void	Server::_checkVarSet()
 {
 	if (this->_listen.size() == 0)
 		this->_listen.insert(80);
-	
+
 	//all standard set var setten en checken of er meer gezet moet worden
+	//Index ?s
 }
 
 Server::Server(std::deque<std::string>& file)
@@ -49,7 +50,7 @@ Server::Server(std::deque<std::string>& file)
 			}
 			else if (splitted.size() == 2)
 			{
-				if (!file.empty() && file[0] == "{")
+				if (!file.empty() && split(file[0])[0] == "{")
 				{
 					file.pop_front();
 					this->addLocation(file, splitted[1]);
@@ -117,7 +118,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
 	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
-		throw ElemNotANumber(line);
+		throw ElemNotANumber(line[1], line);
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
 }

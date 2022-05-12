@@ -169,6 +169,8 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 	if (location == server->getLocations().end()) /* bad request */
 		return Response(404, server);
+	if (location->getRedir().isSet())
+		return Response(301, server);
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
 		return Response(405, server);
 	if (request_location[request_location.size() - 1] == '/')
