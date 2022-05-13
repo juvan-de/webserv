@@ -1,9 +1,9 @@
-socket
- - 
 poller
-poller(vec server_sockets)
-start_polling(vec sockets)
+- serv_socks
+- cgi_socks
+- cli_socks
 
-POLLER IDEE
-1. in poller gaat CLIENTS en als cgi spull ook CGI
-2. POLLER update status
+execute
+1. vec<poll> = serv_socks + cgi_socks + cli_socks
+2. poll
+3. while ()

@@ -51,9 +51,33 @@ pollfd			Poller::addPoll(int fd)
 	return newPoll;
 }
 
-void			Poller::add_cgi_sock(int fd)
+t_poll			*Poller::newSocket(CgiSocket *cgi)
 {
-	_cgi_socks.push_back(addPoll(fd));
+	t_poll *poll = new t_poll;
+
+	poll->cgi = cgi;
+	poll->cli = NULL;
+
+	return poll;
+}
+
+t_poll			*Poller::newSocket(ClientSocket *cli)
+{
+	t_poll *poll = new t_poll;
+
+	poll->cli = cli;
+	poll->cgi = NULL;
+
+	return poll;
+}
+
+void			Poller::deleteSock(int index)
+{
+	int cli_i = index - _serv_socks.size();
+
+	_pollfds.erase(_pollfds.begin() + index);
+	delete _client_socks[cli_i];
+	_client_socks.erase(_client_socks.begin() + cli_i);
 }
 
 void			Poller::check_server_socks()
@@ -64,8 +88,9 @@ void			Poller::check_server_socks()
 		{
 			if (_pollfds[i].revents & POLLIN)
 			{
-				_client_socks.push_back(_serv_socks[i]->get_new_cli());
-				_pollfds.push_back(addPoll(_client_socks.back()->getFd()));
+				_sockets.push_back(newSocket(_serv_socks[i]->get_new_cli()));
+				// _client_socks.push_back(_serv_socks[i]->get_new_cli());
+				_pollfds.push_back(addPoll(_sockets.back()->cli->getFd()));
 			}
 		}
 		catch(const std::exception& e)
@@ -75,35 +100,35 @@ void			Poller::check_server_socks()
 	}
 }
 
-void			Poller::deleteCli(int index)
-{
-	int cli_i = index - _serv_socks.size();
-
-	_pollfds.erase(_pollfds.begin() + index);
-	delete _client_socks[cli_i];
-	_client_socks.erase(_client_socks.begin() + cli_i);
-}
 
 ClientSocket	&Poller::get_cli_from_index(int i)
 {
 	return *_client_socks[i - _serv_socks.size()];
 }
 
+pollfd			*Poller::preparePoll()
+{
+	std::vector<pollfd> pollfds;
+
+
+}
+
 void			Poller::execute_poll(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << "Execute_poll: size: " << _pollfds.size() << std::endl;
-
 	poll(&_pollfds[0], _pollfds.size(), -1);
 	try
 	{
 		for (int i = _serv_socks.size(); i < _pollfds.size(); i++)
 		{
-			if (_pollfds[i].revents == 17)
-				deleteCli(i);
+			if (_pollfds[i].revents == 17) {
+				deleteSock(i);
+				i--;
+			}
 			else if (_pollfds[i].revents & POLLIN)
-				get_cli_from_index(i).handle_pollin();
+				getSock(i).handle_pollin();
 			else if (_pollfds[i].revents & POLLOUT)
-				get_cli_from_index(i).handle_pollout(table, *this);
+				getSock(i).handle_pollout(table, *this);
 		}
 		check_server_socks();
 	}

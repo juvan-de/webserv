@@ -1,23 +1,23 @@
 #ifndef CGISOCKET_HPP
 # define CGISOCKET_HPP
 
-# include <ClientSocket.hpp>
+# include <Socket.hpp>
 
 class CgiSocket : public Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		int				_fd;
-		ClientSocket	*_clisock;
+		std::string		_output;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		CgiSocket();
-		CgiSocket(const CgiSocket &ref);
-		CgiSocket& operator=(const CgiSocket &ref);
-		~CgiSocket();
+		CgiSocket(int fd);
+		// CgiSocket(const CgiSocket &ref);
+		// CgiSocket& operator=(const CgiSocket &ref);
+		// ~CgiSocket();
 
 		/*--------------------------Member functions--------------------------*/
+
 
 };
 

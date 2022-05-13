@@ -1,29 +1,29 @@
 #include "CgiSocket.hpp"
 
 /*--------------------------------Coplien form--------------------------------*/
-CgiSocket::CgiSocket()
+CgiSocket::CgiSocket(int fd) : Socket(fd)
 {
 	/*Constructor*/
 }
 
-CgiSocket::~CgiSocket()
-{
-	/*Destructor*/
-}
+// CgiSocket::~CgiSocket()
+// {
+// 	/*Destructor*/
+// }
 
-CgiSocket::CgiSocket(const CgiSocket &ref)
-{
-	/*Copy constructor*/
-	*this = ref;
-}
+// CgiSocket::CgiSocket(const CgiSocket &ref)
+// {
+// 	/*Copy constructor*/
+// 	*this = ref;
+// }
 
-CgiSocket&	CgiSocket::operator=(const CgiSocket &ref)
-{
-	/*Assignation operator*/
-	if (this != &ref)
-	{
-		/* assign member variables*/
-	}
-	return *this;
-}
+// CgiSocket&	CgiSocket::operator=(const CgiSocket &ref)
+// {
+// 	/*Assignation operator*/
+// 	if (this != &ref)
+// 	{
+// 		/* assign member variables*/
+// 	}
+// 	return *this;
+// }
 /*--------------------------------Coplien form--------------------------------*/
