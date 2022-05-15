@@ -27,7 +27,7 @@ class Cgi
 		~Cgi();
 
 		/*--------------------------Member functions--------------------------*/
-		Cgi(Request request, Server server, sockaddr client_struct);
+		Cgi(Request request, Server server, sockaddr_in client_struct);
 		void							executeCgi();
 		void							push_string(std::string str);
 		const std::vector<char const*>	getEnv() const { return _env; }

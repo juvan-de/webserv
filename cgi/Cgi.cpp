@@ -82,7 +82,7 @@ void	Cgi::push_string(std::string str)
 	_env.push_back(str.c_str());
 }
 
-Cgi::Cgi(Request request, Server server, sockaddr client_struct)
+Cgi::Cgi(Request request, Server server, sockaddr_in client_struct)
 {
 	std::stringstream			ss;
 	std::string					cli_ip;
@@ -90,7 +90,7 @@ Cgi::Cgi(Request request, Server server, sockaddr client_struct)
 	std::string					filename;
 	std::string					path;
 
-	ss << ntohs(client_struct.sa_family);
+	ss << ntohs(client_struct.sin_family);
 	ss >> cli_ip;
 
 	switch (request.getType())

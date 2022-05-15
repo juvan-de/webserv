@@ -15,15 +15,15 @@ class ClientSocket : public Socket
 		/*--------------------------Member variables--------------------------*/
 		int			_status;
 		Request		_request;
-		sockaddr	_address;
+		sockaddr_in	_address;
 
 	public:
 		/*--------------------------Member functions--------------------------*/
-		ClientSocket(int fd, sockaddr addr);
-		struct sockaddr	&getAddr() { return _address; };
-		void			handle_pollin();
-		void			handle_pollout(std::map<std::pair<int, std::string>, Server*> table, Poller &poll);
-		Response		makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location);
+		ClientSocket(int fd, sockaddr_in addr);
+		struct sockaddr_in	&getAddr() { return _address; };
+		void				handle_pollin();
+		void				handle_pollout(std::map<std::pair<int, std::string>, Server*> table, Poller &poll);
+		Response			makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location);
 
 };
 
