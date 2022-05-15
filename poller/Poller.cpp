@@ -32,7 +32,7 @@ Poller&	Poller::operator=(const Poller &ref)
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Poller::Poller(std::set<int> server_ports) : _cgi_socks(std::vector<pollfd>()), _client_socks(std::vector<ClientSocket*>()) 
+Poller::Poller(std::set<int> server_ports) : _cgi_socks(std::vector<CgiSocket*>()), _client_socks(std::vector<ClientSocket*>()) 
 {
 	for (std::set<int>::const_iterator it = server_ports.begin(); it != server_ports.end(); it++)
 	{
@@ -51,35 +51,7 @@ pollfd			Poller::addPoll(int fd)
 	return newPoll;
 }
 
-t_poll			*Poller::newSocket(CgiSocket *cgi)
-{
-	t_poll *poll = new t_poll;
-
-	poll->cgi = cgi;
-	poll->cli = NULL;
-
-	return poll;
-}
-
-t_poll			*Poller::newSocket(ClientSocket *cli)
-{
-	t_poll *poll = new t_poll;
-
-	poll->cli = cli;
-	poll->cgi = NULL;
-
-	return poll;
-}
-
-void			Poller::deleteSock(int index)
-{
-	int cli_i = index - _serv_socks.size();
-
-	_pollfds.erase(_pollfds.begin() + index);
-	delete _client_socks[cli_i];
-	_client_socks.erase(_client_socks.begin() + cli_i);
-}
-
+/*---------------------------------------------------------------*/
 void			Poller::check_server_socks()
 {
 	for (int i = 0 ; i < _serv_socks.size(); i++)
@@ -88,9 +60,8 @@ void			Poller::check_server_socks()
 		{
 			if (_pollfds[i].revents & POLLIN)
 			{
-				_sockets.push_back(newSocket(_serv_socks[i]->get_new_cli()));
-				// _client_socks.push_back(_serv_socks[i]->get_new_cli());
-				_pollfds.push_back(addPoll(_sockets.back()->cli->getFd()));
+				_client_socks.push_back(_serv_socks[i]->get_new_cli());
+				_pollfds.push_back(addPoll(_client_socks.back()->getFd()));
 			}
 		}
 		catch(const std::exception& e)
@@ -100,36 +71,80 @@ void			Poller::check_server_socks()
 	}
 }
 
+void			Poller::check_cli_socks()
+{
+	for (std::vector<ClientSocket*>::const_iterator it = _client_socks.begin(); it != _client_socks.end(); it++)
+	{
+		if (*it);
+	}
+}
+
+/*---------------------------------------------------------------*/
+void			Poller::deleteCgi(int index)
+{
+	int i = index - _serv_socks.size();
+
+	_pollfds.erase(_pollfds.begin() + index);
+	delete _cgi_socks[i];
+	_cgi_socks.erase(_cgi_socks.begin() + i);
+}
+
+void			Poller::deleteCli(int index)
+{
+	int i = index - _serv_socks.size() - _cgi_socks.size();
+
+	_pollfds.erase(_pollfds.begin() + index);
+	delete _client_socks[i];
+	_client_socks.erase(_client_socks.begin() + i);
+}
+
+/*---------------------------------------------------------------*/
+CgiSocket		&Poller::get_cgi_from_index(int i)
+{
+	return *_cgi_socks[i - _serv_socks.size()];
+}
 
 ClientSocket	&Poller::get_cli_from_index(int i)
 {
-	return *_client_socks[i - _serv_socks.size()];
+	return *_client_socks[i - _serv_socks.size() - _cgi_socks.size()];
 }
 
+/*---------------------------------------------------------------*/
 pollfd			*Poller::preparePoll()
 {
-	std::vector<pollfd> pollfds;
-
 
 }
 
 void			Poller::execute_poll(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << "Execute_poll: size: " << _pollfds.size() << std::endl;
+
 	poll(&_pollfds[0], _pollfds.size(), -1);
 	try
 	{
-		for (int i = _serv_socks.size(); i < _pollfds.size(); i++)
+		for (int i = _serv_socks.size(); i < _pollfds.size() - _serv_socks.size(); i++)
 		{
 			if (_pollfds[i].revents == 17) {
-				deleteSock(i);
+				deleteCgi(i);
 				i--;
 			}
 			else if (_pollfds[i].revents & POLLIN)
-				getSock(i).handle_pollin();
+				get_cgi_from_index(i).handle_pollin();
 			else if (_pollfds[i].revents & POLLOUT)
-				getSock(i).handle_pollout(table, *this);
+				get_cgi_from_index(i).handle_pollout(table, *this);
 		}
+		for (int i = _serv_socks.size() + _cgi_socks.size() ; i < _pollfds.size(); i++)
+		{
+			if (_pollfds[i].revents == 17) {
+				deleteCli(i);
+				i--;
+			}
+			else if (_pollfds[i].revents & POLLIN)
+				get_cli_from_index(i).handle_pollin();
+			else if (_pollfds[i].revents & POLLOUT)
+				get_cli_from_index(i).handle_pollout(table, *this);
+		}
+		check_cli_socks();
 		check_server_socks();
 	}
 	catch(const std::exception& e)

@@ -4,29 +4,21 @@
 # include <poll.h>
 # include <vector>
 # include <Socket.hpp>
-# include <CgiSocket.hpp>
 # include <ClientSocket.hpp>
+# include <CgiSocket.hpp>
 # include <ServerSocket.hpp>
 
-class CgiSocket;
 class ClientSocket;
+class CgiSocket;
 class ServerSocket;
-
-typedef struct s_poll
-{
-	ClientSocket	*cli;
-	CgiSocket		*cgi;
-}	t_poll;
 
 class Poller
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		std::vector<pollfd>			_cgi_socks; // actualy just a pollstruct, maybe should be put with cli socks
+		std::vector<CgiSocket*>		_cgi_socks;
 		std::vector<ServerSocket*>	_serv_socks;
 		std::vector<ClientSocket*>	_client_socks;
-
-		std::vector<t_poll*>		_sockets;
 		std::vector<pollfd>			_pollfds;
 
 	public:
@@ -39,16 +31,21 @@ class Poller
 		/*--------------------------Member functions--------------------------*/
 		Poller(std::set<int> server_ports);
 		pollfd						addPoll(int fd);
-		t_poll						*newSocket(CgiSocket *cgi);
-		t_poll						*newSocket(ClientSocket *cli);
-		ClientSocket				&getSock(int i);
-		CgiSocket					&getSock(int i);
-		void						deleteSock(int index);
+		void						add_cgi_sock(int fd);
 
-		// pollfd						*preparePoll();
+		CgiSocket					&get_cgi_from_index(int i);
+		ClientSocket				&get_cli_from_index(int i);
+
 		void						check_server_socks();
+		void						check_cli_socks();
+		
+		void						deleteCgi(int index);
+		void						deleteCli(int index);
+
+		pollfd						*preparePoll();
 		void						execute_poll(std::map<std::pair<int, std::string>, Server*>	table);
-		// std::vector<pollfd>			&getCgi() { return _cgi_socks; };
+
+		std::vector<CgiSocket*>		&getCgi() { return _cgi_socks; };
 		std::vector<ServerSocket*>	&getServ() { return _serv_socks; };
 		std::vector<ClientSocket*>	&getCli() { return _client_socks; };
 };
