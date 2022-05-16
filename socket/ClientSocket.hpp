@@ -6,6 +6,7 @@
 # include <Server.hpp>
 # include <Poller.hpp>
 # include <Response.hpp>
+# include <CgiSocket.hpp>
 
 class Poller;
 
@@ -16,6 +17,9 @@ class ClientSocket : public Socket
 		int			_status;
 		Request		_request;
 		sockaddr_in	_address;
+		bool		_hasCgi;
+		CgiSocket	*_cgi;
+
 
 	public:
 		/*--------------------------Member functions--------------------------*/

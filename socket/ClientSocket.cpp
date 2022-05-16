@@ -3,7 +3,7 @@
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
-	Socket(fd), _status(200), _request(Request())
+	Socket(fd), _cgi(NULL), _hasCgi(false), _status(200), _request(Request())
 {
 	int flags;
 	int opt = 1;
