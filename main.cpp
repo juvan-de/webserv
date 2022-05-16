@@ -35,6 +35,7 @@ int main(int ac, char **av)
 		{
 			std::cout << "Parsing config" << std::endl;
 			parse(av[1], server_configs);
+			std::cout <<server_configs[0] << std::endl;
 			ports = getPortsAndSetTable(server_configs, table);
 			poller = Poller(ports);
 		}

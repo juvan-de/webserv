@@ -80,6 +80,7 @@ Location&	Location::operator=(const Location& ref)
 	this->_cgi = ref._cgi;
 	this->_limitExcept = ref._limitExcept;
 	this->_uploadStore = ref._uploadStore;
+	this->_redir = ref._redir;
 	return *this;
 }
 

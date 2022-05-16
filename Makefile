@@ -5,7 +5,7 @@ UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
 				doesFileExist.cpp \
-				strtrim.cpp
+				strtrim.cpp 
 REQUEST_SRC	=	Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 

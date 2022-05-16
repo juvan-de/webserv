@@ -20,7 +20,7 @@ Redir&	Redir::operator= (const Redir& ref)
 
 std::ostream&	operator<< (std::ostream& out, const Redir& obj)
 {
-	out << "Redir = {" << obj.getLocation() << "} [" << obj.getStatusCode() << "]";
+	out << "Redir = " << obj.isSet() << " {" << obj.getLocation() << "} [" << obj.getStatusCode() << "]";
 	return out;
 }
 

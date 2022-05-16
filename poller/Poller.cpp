@@ -93,12 +93,16 @@ ClientSocket	&Poller::get_cli_from_index(int i)
 void			Poller::execute_poll(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << "Execute_poll: size: " << _pollfds.size() << std::endl;
-
+	for(size_t i = 0; i < this->_pollfds.size(); i++)
+	{
+		this->_pollfds[i].revents = 0;
+	}
 	poll(&_pollfds[0], _pollfds.size(), -1);
 	try
 	{
 		for (int i = _serv_socks.size(); i < _pollfds.size(); i++)
 		{
+			std::cout << "pollfd: " << _pollfds[i].fd << std::endl;
 			if (_pollfds[i].revents == 17)
 				deleteCli(i);
 			else if (_pollfds[i].revents & POLLIN)

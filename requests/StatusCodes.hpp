@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 12:09:10 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/12 13:13:37 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/05/11 14:29:11 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@ class	StatusCodes
 	StatusCodes& operator=(const StatusCodes& ref);
 	~StatusCodes();
 	
-	const std::pair<int, std::string> getStatusCode(int key) const;
+	const std::pair<int, std::string> getStatusCode(int key);
 	const std::map<int, std::string>&	getStatusCodes() const;
 
 	class CodeNotFound : public std::exception
