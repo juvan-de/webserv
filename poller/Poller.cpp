@@ -1,4 +1,4 @@
-#include <Poller.hpp>
+#include "Poller.hpp"
 
 /*--------------------------------Coplien form--------------------------------*/
 Poller::Poller()
@@ -9,6 +9,8 @@ Poller::Poller()
 Poller::~Poller()
 {
 	/*Destructor*/
+	// for (std::vector<pollfd>::iterator it = _pollfds.begin(); it != _pollfds.end(); it++)
+	// 	deleteSocket(it->fd);
 }
 
 Poller::Poller(const Poller &ref)
@@ -26,91 +28,184 @@ Poller&	Poller::operator=(const Poller &ref)
 		this->_cgi_socks = ref._cgi_socks;
 		this->_serv_socks = ref._serv_socks;
 		this->_client_socks = ref._client_socks;
+		this->_lookup = ref._lookup;
 		this->_pollfds = ref._pollfds;
 	}
 	return *this;
 }
 /*--------------------------------Coplien form--------------------------------*/
 
-Poller::Poller(std::set<int> server_ports) : _cgi_socks(std::vector<pollfd>()), _client_socks(std::vector<ClientSocket*>()) 
-{
-	for (std::set<int>::const_iterator it = server_ports.begin(); it != server_ports.end(); it++)
-	{
-		_serv_socks.push_back(new ServerSocket(AF_INET, SOCK_STREAM, 0, *it, INADDR_ANY, BACKLOG));
-		_pollfds.push_back(addPoll(_serv_socks.back()->getFd()));
-	}
-}
-
-pollfd			Poller::addPoll(int fd)
+static pollfd	addPoll(int fd)
 {
 	pollfd newPoll;
 
-	// Set poll
 	bzero(&newPoll, sizeof(newPoll));
 	newPoll.fd = fd;
 	newPoll.events = POLLIN | POLLOUT;
 	return newPoll;
 }
 
-void			Poller::add_cgi_sock(int fd)
+static void		getActiveFd(std::vector< std::pair<int, short> > &vec, pollfd poll)
 {
-	_cgi_socks.push_back(addPoll(fd));
+	std::cout << "get active fd: " << poll.fd << ", revent: " << poll.revents << ", events: " << poll.events << "needed: " << (POLLSTANDARD & POLLIN) << std::endl;
+	switch (poll.revents)
+	{
+	// case (POLLSTANDARD & POLLERR):
+	// 	vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
+	// 	break;
+	case (POLLSTANDARD & POLLIN):
+		vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
+		break;
+	case (POLLSTANDARD & POLLOUT):
+		vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
+		break;
+	}
+}
+/*------------------------------private functions-----------------------------*/
+
+void			Poller::addSocket(ServerSocket *serv)
+{
+	int fd = serv->getFd();
+	_lookup.insert(std::pair<int, t_type>(fd, SERV));
+	_serv_socks.insert(std::pair<int, ServerSocket*>(fd, serv));
+	_pollfds.push_back(addPoll(fd));
 }
 
-void			Poller::check_server_socks()
+void			Poller::addSocket(ClientSocket *cli)
 {
-	for (int i = 0 ; i < _serv_socks.size(); i++)
+	int fd = cli->getFd();
+	_lookup.insert(std::pair<int, t_type>(fd, CLI));
+	_client_socks.insert(std::pair<int, ClientSocket*>(fd, cli));
+	_pollfds.push_back(addPoll(fd));
+}
+
+void			Poller::addSocket(CgiSocket *cgi)
+{
+	int fd = cgi->getFd();
+	_lookup.insert(std::pair<int, t_type>(fd, CGI));
+	_cgi_socks.insert(std::pair<int, CgiSocket*>(fd, cgi));
+	_pollfds.push_back(addPoll(fd));
+}
+
+void			Poller::deleteSocket(int fd)
+{
+	t_type type = _lookup.find(fd)->second;
+
+	switch (type)
 	{
-		try
+	case SERV:
+		delete _serv_socks.find(fd)->second;
+		_serv_socks.erase(_serv_socks.find(fd));
+		break;
+	case CLI:
+		delete _client_socks.find(fd)->second;
+		_client_socks.erase(_client_socks.find(fd));
+		break;
+	case CGI:
+		delete _cgi_socks.find(fd)->second;
+		_cgi_socks.erase(_cgi_socks.find(fd));
+		break;
+	}
+}
+
+void			Poller::handleServ(std::vector< std::pair<int, short> > servers)
+{
+	for (std::vector< std::pair<int, short> >::const_iterator it = servers.begin(); it != servers.end(); it++)
+	{
+		if (it->second & POLLIN)
 		{
-			if (_pollfds[i].revents & POLLIN)
-			{
-				_client_socks.push_back(_serv_socks[i]->get_new_cli());
-				_pollfds.push_back(addPoll(_client_socks.back()->getFd()));
-			}
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << '\n';
+			std::cout << "server POLLIN" << std::endl;
+			addSocket(_serv_socks.find(it->first)->second->get_new_cli());
 		}
 	}
 }
 
-void			Poller::deleteCli(int index)
+void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<std::pair<int, std::string>, Server*> table)
 {
-	int cli_i = index - _serv_socks.size();
-
-	_pollfds.erase(_pollfds.begin() + index);
-	delete _client_socks[cli_i];
-	_client_socks.erase(_client_socks.begin() + cli_i);
-}
-
-ClientSocket	&Poller::get_cli_from_index(int i)
-{
-	return *_client_socks[i - _serv_socks.size()];
-}
-
-void			Poller::execute_poll(std::map<std::pair<int, std::string>, Server*>	table)
-{
-	std::cout << "Execute_poll: size: " << _pollfds.size() << std::endl;
-	for(size_t i = 0; i < this->_pollfds.size(); i++)
+	// const short bitmask = POLLIN | POLLOUT | POLLERR;
+	for (std::vector< std::pair<int, short> >::const_iterator it = clients.begin(); it != clients.end(); it++)
 	{
-		this->_pollfds[i].revents = 0;
+		std::cout << "client fd: " << it->first << ", revent: " << it->second << std::endl;
+		switch (it->second)
+		{
+		case (POLLSTANDARD & (POLLIN | POLLOUT)):
+			std::cout << "ERROR" << std::endl;
+			deleteSocket(it->first);
+			break;
+		case (POLLSTANDARD & POLLIN):
+			std::cout << "POLLIN" << std::endl;
+			_client_socks.find(it->first)->second->handle_pollin();
+			break;
+		case (POLLSTANDARD & POLLOUT):
+			std::cout << "POLLOUT" << std::endl;
+			_client_socks.find(it->first)->second->handle_pollout(table, *this);
+			break;
+		}
 	}
+}
+
+void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
+{
+	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
+	{
+		switch (it->second)
+		{
+		// case (POLLSTANDARD & POLLERR):
+		// 	deleteSocket(it->first);
+		// 	break;
+		case (POLLSTANDARD & POLLIN):
+			// _cgi_socks.find(it->first)->second->handle_pollin();
+			break;
+		case (POLLSTANDARD & POLLOUT):
+			// _cgi_socks.find(it->first)->second->handle_pollout();
+			break;
+		}
+	}
+}
+/*-------------------------------public functions-----------------------------*/
+
+Poller::Poller(std::set<int> server_ports)
+{
+	for (std::set<int>::const_iterator it = server_ports.begin(); it != server_ports.end(); it++)
+		addSocket(new ServerSocket(AF_INET, SOCK_STREAM, 0, *it, INADDR_ANY, BACKLOG));
+}
+
+void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
+{
+	std::vector< std::pair<int, short> > servers;
+	std::vector< std::pair<int, short> > clients;
+	std::vector< std::pair<int, short> > cgi;
+
+	std::cout << "ExecutePoll: size: " << _pollfds.size() << std::endl;
 	poll(&_pollfds[0], _pollfds.size(), -1);
 	try
 	{
-		for (int i = _serv_socks.size(); i < _pollfds.size(); i++)
+		for (std::vector<pollfd>::const_iterator it = _pollfds.begin(); it != _pollfds.end(); it++)
 		{
-			std::cout << "pollfd: " << _pollfds[i].fd << std::endl;
-			if (_pollfds[i].revents == 17)
-				deleteCli(i);
-			else if (_pollfds[i].revents & POLLIN)
-				get_cli_from_index(i).handle_pollin();
-			else if (_pollfds[i].revents & POLLOUT)
-				get_cli_from_index(i).handle_pollout(table, *this);
+			std::cout << "Poll loop fd: " << it->fd << ", revents: " << it->revents << std::endl;
+			t_type type = _lookup.find(it->fd)->second;
+
+			switch (type)
+			{
+			case SERV:
+				std::cout << "SERVER" << std::endl;
+				getActiveFd(servers, *it);
+				break;
+			case CLI:
+				std::cout << "CLI" << std::endl;
+				getActiveFd(clients, *it);
+				break;
+			case CGI:
+				std::cout << "CGI" << std::endl;
+				getActiveFd(cgi, *it);
+				break;
+			}
 		}
-		check_server_socks();
+		std::cout << "cli size: " << clients.size() << std::endl;
+		// handleCgi(cgi);
+		handleCli(clients, table);
+		handleServ(servers);
+		std::cout << "client amount: " << _client_socks.size() << std::endl;
 	}
 	catch(const std::exception& e)
 	{

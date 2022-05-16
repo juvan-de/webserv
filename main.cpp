@@ -44,7 +44,7 @@ int main(int ac, char **av)
 		}
 		while (true)
 		{
-			poller.execute_poll(table);
+			poller.executePoll(table);
 			// handle_connection(data);
 			std::cout << "Waiting for connections..." << std::endl;
 			// check_connection(data);
