@@ -3,7 +3,7 @@
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
-	Socket(fd), _cgi(NULL), _hasCgi(false), _status(200), _request(Request())
+	Socket(fd), _status(200), _request(Request()), _hasCgi(false) ,_cgi(NULL)
 {
 	int flags;
 	int opt = 1;
@@ -63,7 +63,6 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 
 std::string	getFileName(const Location& loc)
 {
-	int			ret;
 	std::string res;
 	std::string filename;
 	
@@ -186,8 +185,6 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(location->second.getRoot() + request_location, server);	
 }
 
-#include <Cgi.hpp>
-
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
 	std::cout << "POLLING OUT" << std::endl;
@@ -206,7 +203,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		std::cout << "Post request" << std::endl;
 		if (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos)
 		{
-			Cgi cgi = Cgi(_request, *server, _address);
+			_cgi = new CgiSocket(_request, *server, _address);
+			_hasCgi = true;
 			// std::cout << cgi;
 		}
 	}

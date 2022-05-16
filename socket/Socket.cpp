@@ -3,6 +3,7 @@
 #include <vector>
 #include <errno.h> // erno, not needed
 #include <unistd.h> // close
+#include <errno.h>
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket()
 {

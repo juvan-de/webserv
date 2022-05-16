@@ -11,10 +11,10 @@ class Socket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		int			_fd;
-		Socket();
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
+		Socket();
 		Socket(const Socket &ref);
 		Socket& operator=(const Socket &ref);
 		virtual ~Socket();
@@ -23,7 +23,8 @@ class Socket
 		Socket(int domain, int service, int protocol);
 		Socket(int fd);
 		int					new_connection(sockaddr *cli_addr);
-		const int			getFd() const { return _fd; }
+		void				setFd(int fd) { _fd = fd; }
+		int			getFd() const { return _fd; }
 
 };
 

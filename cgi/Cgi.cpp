@@ -56,7 +56,7 @@ void	Cgi::executeCgi()
 
 		// use execv to execute the cgi script
 		if (execv(_filepath.c_str(), const_cast<char *const *>(&_env[0])) < 1)
-			std::cout << "Error: couldnt execv" << std::endl;
+			std::cout << "Error: couldnt execv: " << errno << std::endl;
 			// throw error
 		
 		close(pipeFD[0]);

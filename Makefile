@@ -15,9 +15,9 @@ SERVER_SRC	= 	Location.cpp \
 				webservException.cpp
 SOCKET_SRC	=	Socket.cpp \
 				ServerSocket.cpp \
-				ClientSocket.cpp
+				ClientSocket.cpp \
+				CgiSocket.cpp
 POLLER_SRC	=	Poller.cpp
-CGI_SRC		=	Cgi.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
@@ -27,7 +27,6 @@ REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
 POLLER		= 	$(addprefix poller/, $(POLLER_SRC))
-CGI			=	$(addprefix cgi/, $(CGI_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
@@ -36,13 +35,12 @@ SOURCES		= 	main.cpp \
 				$(REQUESTS) \
 				$(SOCKET) \
 				$(SERVER) \
-				$(POLLER) \
-				$(CGI)
+				$(POLLER)
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98 -fsanitize=address -g
+FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
 COMPILE		=	clang++
 
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi

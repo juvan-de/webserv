@@ -117,8 +117,8 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 			break;
 		case (POLLSTANDARD & (POLLIN | POLLOUT)):
 			_client_socks.find(it->first)->second->handle_pollin();
-			if (_client_socks.find(it->first)->second->hasCgi())
-				addSocket(_client_socks.find(it->first)->second->getCgi());
+			// if (_client_socks.find(it->first)->second->hasCgi())
+			// 	addSocket(_client_socks.find(it->first)->second->getCgi());
 			break;
 		case (POLLSTANDARD & POLLOUT):
 			_client_socks.find(it->first)->second->handle_pollout(table, *this);
