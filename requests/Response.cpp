@@ -14,31 +14,40 @@ Response::Response(const Server *server, const std::string path)
 	StatusCodes statusCodes;
 	std::string	contentType;
 
-	if (path[path.size() - 1] == '/')
+	try
 	{
-		this->setResponseBodyFromDir(path);
-		contentType = "text/html";
+		if (path[path.size() - 1] == '/')
+		{
+			this->setResponseBodyFromDir(path);
+			contentType = "text/html";
+		}
+		else
+		{
+			this->setResponseBodyFromFile(path);
+			this->_setContentTypes();
+			contentType = this->getRightContentType(path.substr(path.find_last_of(".") + 1)); //throw(415) if content type doesn't exist
+		}
 	}
-	else
+	catch(ResponseException &e)
 	{
-		this->setResponseBodyFromFile(path);
-		this->_setContentTypes();
-		contentType = this->getRightContentType(path.substr(path.find_last_of(".") + 1));
+		*this = Response(e.getError(), server);
+		return ;
 	}
-
-	ss << "HTTP/1.1 " << 200 << ' ' << "OK" << "\r\n"; //misschien veranderen zodat ie het toch uit de "data" haalt zodat het maar op1 plek staat
+	ss << "HTTP/1.1 " << 200 << ' ' << "OK" << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
 	ss << "Content-type: " << contentType << "\r\n\r\n";
 	ss << this->_responseBody << "\r\n\r\n";
 	this->_response = ss.str();
 }
 
-Response::Response(const Server *server, int errorcode)
+Response::Response(int errorcode, const Server *server)
 {
 	std::stringstream ss;
 	StatusCodes statusCodes;
-	setResponseBodyFromError(errorcode, server->getErrorPages());
-
+	if (server)
+		this->setResponseBodyFromError(errorcode, server->getErrorPages());
+	else
+		this->_makeDefaultErrorPage(statusCodes.getStatusCode(errorcode));
 	const std::pair<int, std::string>& statuscode = statusCodes.getStatusCode(errorcode);
 	ss << "HTTP/1.1 " << statuscode.first << ' ' << statuscode.second << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
@@ -50,7 +59,7 @@ Response::Response(const Server *server, int errorcode)
 Response::Response(const std::string& redir)
 {
 	std::stringstream ss;
-	ss << "HTTP/1.1 " << 301 << ' ' << "Moved Permanently" << "\r\n"; //misschien veranderen zodat ie het toch uit de "data" haalt zodat het maar op1 plek staat
+	ss << "HTTP/1.1 " << 301 << ' ' << "Moved Permanently" << "\r\n";
 	ss << "Location: " << redir << "\r\n\r\n";
 	this->_response = ss.str();
 }
@@ -129,7 +138,7 @@ const std::string	Response::getRightContentType(const std::string suffix) const
 	if (itr != this->_contentTypes.end())
 		return itr->second + "/" + itr->first; 
 	/* error, wat willen we dan*/
-	std::cout << "error, wat willen we dan" << std::endl;
+	std::cout << "error, wat willen we dan -> statuscode 415 error response" << std::endl;
 	return (NULL);
 }
 
@@ -148,11 +157,11 @@ void		Response::setResponseBodyFromDir(const std::string &dirname)
 	DIR*			dir;
 	struct dirent*	cur_file;
 
-	this->_responseBody = "<html><head><title>Index of " + dirname + "</title></head>";
-	this->_responseBody += "<body><h1>Index of " + dirname + "</h1><hr><pre>";
 	dir = opendir(dirname.c_str());
 	if (dir != NULL)
 	{
+		this->_responseBody = "<html><head><title>Index of " + dirname + "</title></head>";
+		this->_responseBody += "<body><h1>Index of " + dirname + "</h1><hr><pre>";
 		while ((cur_file = readdir(dir)))
 		{
 			if (strcmp(cur_file->d_name, ".") == 0)
@@ -163,10 +172,11 @@ void		Response::setResponseBodyFromDir(const std::string &dirname)
 			this->_responseBody += cur_file->d_name;
 			this->_responseBody += "</a><br>";
 		}
-			
 		closedir(dir);
+		this->_responseBody += "</pre><hr></body></html>";
 	}
-	this->_responseBody += "</pre><hr></body></html>";
+	else
+		throw ResponseException(404);
 }
 
 void		Response::setResponseBodyFromFile(const std::string &filename)
@@ -175,20 +185,21 @@ void		Response::setResponseBodyFromFile(const std::string &filename)
 	std::string		line;
 	std::ostringstream Stream;
 
-	if (file.is_open())
+	if (!(file.std::ios::fail()))
 	{
 		// this->_responseBody.append(Stream.str());
 		Stream << file.rdbuf();
 		this->_responseBody = Stream.str();
 	}
 	else
-		throw NotAFile();
+		throw ResponseException(500);
 }
 
-void		Response::_makeDefaultErrorPage(std::pair<int, std::string> errcode, std::ostringstream& Stream)
+void		Response::_makeDefaultErrorPage(std::pair<int, std::string> errcode)
 {
 	std::string defaultError = "files/html/Website/Error/error.html";
-	std::ifstream file(defaultError.c_str());
+	std::ifstream file(defaultError.c_str()); //nee hoeven we niet te checken want defaut is er altijd
+	std::ostringstream	Stream;
 	Stream << file.rdbuf();
 	this->_responseBody = Stream.str();
 	size_t replacable = _responseBody.find("{{ERROR_CODE}}");
@@ -200,22 +211,24 @@ void		Response::_makeDefaultErrorPage(std::pair<int, std::string> errcode, std::
 void		Response::setResponseBodyFromError(int code, const std::map<int, std::string>& errorPages)
 {
 	std::map<int, std::string>::const_iterator itr = errorPages.find(code);
-	std::ostringstream Stream;
 	StatusCodes codes;
 	std::pair<int, std::string> errcode = codes.getStatusCode(code);
 	if (itr != errorPages.end())
 	{
+		std::ostringstream Stream;
 		std::ifstream	file(itr->second.c_str());
-		if (file) // dit klopt niet volgensmij, als de file niet bestaat moet je 404 opgeven toch?
+		if (!(file.std::ios::fail()))
 		{
 			Stream << file.rdbuf();
 			this->_responseBody = Stream.str();
 		}
 		else
-			_makeDefaultErrorPage(errcode, Stream);
+		{
+			_makeDefaultErrorPage(codes.getStatusCode(404));
+		}
 	}
 	else
-		_makeDefaultErrorPage(errcode, Stream);
+		_makeDefaultErrorPage(errcode);
 }
 
 std::ostream&	operator<<(std::ostream &out, const Response &obj)

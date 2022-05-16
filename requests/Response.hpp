@@ -15,13 +15,13 @@ class	Response
 		std::map<std::string, std::string>	_contentTypes;
 
 		void	_setContentTypes();
-		void	_makeDefaultErrorPage(std::pair<int, std::string> errcode, std::ostringstream& Stream);
+		void	_makeDefaultErrorPage(std::pair<int, std::string> errcode);
 
 	public:
 
 	Response();
 	Response(const Server *server, const std::string path); //valid
-	Response(const Server *server, int errorcode); //error
+	Response(int errorcode, const Server *server = NULL); //error
 	Response(const std::string& redir); //301
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
@@ -36,11 +36,15 @@ class	Response
 	void								setResponseBodyFromError(int code, const std::map<int, std::string>& errorPages);
 
 	private: /* -Exception- */
-		class NotAFile : public std::exception
+		class ResponseException : public std::exception
 		{
-			const char*	what (void) const throw()
+			private:
+				int _code;
+			public:
+			ResponseException(int code) : _code(code) {}
+			const int	getError(void) const throw()
 			{
-				return ("Can't open this file");
+				return (this->_code);
 			}
 		};
 };

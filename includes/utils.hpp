@@ -5,7 +5,7 @@
 # include <iostream>
 
 struct pollfd				new_pollfd(int cli_fd);
-std::vector<std::string>	split(std::string line, std::string to_split_on = " \t\n\f\v\r");
+std::vector<std::string>	split(std::string line, std::string to_split_on = " \t\n\f\v\r"); //split2.0???? with forced splitstring ABEL
 void						error_check(int err, std::string msg);
 size_t 						hex_to_int(std::string hex);
 std::string					strtrim(std::string toTrim, std::string trimChar);

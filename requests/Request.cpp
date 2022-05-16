@@ -11,6 +11,7 @@ Request::Request()
 	this->_type = NOTSET;
 	this->_isFinished = false;
 	this->_isChunked = false;
+	this->_statusCode = 200;
 }
 
 Request::Request(const Request& ref)
@@ -27,6 +28,7 @@ Request&	Request::operator=(const Request& ref)
 	this->_isChunked = ref.checkIfChunked();
 	this->_isFinished = ref.readyForParse();
 	this->_body = ref.getBody();
+	this->_statusCode = ref.getStatusCode();
 	return (*this);
 }
 
@@ -57,6 +59,11 @@ std::string		const &Request::getBody() const
 	return (this->_body);
 }
 
+int				const &Request::getStatusCode() const
+{
+	return (this->_statusCode);
+}
+
 void			Request::addto_request(int fd)
 {
 	char	cstr[BUFFER_SIZE + 1];
@@ -71,7 +78,7 @@ void			Request::addto_request(int fd)
 	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret <= -1)
-		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
+		throw RequestException(505);
 }
 
 bool			Request::isFinished(void)
@@ -85,24 +92,23 @@ bool			Request::isFinished(void)
 void			Request::setRequest(void)
 {
 	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
-	size_t size = first_line.find(' ');
-	switch(size)
-	{
-		case 3 :	this->_type = GET;
-					break ;
-		case 4 : 	this->_type = POST;
-					break;
-		case 6 : 	this->_type = DELETE;
-					break;
-	}
-	size_t start = first_line.find('/');
-	size_t end = first_line.find(' ', start);
-	this->_location = first_line.substr(start, end - start);
-	if (first_line.find("HTTP/1.1") == std::string::npos)
-		throw IncorrectHTTP();
+	std::vector<std::string> array = split(first_line);
+	if (array.size() != 3)
+		throw RequestException(400);
+	if (array[0] == "GET")
+		this->_type = GET;
+	else if (array[0] == "POST")
+		this->_type = POST;
+	else if (array[0] == "DELETE")
+		this->_type = DELETE;
+	else
+		throw RequestException(505);
+	this->_location = array[1];
+	if (array[2] != "HTTP/1.1")
+		throw RequestException(505);
 } 
 
-void		Request::setHeaders(void)
+void		Request::setHeaders(void) // Jules naar kijken
 {
 	this->_input = this->_input.substr(this->_input.find('\n') + 1);
 	size_t end = this->_input.find("\r\n\r\n") + 4;
@@ -120,12 +126,8 @@ void		Request::setHeaders(void)
 		}
 	}
 	this->_input = this->_input.substr(end);
-	// for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
-	// {
-	// 	std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
-	// }
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
-	if (it != this->_headers.end() && it->second == "chunked")
+	if (it != this->_headers.end() && it->second == "chunked") //contentlength header checken
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;
@@ -135,6 +137,21 @@ void		Request::setHeaders(void)
 		this->_isChunked = false;
 		this->_isFinished = true;
 	}
+}
+
+void		Request::setType(Type code)
+{
+	this->_type = code;
+}
+
+void		Request::setStatusCode(int code)
+{
+	this->_statusCode = code;
+}
+
+void		Request::setAsFinished()
+{
+	this->_isFinished = true;
 }
 
 bool		Request::checkIfChunked(void) const
@@ -162,6 +179,9 @@ void			Request::readChunked(int fd)
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
 {
 	out << "Unparsed input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
+	out << "TYPE: " << obj.getType() << std::endl;
+	if (obj.getType() == 3)
+		out << "statusCode: " << obj.getStatusCode() << std::endl;
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())

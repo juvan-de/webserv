@@ -26,6 +26,7 @@ class	Request
 	bool								_isChunked;
 	bool								_isFinished;
 	std::string							_body;
+	int									_statusCode;
 
 	public:
 	Request();	
@@ -38,31 +39,30 @@ class	Request
 	std::map<std::string, std::string>	const &getHeaders() const;
 	std::string							const &getInput() const;
 	std::string							const &getBody() const;
+	int									const &getStatusCode() const;
 
 	void						setResponse(Response response);
 	void						setRequest(void);
 	void						setHeaders(void);
+	void						setType(Type code);
+	void						setStatusCode(int code);
+	void						setAsFinished();
 	void						addto_request(int fd);
 	bool						isFinished(void);
 	bool						checkIfChunked(void) const;
 	bool						readyForParse(void) const;
 	void						readChunked(int fd);
-
-	private: /* -Exception- */
-		class NotAFile : public std::exception
+	public: /* -Exception- */
+		class RequestException : public std::exception 
 		{
-			const char*	what (void) const throw()
+			private:
+				int _statusCode;
+			public:
+			RequestException(int code) : _statusCode(code){}
+			const int	getError(void) const throw()
 			{
-				return ("Can't open this file");
-			}
-		};
-
-		class IncorrectHTTP : public std::exception
-		{
-			const char*	what (void) const throw()
-			{
-				return ("Incorrect HTTP version");
-			}
+				return (this->_statusCode);
+			}			
 		};
 };
 

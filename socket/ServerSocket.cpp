@@ -39,5 +39,5 @@ ClientSocket	*ServerSocket::get_new_cli()
 
 	if ((fd = accept(getFd(), (struct sockaddr *)&newaddr, &addrlen)) < 0)
 		throw BadConnect();
-	return new ClientSocket(fd, newaddr);
+	return new ClientSocket(fd, newaddr); //memoryleak?
 }
