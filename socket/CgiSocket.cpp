@@ -4,12 +4,16 @@
 #include <sstream>
 #include <utils.hpp>
 
+#define BUFFER_SIZE 10
 /*--------------------------------Coplien form--------------------------------*/
 
-// CgiSocket::~CgiSocket()
-// {
-// 	/*Destructor*/
-// }
+CgiSocket::~CgiSocket()
+{
+	/*Destructor*/
+	std::cout << "WTF******************************************" << std::endl;
+	close(_fdIn);
+	close(_fdOut);
+}
 
 // CgiSocket::CgiSocket(const CgiSocket &ref)
 // {
@@ -27,10 +31,14 @@
 // 	return *this;
 // }
 /*--------------------------------Coplien form--------------------------------*/
-
-static void			push_string(std::vector<char const*> &env, std::string str)
+static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
 {
-	env.push_back(str.c_str());
+	std::vector<const char*> envp;
+	envp.reserve(tmp.size() + 1);
+	for (size_t i = 0; i < tmp.size(); i++)
+		envp.push_back(tmp[i].c_str());
+	envp.push_back(NULL);
+	return envp;
 }
 
 static std::string	getType(Type type)
@@ -49,19 +57,16 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct)
+CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _fdIn(-1), _fdOut(-1), _input(std::string())
 {
 	/*Constructor*/
-	std::stringstream			ss;
-	std::string					cli_ip;
 	std::string					req_type = getType(request.getType());
 	std::string					filename = request.getLocation().substr(0, request.getLocation().find_first_of("?"));
 	std::string					path;
 	std::string					filepath;
-	// std::vector<char const*>	env;
+	std::vector<std::string>	tmp;
+	std::vector<const char*>	envp;
 
-	ss << ntohs(client_struct.sin_family);
-	ss >> cli_ip;
 	char buf[INET_ADDRSTRLEN];
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
 		std::cout << "Error making ip" << std::endl;
@@ -72,55 +77,43 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct)
 		path = server.getLocation("/").getCgi().find(".php")->second;
 	filepath = path + filename;
 
-	push_string(_env, "GATEWAY_INTERFACE=CGI/1.1");
-	push_string(_env, "REMOTE_ADDR=" + std::string(buf));
-	push_string(_env, "REQUEST_METHOD=" + req_type);
-	push_string(_env, "SCRIPT_NAME=" + filename);
-	push_string(_env, "SERVER_NAME=" + request.getHeaders().find("Referer")->second);
-	push_string(_env, "SERVER_PORT=" + request.getHeaders().find("Host")->second);
-	push_string(_env, "SERVER_PROTOCOL=HTTP/1.1");
-	push_string(_env, "SERVER_SOFTWARE=webserv/42");
-	// push_string(env, "PATH_INFO=" + path);
-	// std::cout << "QUERY_STRING=" << request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1) << std::endl;
-	push_string(_env, "QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
+	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	tmp.push_back("REMOTE_ADDR=" + std::string(buf));
+	tmp.push_back("REQUEST_METHOD=" + req_type);
+	tmp.push_back("SCRIPT_NAME=" + filename);
+	tmp.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
+	tmp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
+	tmp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	tmp.push_back("SERVER_SOFTWARE=webserv/42");
+	tmp.push_back("QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
 
-	// std::cout << *this;
-
-	executeCgi(filepath);
+	executeCgi(filepath, tmp);
 }
 
-void		CgiSocket::executeCgi(std::string filepath)
+void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 {
-	int	pipe_in[2]; // this will pipe from the cgi (pipefd[0] -> fd cgi script will write to file, pipefd[1] -> fd that serv will use to read the output from the written file)
+	int	pipe_in[2];
 	int	pipe_out[2];
 
-	// use pipes() to set input and output fd
 	if (pipe(pipe_in))
 		std::cout << "Error: pipe didnt work" << std::endl;
-		// throw error
 	if (pipe(pipe_out))
 	{
 		close(pipe_in[0]);
 		close(pipe_in[1]);
 		std::cout << "Error: pipe didnt work" << std::endl;
 	}
-	
-	// use setenv to prepare the arguments for the cgi
-	std::cout << "CGI STARTS HERE" << std::endl;
+
 	pid_t pid = fork();
-	std::cout << "what: " << pid << std::endl;
 	if (pid == 0)
 	{
-		// child proccess
-		dup2(pipe_in[0], STDIN_FILENO); // set correct input to pipe
-		dup2(pipe_out[1], STDOUT_FILENO); // set correct output from pipe
+		dup2(pipe_in[0], STDIN_FILENO);
+		dup2(pipe_out[1], STDOUT_FILENO);
 		dup2(pipe_out[1], STDERR_FILENO);
 
-		// use execv to execute the cgi script
-		// std::cout << "filepath: " << filepath << std::endl;
-		if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)_env.data()) < 0)
+		if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
 			std::cout << "Error: couldnt execv: " << errno << ", path: " << filepath << std::endl;
-			// throw error
 		
 		close(pipe_in[0]);
 		close(pipe_in[1]);
@@ -132,16 +125,32 @@ void		CgiSocket::executeCgi(std::string filepath)
 	}
 	else
 	{
-		//create newcli met fd en zelfde request
-		char str[9999];
-		int end;
-		end = read(pipe_out[0], str, 9999);
-		std::cout << "READ RETURN: " << end << std::endl;
-		str[end] = '\0';
-		std::cout << "CGI" << std::endl << std::string(str) << std::endl << "CGI" << std::endl;
+		// char str[9999];
+		// int end;
+		// end = read(pipe_out[0], str, 9999);
+		// std::cout << "READ RETURN: " << end << std::endl;
+		// str[end] = '\0';
+		// std::cout << "CGI" << std::endl << std::string(str) << std::endl << "CGI" << std::endl;
 		close(pipe_in[0]);
-		// close(pipe_in[1]);
-		// close(pipe_out[0]);
 		close(pipe_out[1]);
+		_fdIn = pipe_in[1];
+		_fdOut = pipe_out[0];
 	}
+}
+
+void		CgiSocket::read_cgi()
+{
+	char	cstr[BUFFER_SIZE + 1];
+	int		ret = 1;
+
+	// this can return an error if operation would block, see man page
+	ret = read(_fdOut, cstr, BUFFER_SIZE);
+	if (ret > 0)
+	{
+		cstr[ret] = '\0';
+		_input.append(cstr);
+	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+	}
+	else if (ret <= -1)
+		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
 }

@@ -3,7 +3,7 @@
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
-	Socket(fd), _status(200), _request(Request()), _hasCgi(false) ,_cgi(NULL)
+	Socket(fd), _status(200), _request(Request()), _cgiStatus(EMPTY) ,_cgi(NULL)
 {
 	int flags;
 	int opt = 1;
@@ -201,10 +201,10 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	else if (this->_request.getType() == POST)
 	{
 		std::cout << "Post request" << std::endl;
-		if (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos)
+		if (_cgiStatus == EMPTY && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
 		{
+			_cgiStatus = CREATED;
 			_cgi = new CgiSocket(_request, *server, _address);
-			_hasCgi = true;
 			// std::cout << cgi;
 		}
 	}

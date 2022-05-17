@@ -117,11 +117,14 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 			break;
 		case (POLLSTANDARD & (POLLIN | POLLOUT)):
 			_client_socks.find(it->first)->second->handle_pollin();
-			// if (_client_socks.find(it->first)->second->hasCgi())
-			// 	addSocket(_client_socks.find(it->first)->second->getCgi());
 			break;
 		case (POLLSTANDARD & POLLOUT):
 			_client_socks.find(it->first)->second->handle_pollout(table, *this);
+			if (_client_socks.find(it->first)->second->getCgiStatus() == CREATED) {
+				std::cout << "ADDED A CGI" << std::endl;
+				addSocket(_client_socks.find(it->first)->second->getCgi());
+				_client_socks.find(it->first)->second->updateCgiStatus(ADDED);
+			}
 			break;
 		}
 	}
@@ -129,6 +132,7 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 
 void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 {
+	std::cout << "handle cgi ****" << std::endl;
 	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
 	{
 		switch (it->second)
@@ -137,10 +141,10 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 			deleteSocket(it->first);
 			break;
 		case (POLLSTANDARD & POLLIN):
-			// _cgi_socks.find(it->first)->second->handle_pollin();
+			std::cout << "CGI idk lol" << std::endl;
 			break;
 		case (POLLSTANDARD & POLLOUT):
-			// _cgi_socks.find(it->first)->second->handle_pollout();
+			_cgi_socks.find(it->first)->second->read_cgi();
 			break;
 		}
 	}
@@ -155,6 +159,7 @@ Poller::Poller(std::set<int> server_ports)
 
 static void		getActiveFd(std::vector< std::pair<int, short> > &vec, pollfd poll)
 {
+	std::cout << "poll fd: " << poll.fd << ", revents: " << poll.revents << std::endl;
 	switch (poll.revents)
 	{
 	case 17:
@@ -196,6 +201,7 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 				getActiveFd(clients, *it);
 				break;
 			case CGI:
+				std::cout << "IT RECOGNIZES CGI" << std::endl;
 				getActiveFd(cgi, *it);
 				break;
 			}
