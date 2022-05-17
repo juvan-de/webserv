@@ -64,7 +64,7 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 		std::vector<std::string>	splitted;
 		while (!filedeque.empty())
 		{
-			splitted = split(filedeque[0]);
+			splitted = split_on_chars(filedeque[0]);
 			filedeque.pop_front();
 			if (splitted.size() == 0)
 				continue ;

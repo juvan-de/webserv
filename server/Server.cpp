@@ -26,7 +26,7 @@ Server::Server(std::deque<std::string>& file)
 	
 	while (!file.empty())
 	{
-		splitted = split(file[0]);
+		splitted = split_on_chars(file[0]);
 		file.pop_front();
 		if (splitted.size() == 0)
 			continue ;
@@ -50,7 +50,8 @@ Server::Server(std::deque<std::string>& file)
 			}
 			else if (splitted.size() == 2)
 			{
-				if (!file.empty() && split(file[0])[0] == "{")
+				std::vector<std::string>	temp = split_on_chars(file[0]);
+				if (temp.size() > 0 && temp[0] == "{")
 				{
 					file.pop_front();
 					this->addLocation(file, splitted[1]);

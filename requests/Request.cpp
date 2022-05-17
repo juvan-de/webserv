@@ -92,7 +92,7 @@ bool			Request::isFinished(void)
 void			Request::setRequest(void)
 {
 	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
-	std::vector<std::string> array = split(first_line);
+	std::vector<std::string> array = split_on_chars(first_line);
 	if (array.size() != 3)
 		throw RequestException(400);
 	if (array[0] == "GET")
@@ -113,7 +113,7 @@ void		Request::setHeaders(void) // Jules naar kijken
 	this->_input = this->_input.substr(this->_input.find('\n') + 1);
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
-	std::vector<std::string> lines = split(headers, "\r\n");
+	std::vector<std::string> lines = split_on_str(headers, "\r\n");
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
 	{
 		if (it->find(":") != std::string::npos)

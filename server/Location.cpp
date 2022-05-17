@@ -36,7 +36,7 @@ Location::Location(std::deque<std::string>& file, std::string& title) : _title(t
 
 	while (!file.empty())
 	{
-		splitted = split(file[0]);
+		splitted = split_on_chars(file[0]);
 		file.pop_front();
 		if (splitted.size() == 0)
 			continue ;
