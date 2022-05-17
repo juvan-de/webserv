@@ -22,8 +22,8 @@ class Socket
 		/*--------------------------Member functions--------------------------*/
 		Socket(int domain, int service, int protocol);
 		Socket(int fd);
-		int					new_connection(sockaddr *cli_addr);
-		void				setFd(int fd) { _fd = fd; }
+		int			new_connection(sockaddr *cli_addr);
+		void		setFd(int fd) { _fd = fd; }
 		int			getFd() const { return _fd; }
 
 };

@@ -143,7 +143,7 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 		case (POLLSTANDARD & POLLIN):
 			std::cout << "CGI idk lol" << std::endl;
 			break;
-		case (POLLSTANDARD & POLLOUT):
+		case (POLLSTANDARD & (POLLOUT | POLLIN)):
 			_cgi_socks.find(it->first)->second->read_cgi();
 			break;
 		}
@@ -209,7 +209,7 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 		std::cout << "ExecutePoll serves size: " << servers.size() << std::endl;
 		std::cout << "ExecutePoll clients size: " << clients.size() << std::endl;
 		std::cout << "ExecutePoll cgi size: " << cgi.size() << std::endl;
-		// handleCgi(cgi);
+		handleCgi(cgi);
 		handleCli(clients, table);
 		handleServ(servers);
 	}

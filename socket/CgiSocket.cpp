@@ -11,8 +11,8 @@ CgiSocket::~CgiSocket()
 {
 	/*Destructor*/
 	std::cout << "WTF******************************************" << std::endl;
-	close(_fdIn);
-	close(_fdOut);
+	close(_fdOut[0]);
+	close(_fdOut[1]);
 }
 
 // CgiSocket::CgiSocket(const CgiSocket &ref)
@@ -57,7 +57,7 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _fdIn(-1), _fdOut(-1), _input(std::string())
+CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _input(std::string())
 {
 	/*Constructor*/
 	std::string					req_type = getType(request.getType());
@@ -132,9 +132,16 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 		// str[end] = '\0';
 		// std::cout << "CGI" << std::endl << std::string(str) << std::endl << "CGI" << std::endl;
 		close(pipe_in[0]);
-		close(pipe_out[1]);
-		_fdIn = pipe_in[1];
-		_fdOut = pipe_out[0];
+		close(pipe_in[1]);
+		// close(pipe_out[1]);
+		// _fdIn = pipe_in[1];
+		_fdOut[0] = pipe_out[0];
+		_fdOut[1] = pipe_out[1];
+		// int flags;
+		// if ((flags = fcntl(_fdOut, F_GETFL)) < 0)
+		// 	std::cout << "couldnt get flags" << std::endl;
+		// if (fcntl(_fdOut, F_SETFL, flags | O_NONBLOCK) < 0)
+		// 	std::cout << "couldnt set flags" << std::endl;
 	}
 }
 
@@ -144,12 +151,12 @@ void		CgiSocket::read_cgi()
 	int		ret = 1;
 
 	// this can return an error if operation would block, see man page
-	ret = read(_fdOut, cstr, BUFFER_SIZE);
+	ret = read(getFd(), cstr, BUFFER_SIZE);
 	if (ret > 0)
 	{
 		cstr[ret] = '\0';
 		_input.append(cstr);
-	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
