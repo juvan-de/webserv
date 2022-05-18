@@ -3,6 +3,7 @@
 #include <vector>
 #include <errno.h> // erno, not needed
 #include <unistd.h> // close
+#include <errno.h>
 /*--------------------------------Coplien form--------------------------------*/
 Socket::Socket()
 {
@@ -45,4 +46,4 @@ Socket::Socket(int domain, int service, int protocol)
 	std::cout << "Debug: constructing sock " << _fd << std::endl;
 }
 
-Socket::Socket(int fd) : _fd(fd) {}
+Socket::Socket(int fd) : _fd(fd) { std::cout << "Debug: constructing sock " << _fd << std::endl; }

@@ -3,23 +3,42 @@
 
 # include <poll.h>
 # include <vector>
+# include <map>
 # include <Socket.hpp>
 # include <ClientSocket.hpp>
+# include <CgiSocket.hpp>
 # include <ServerSocket.hpp>
 
 class ClientSocket;
+class CgiSocket;
 class ServerSocket;
 
-// im gonna make cgi sockets the same as a client socket but flag it as a cgi socket so I dont have to do freaky shit lol
+typedef enum e_type
+{
+	SERV = 0,
+	CLI = 1,
+	CGI = 2
+}	t_type;
+
 class Poller
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		std::vector<pollfd>			_cgi_socks; // actualy just a pollstruct, maybe should be put with cli socks
-		std::vector<ServerSocket*>	_serv_socks;
-		std::vector<ClientSocket*>	_client_socks;
-		std::vector<pollfd>			_pollfds;
+		std::map<int, ServerSocket*>	_serv_socks;
+		std::map<int, ClientSocket*>	_client_socks;
+		std::map<int, CgiSocket*>		_cgi_socks;
+		std::map<int, t_type>			_lookup;
+		std::vector<pollfd>				_pollfds;
 
+		void	addSocket(ServerSocket* serv);
+		void	addSocket(ClientSocket* cli);
+		void	addSocket(CgiSocket* cgi);
+
+		void	handleServ(std::vector< std::pair<int, short> > servers);
+		void	handleCli(std::vector< std::pair<int, short> > clients, std::map<std::pair<int, std::string>, Server*> table);
+		void	handleCgi(std::vector< std::pair<int, short> > cgi);
+
+		void	deleteSocket(int fd);
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		Poller();
@@ -29,15 +48,8 @@ class Poller
 
 		/*--------------------------Member functions--------------------------*/
 		Poller(std::set<int> server_ports);
-		pollfd						addPoll(int fd);
-		void						add_cgi_sock(int fd);
-		void						check_server_socks();
-		void						execute_poll(std::map<std::pair<int, std::string>, Server*>	table);
-		void						deleteCli(int index);
-		ClientSocket				&get_cli_from_index(int i);
-		// std::vector<pollfd>			&getCgi() { return _cgi_socks; };
-		std::vector<ServerSocket*>	&getServ() { return _serv_socks; };
-		std::vector<ClientSocket*>	&getCli() { return _client_socks; };
+
+		void	executePoll(std::map<std::pair<int, std::string>, Server*> table);
 };
 
 #endif

@@ -165,6 +165,7 @@ bool		Request::readyForParse(void) const
 
 void			Request::readChunked(int fd)
 {
+	(void)fd;
 	int bodysize = std::stoi(this->_input, NULL, 16);
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);

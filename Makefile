@@ -15,7 +15,8 @@ SERVER_SRC	= 	Location.cpp \
 				webservException.cpp
 SOCKET_SRC	=	Socket.cpp \
 				ServerSocket.cpp \
-				ClientSocket.cpp
+				ClientSocket.cpp \
+				CgiSocket.cpp
 POLLER_SRC	=	Poller.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
@@ -42,7 +43,7 @@ OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions
+INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m

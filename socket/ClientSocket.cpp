@@ -3,8 +3,8 @@
 #include <Request.hpp>
 #include <utils.hpp>
 
-ClientSocket::ClientSocket(int fd, sockaddr addr) :
-	Socket(fd), _status(200), _request(Request())
+ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
+	Socket(fd), _status(200), _request(Request()), _cgi(NULL)
 {
 	int flags;
 	int opt = 1;
@@ -59,8 +59,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname" << std::endl;
-		return NULL;
+		std::cout << "error finding hostname: " << std::endl;
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
@@ -107,7 +106,6 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
-	std::cout << _request << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
@@ -140,6 +138,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else
 		{
 			std::cout << "nothing to do here" << std::endl;
+		}
+		std::cout << "Post request" << std::endl;
+		if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+		{
+			Server *server = find_server(table, this->_request);
+			_cgi = new CgiSocket(_request, *server, _address);
+			// std::cout << cgi;
 		}
 	}
 }

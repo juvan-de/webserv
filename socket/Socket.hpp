@@ -11,22 +11,21 @@ class Socket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		int			_fd;
-		Socket();
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
+		Socket();
 		Socket(const Socket &ref);
 		Socket& operator=(const Socket &ref);
 		virtual ~Socket();
 
 		/*--------------------------Member functions--------------------------*/
-		// AF_INET, SOCK_STREAM, 0, sizeof(adress)
 		Socket(int domain, int service, int protocol);
 		Socket(int fd);
-		int					new_connection(sockaddr *cli_addr);
-		int					getFd() const { return _fd; }
-		// short				getRevent() const { return _poll.revents; };
-		// pollfd				&getPoll() { return _poll; };
+		int			new_connection(sockaddr *cli_addr);
+		void		setFd(int fd) { _fd = fd; }
+		int			getFd() const { return _fd; }
+
 };
 
 #endif
