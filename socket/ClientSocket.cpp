@@ -140,10 +140,10 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "nothing to do here" << std::endl;
 		}
 		std::cout << "Post request" << std::endl;
-		if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+		if (!this->_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
 		{
 			Server *server = find_server(table, this->_request);
-			_cgi = new CgiSocket(_request, *server, _address);
+			this->_cgi = new CgiSocket(_request, *server, _address);
 			// std::cout << cgi;
 		}
 	}

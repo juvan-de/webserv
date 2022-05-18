@@ -130,7 +130,7 @@ void		Request::setHeaders(void)
 	}
 	else
 	{
-		it = this->_headers.find("content-length");
+		it = this->_headers.find("Content-Length");
 		if (it == this->_headers.end() && this->_type == POST)
 			throw RequestException(411);
 		this->_isChunked = false;

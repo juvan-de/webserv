@@ -14,7 +14,7 @@ typedef enum e_status
 {
 	CREATED = 0,
 	ADDED = 1,
-	FINNISHED = 1
+	FINISHED = 1
 } t_status;
 
 class CgiSocket

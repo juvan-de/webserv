@@ -160,4 +160,6 @@ void		CgiSocket::read_cgi()
 	}
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
+	else if (ret < BUFFER_SIZE && ret >= 0)
+		this->_status = FINISHED;
 }
