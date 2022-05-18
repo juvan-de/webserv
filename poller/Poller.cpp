@@ -120,10 +120,10 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 			break;
 		case (POLLSTANDARD & POLLOUT):
 			_client_socks.find(it->first)->second->handle_pollout(table, *this);
-			if (_client_socks.find(it->first)->second->getCgiStatus() == CREATED) {
+			if (_client_socks.find(it->first)->second->getCgi()) {
 				std::cout << "ADDED A CGI" << std::endl;
 				addSocket(_client_socks.find(it->first)->second->getCgi());
-				_client_socks.find(it->first)->second->updateCgiStatus(ADDED);
+				_client_socks.find(it->first)->second->getCgi()->setSatus(ADDED);
 			}
 			break;
 		}
@@ -132,9 +132,9 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 
 void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 {
-	std::cout << "handle cgi ****" << std::endl;
 	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
 	{
+		std::cout << "handle cgi ****" << std::endl;
 		switch (it->second)
 		{
 		case (17):
