@@ -4,7 +4,7 @@
 #include <sstream>
 #include <utils.hpp>
 
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 30
 /*--------------------------------Coplien form--------------------------------*/
 
 CgiSocket::~CgiSocket()
