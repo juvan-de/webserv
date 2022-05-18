@@ -30,3 +30,23 @@ std::vector<std::string>	split(std::string line, std::string to_split_on)
 	}
 	return vec;
 }
+
+std::vector<std::string>	split_mc(std::string line, std::string to_split_on)
+{
+	std::vector<std::string>	vec;
+	size_t i = 0;
+	size_t start = 0;
+	while (i < line.size())
+	{
+		i = line.find(to_split_on, i);
+		if (i == std::string::npos)
+		{
+			vec.push_back(line.substr(start));
+			return (vec);
+		}
+		vec.push_back(line.substr(start, i));
+		i += to_split_on.size();
+		start = i;
+	}
+	return (vec);
+}
