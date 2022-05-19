@@ -23,7 +23,6 @@ ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 
 void	ClientSocket::handle_pollin()
 {
-	std::cout << "POLLING IN" << std::endl;
 	std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 	this->_request.addto_request(getFd());
 	if (this->_request.getType() == NOTSET)
@@ -202,14 +201,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	{
 		std::cout << "Post request" << std::endl;
 		if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
-		{
 			_cgi = new CgiSocket(_request, *server, _address);
-			// std::cout << cgi;
-		}
 	}
 	else if (this->_request.getType() == DELETE)
 	{
 		std::cout << "we be deletin tho" << std::endl;
+		if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+			_cgi = new CgiSocket(_request, *server, _address);
 	}
 	else if (this->_request.getType() == ERROR)
 	{
