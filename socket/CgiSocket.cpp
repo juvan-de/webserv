@@ -47,6 +47,7 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 	/*Constructor*/
 	std::string					req_type = getType(request.getType());
 	std::string					filename = request.getLocation().substr(0, request.getLocation().find_first_of("?"));
+	std::string					root = server.getLocation("/").getRoot();
 	std::string					path;
 	std::string					filepath;
 	std::vector<std::string>	tmp;
@@ -60,7 +61,8 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 		path = server.getLocation("/").getCgi().find(".py")->second;
 	else
 		path = server.getLocation("/").getCgi().find(".php")->second;
-	filepath = path + filename;
+	// filepath = root + path + filename;
+	filepath = path + filename; // still need to add realpath to be able to do root + path + filename
 
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
