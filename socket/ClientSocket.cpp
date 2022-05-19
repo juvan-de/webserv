@@ -104,7 +104,7 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + request_location);
 }
 
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
+void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << _request << std::endl;
 	Server *server = find_server(table, this->_request);
@@ -118,6 +118,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 			response = this->makeGetResponse(server, itr);
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
+			if (ret < 0)
+				std::cout << "send error" << std::endl;
 			this->_request = Request();
 		}
 		else if (this->_request.getType() == POST)
@@ -137,6 +139,8 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "TYPE ERROR" << std::endl;
 			response = Response(this->_request.getStatusCode());
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
+			if (ret < 0)
+				std::cout << "send error" << std::endl;
 			this->_request = Request();
 		}
 		else

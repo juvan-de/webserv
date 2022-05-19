@@ -10,26 +10,11 @@
 CgiSocket::~CgiSocket()
 {
 	/*Destructor*/
-	std::cout << "WTF******************************************" << std::endl;
+	std::cout << "DEBUG: CGI SOCK CLOSED" << std::endl;
 	close(_fdOut[0]);
 	close(_fdOut[1]);
 }
 
-// CgiSocket::CgiSocket(const CgiSocket &ref)
-// {
-// 	/*Copy constructor*/
-// 	*this = ref;
-// }
-
-// CgiSocket&	CgiSocket::operator=(const CgiSocket &ref)
-// {
-// 	/*Assignation operator*/
-// 	if (this != &ref)
-// 	{
-// 		/* assign member variables*/
-// 	}
-// 	return *this;
-// }
 /*--------------------------------Coplien form--------------------------------*/
 static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
 {

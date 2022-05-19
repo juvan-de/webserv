@@ -21,13 +21,10 @@ class CgiSocket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		// int							_fdIn;
 		t_status					_status;
 		int							_fdOut[2];
 		std::string					_input;
 
-		CgiSocket(const CgiSocket &ref);
-		CgiSocket& operator=(const CgiSocket &ref);
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		~CgiSocket();

@@ -42,7 +42,7 @@ class	Response
 				int _code;
 			public:
 			ResponseException(int code) : _code(code) {}
-			const int	getError(void) const throw()
+			int	getError(void) const throw()
 			{
 				return (this->_code);
 			}

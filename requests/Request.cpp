@@ -59,7 +59,7 @@ const std::string&	Request::getBody() const
 	return (this->_body);
 }
 
-const int	Request::getStatusCode() const
+int	Request::getStatusCode() const
 {
 	return (this->_statusCode);
 }

@@ -40,7 +40,7 @@ class	Request
 	const std::map<std::string, std::string, cmpCaseInsensitive>&	getHeaders() const;
 	const std::string&												getInput() const;
 	const std::string&												getBody() const;
-	const int														getStatusCode() const;
+	int																getStatusCode() const;
 
 	void						setResponse(Response response);
 	void						setRequest(void);
@@ -61,7 +61,7 @@ class	Request
 				int _statusCode;
 			public:
 			RequestException(int code) : _statusCode(code){}
-			const int	getError(void) const throw()
+			int	getError(void) const throw()
 			{
 				return (this->_statusCode);
 			}			
