@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 12:09:08 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/04/11 15:15:34 by ztan          ########   odam.nl         */
+/*   Updated: 2022/05/11 14:29:05 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ StatusCodes::StatusCodes()
 	this->_statusCodes.insert(std::pair<int, std::string>(412, "Precondition Failed"));
 	this->_statusCodes.insert(std::pair<int, std::string>(413, "Request Entity Too Large"));
 	this->_statusCodes.insert(std::pair<int, std::string>(414, "Request-URI Too Large"));
-	this->_statusCodes.insert(std::pair<int, std::string>(415, "Unsupported MEdia Type"));
+	this->_statusCodes.insert(std::pair<int, std::string>(415, "Unsupported Media Type"));
 	this->_statusCodes.insert(std::pair<int, std::string>(416, "Requested range not satisfiable"));
 	this->_statusCodes.insert(std::pair<int, std::string>(417, "Expectation Failed"));
 	this->_statusCodes.insert(std::pair<int, std::string>(500, "Internal Server Error"));
@@ -72,9 +72,9 @@ StatusCodes::~StatusCodes()
 
 }
 
-const std::pair<int, std::string>			StatusCodes::getStatusCode(int key) const
+const std::pair<int, std::string>			StatusCodes::getStatusCode(int key)
 {
-	std::map<int, std::string>::const_iterator it = this->_statusCodes.find(key);
+	std::map<int, std::string>::iterator it = this->_statusCodes.find(key);
 	if (it != _statusCodes.end())
 		return (*it);
 	else
