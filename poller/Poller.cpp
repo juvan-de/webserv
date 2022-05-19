@@ -160,14 +160,16 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 		// 	_cgi_socks.find(it->first)->second->read_cgi();
 		// 	break;
 		// }
-		if (it->second & POLLHUP)
+		if (it->second & POLLHUP || _cgi_socks.find(it->first)->second->getStatus() == FINNISHED)
 			// std::cout << "cgi POLLHUP" << std::endl;
 			deleteSocket(it->first);
 		else if (it->second & POLLIN)
 			_cgi_socks.find(it->first)->second->read_cgi();
-		else if (it->second & POLLOUT)
+		else if (it->second & POLLOUT) {
+			_cgi_socks.find(it->first)->second->setSatus(FINNISHED);
+			std::cout << "CGI POLLOUT: " << _cgi_socks.find(it->first)->second->getStatus() << std::endl;
+		}
 			// std::cout << "cgi POLLOUT" << std::endl;
-			deleteSocket(it->first);
 	}
 }
 /*-------------------------------public functions-----------------------------*/

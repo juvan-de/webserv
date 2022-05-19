@@ -104,6 +104,8 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + request_location);
 }
 
+#include <sstream>
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << _request << std::endl;
@@ -127,6 +129,19 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "Post request" << std::endl;
 			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
+			if (_cgi->getStatus() == FINNISHED)
+			{
+				std::stringstream ss;
+				int ret;
+				if (_cgi->getInput().find("Execv error: ") != std::string::npos)
+				{
+					ss << _cgi->getInput().substr(14, 1);
+					// std::cout << "errno: " << ss << std::endl;
+					ss >> ret;
+					std::cout << "CGI ERROR ***************: " << ret << std::endl;
+
+				}
+			}
 		}
 		else if (this->_request.getType() == DELETE)
 		{

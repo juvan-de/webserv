@@ -14,7 +14,7 @@ typedef enum e_status
 {
 	CREATED = 0,
 	ADDED = 1,
-	FINNISHED = 1
+	FINNISHED = 2
 } t_status;
 
 class CgiSocket
@@ -31,11 +31,12 @@ class CgiSocket
 
 		/*--------------------------Member functions--------------------------*/
 		CgiSocket(Request request, Server server, sockaddr_in client_struct);
-		void		executeCgi(std::string filepath, std::vector<std::string> envp);
-		void		read_cgi();
-		int			getFd() const { return _fdOut[0]; }
-		void		setSatus(t_status status) { _status = status; }
-		t_status	getStatus() const { return _status; }
+		void				executeCgi(std::string filepath, std::vector<std::string> envp);
+		void				read_cgi();
+		int					getFd() const { return _fdOut[0]; }
+		const std::string	getInput() const { return _input; }
+		void				setSatus(t_status status) { _status = status; }
+		t_status			getStatus() const { return _status; }
 };
 
 #endif
