@@ -34,32 +34,32 @@ Request&	Request::operator=(const Request& ref)
 
 Request::~Request() {}
 
-Type		const &Request::getType() const 
+const Type&		Request::getType() const 
 {
 	return (this->_type);
 }
 
-std::string	const &Request::getLocation() const 
+const std::string&	Request::getLocation() const 
 {
 	return (this->_location);
 }
 
-std::map<std::string, std::string>	const &Request::getHeaders() const
+const std::map<std::string, std::string, cmpCaseInsensitive >&	Request::getHeaders() const
 {
 	return (this->_headers);
 }
 
-std::string		const &Request::getInput() const
+const std::string&	Request::getInput() const
 {
 	return (this->_input);
 }
 
-std::string		const &Request::getBody() const
+const std::string&	Request::getBody() const
 {
 	return (this->_body);
 }
 
-int				const &Request::getStatusCode() const
+const int	Request::getStatusCode() const
 {
 	return (this->_statusCode);
 }
@@ -102,38 +102,37 @@ void			Request::setRequest(void)
 	else if (array[0] == "DELETE")
 		this->_type = DELETE;
 	else
-		throw RequestException(505);
+		throw RequestException(400);
 	this->_location = array[1];
 	if (array[2] != "HTTP/1.1")
 		throw RequestException(505);
 } 
 
-void		Request::setHeaders(void) // Jules naar kijken
+void		Request::setHeaders(void)
 {
-	this->_input = this->_input.substr(this->_input.find('\n') + 1);
 	size_t end = this->_input.find("\r\n\r\n") + 4;
-	std::string headers = this->_input.substr(0, end);
-	std::vector<std::string> lines = split_on_str(headers, "\r\n");
-	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
+	std::vector<std::string> lines = split_on_str(this->_input, "\r\n");
+	lines.erase(lines.begin());
+	for (size_t i = 0; i < lines.size(); i++)
 	{
-		if (it->find(":") != std::string::npos)
+		if (lines[i].find(":") != std::string::npos)
 		{
-			std::string first = it->substr(0, it->find(':'));
-			std::string second = it->substr(it->find(':') + 1);
-			second = strtrim(second, " \r\n");
-			if (first.size() > 1)
-				this->_headers[first] = second;
+			std::vector<std::string> splitted = split_on_str(lines[i], ": ");
+			this->_headers[splitted[0]] = splitted[1];
 		}
 	}
 	this->_input = this->_input.substr(end);
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
-	if (it != this->_headers.end() && it->second == "chunked") //contentlength header checken
+	if (it != this->_headers.end() && it->second == "chunked")
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;
 	}
 	else
 	{
+		it = this->_headers.find("content-length"); //case sensitive
+		if (it == this->_headers.end() && this->_type == POST)
+			throw RequestException(411);
 		this->_isChunked = false;
 		this->_isFinished = true;
 	}

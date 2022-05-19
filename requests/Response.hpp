@@ -5,6 +5,7 @@
 # include <string>
 # include <iostream>
 # include <StatusCodes.hpp>
+# include <ContentTypes.hpp>
 # include <Server.hpp>
 
 class	Response
@@ -12,10 +13,9 @@ class	Response
 	private:
 		std::string							_response;
 		std::string							_responseBody;
-		std::map<std::string, std::string>	_contentTypes;
 
 		void	_setContentTypes();
-		void	_makeDefaultErrorPage(std::pair<int, std::string> errcode);
+		void	_makeDefaultErrorPage(int errorCode, const std::string& errorStatus);
 
 	public:
 
@@ -33,7 +33,7 @@ class	Response
 
 	void								setResponseBodyFromFile(const std::string& filename);
 	void								setResponseBodyFromDir(const std::string& dirname);
-	void								setResponseBodyFromError(int code, const std::map<int, std::string>& errorPages);
+	void								setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages);
 
 	private: /* -Exception- */
 		class ResponseException : public std::exception

@@ -54,7 +54,7 @@ void	ClientSocket::handle_pollin()
 
 Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
-	std::map<std::string, std::string> headers = request.getHeaders();
+	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
 	// std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{

@@ -5,8 +5,10 @@ UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
 				doesFileExist.cpp \
+				strToLower.cpp \
 				strtrim.cpp 
-REQUEST_SRC	=	Request.cpp \
+REQUEST_SRC	=	ContentTypes.cpp \
+				Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
 SERVER_SRC	= 	Location.cpp \
