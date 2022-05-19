@@ -1,5 +1,6 @@
 #include <ClientSocket.hpp>
 #include <BadInit.hpp>
+#include <Request.hpp>
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
@@ -23,17 +24,29 @@ ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 
 void	ClientSocket::handle_pollin()
 {
-	std::cout << "POLLIN FD: " << this->getFd() << std::endl;
-	this->_request.addto_request(getFd());
-	if (this->_request.getType() == NOTSET)
+	try
 	{
-		this->_request.setRequest();
-		this->_request.setHeaders();
+		std::cout << "POLLING IN" << std::endl;
+		std::cout << "POLLIN FD: " << this->getFd() << std::endl;
+		this->_request.addto_request(getFd());
+		if (this->_request.getType() == NOTSET)
+		{
+			this->_request.setRequest();
+			std::cout << std::endl << std::endl << "REQUEST IN POLLLIN" << std::endl << this->_request << std::endl;
+			this->_request.setHeaders();
+		}
+		if (this->_request.checkIfChunked())
+		{
+			// std::cout << "CHUNKED" << std::endl;
+			this->_request.readChunked(getFd());
+		}
+		/* code */
 	}
-	if (this->_request.checkIfChunked())
+	catch(Request::RequestException& e)
 	{
-		// std::cout << "CHUNKED" << std::endl;
-		this->_request.readChunked(getFd());
+		this->_request.setType(ERROR);
+		this->_request.setStatusCode(e.getError());
+		this->_request.setAsFinished();
 	}
 }
 
@@ -41,7 +54,7 @@ void	ClientSocket::handle_pollin()
 
 Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
-	std::map<std::string, std::string> headers = request.getHeaders();
+	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
 	// std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{
@@ -64,39 +77,48 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 {
 	const std::string& request_location = this->_request.getLocation();
 
+	std::cout << "RESPONSE BUILDING" << std::endl;
+	std::cout << location->first << std::endl;
+	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
+		return Response(413, server);
 	if (location == server->getLocations().end()) /* bad request */
-		return Response("", 404, server);
+		return Response(404, server);
+	std::cout << location->second.getRedir().isSet() << std::endl;
+	if (location->second.getRedir().isSet())
+		return Response(location->second.getRedir().getLocation());
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
-		return Response("", 405, server);
+		return Response(405, server);
 	if (request_location[request_location.size() - 1] == '/')
 	{
 		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + request_location);
 		if (itr_filename != location->second.getIndex().end())
-			return Response(location->second.getRoot() + request_location + *itr_filename, 200, server);
+			return Response(server, location->second.getRoot() + request_location + *itr_filename);
 		if (location->second.getAutoindex())
-			return Response(location->second.getRoot() + request_location, 200, server);
+			return Response(server, location->second.getRoot() + request_location);
 		else
-			return Response("", 404, server);
+			return Response(403, server);
 	}
 	if (!doesFileExist(location->second.getRoot() + request_location))
-		return Response("", 404, server);
+		return Response(404, server);
 	else
-		return Response(location->second.getRoot() + request_location, 200, server);
+		return Response(server, location->second.getRoot() + request_location);
 }
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
 {
-	if (this->_request.readyForParse())
+	std::cout << _request << std::endl;
+	Server *server = find_server(table, this->_request);
+	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
-		Server *server = find_server(table, this->_request);
-		if (this->_request.readyForParse()) //very hacky solution, needs to be looked at
+		if (this->_request.getType() == GET)
 		{
 			std::string	request_location = this->_request.getLocation();
+			std::cout << "TO SEARCH FOR: " << request_location << std::endl << std::endl;
 			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 			response = this->makeGetResponse(server, itr);
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-			this->_request = Request(); // waarom doen we dit
+			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
+			this->_request = Request();
 		}
 		else if (this->_request.getType() == POST)
 		{
@@ -112,7 +134,10 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == ERROR)
 		{
-			std::cout << "shit went wrong yo" << std::endl;
+			std::cout << "TYPE ERROR" << std::endl;
+			response = Response(this->_request.getStatusCode());
+			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
+			this->_request = Request();
 		}
 		else
 		{

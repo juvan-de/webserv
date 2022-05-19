@@ -6,6 +6,10 @@
 #include <webserv.hpp> // parse
 #include <Poller.hpp>
 
+// const Statuscodes {
+// 	std::map<int, std::string>
+// }
+
 std::set<int> getPortsAndSetTable(std::vector<Server>& servers, std::map<std::pair<int, std::string>, Server*>& table)
 {
 	std::set<int> ports;
