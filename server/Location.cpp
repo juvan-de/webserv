@@ -117,7 +117,7 @@ void	Location::setRoot(std::vector<std::string>& line, const std::string& curWor
 		throw ArgumentIncorrect(line);
 	std::string root = curWorkingDir + "/" + line[1];
 	if (realpath(root.c_str(), buf) == NULL)
-		throw RealPathFailed(;
+		throw RealPathFailed();
 	root = std::string(buf);
 	this->_root = root;
 }
