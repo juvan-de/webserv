@@ -33,14 +33,18 @@ void	ClientSocket::handle_pollin()
 		if (this->_request.getType() == NOTSET)
 		{
 			this->_request.setRequest();
-			std::cout << std::endl << std::endl << "REQUEST IN POLLLIN" << std::endl << this->_request << std::endl;
 			this->_request.setHeaders();
 		}
 		if (this->_request.checkIfChunked())
 		{
-			// std::cout << "CHUNKED" << std::endl;
+			std::cout << "CHUNKED" << std::endl;
 			this->_request.readChunked(getFd());
 		}
+		if (this->_request.getInput().size() > 0)
+		{
+			this->_request.append_body();
+		} 
+		std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -108,10 +112,26 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	Server *server = find_server(table, this->_request);
+	std::cout << "POLLOUT" << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
+		Server *server = find_server(table, this->_request);
+		std::cout << "request in pollout:\n" << this->_request << std::endl;
+		try 
+		{
+			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+				_cgi = new CgiSocket(_request, *server, _address);
+			if (_cgi && _cgi->getStatus() == FINISHED)
+			{
+				this->_cgi->checkError();
+				response = Response(this->_cgi->getInput(), true);
+			}
+		}
+		catch (CgiSocket::CgiException& e)
+		{
+			response = Response(e.getError(), server);
+		}
 		if (this->_request.getType() == GET)
 		{
 			std::string	request_location = this->_request.getLocation();
@@ -120,39 +140,11 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == POST)
 		{
-			std::cout << "Post request" << std::endl;
-			try 
-			{
-				if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
-					_cgi = new CgiSocket(_request, *server, _address);
-				if (_cgi->getStatus() == FINISHED)
-				{
-					this->_cgi->checkError();
-					response = Response(this->_cgi->getInput(), true);
-				}
-			}
-			catch (CgiSocket::CgiException& e)
-			{
-				response = Response(e.getError(), server);
-			}
+			std::cout << "here we are going to upload the picture :D" << std::endl;
 		}
 		else if (this->_request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
-			try 
-			{
-				if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
-					_cgi = new CgiSocket(_request, *server, _address);
-				if (_cgi->getStatus() == FINISHED)
-				{
-					this->_cgi->checkError();
-					response = Response(this->_cgi->getInput(), true);
-				}
-			}
-			catch (CgiSocket::CgiException& e)
-			{
-				response = Response(e.getError(), server);
-			}
 		}
 		else if (this->_request.getType() == ERROR)
 		{
