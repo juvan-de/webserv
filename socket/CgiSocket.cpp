@@ -63,6 +63,7 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 		path = server.getLocation("/").getCgi().find(".php")->second;
 	// filepath = root + path + filename;
 	filepath = path + filename; // still need to add realpath to be able to do root + path + filename
+	std::cout << "CGI filepath: " << filepath << std::endl;
 
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
