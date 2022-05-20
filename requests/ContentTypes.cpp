@@ -3,7 +3,6 @@
 
 ContentTypes::ContentTypes()
 {
-	std::cout << "STATUSCODE DEFAULT CNSTRUCTOR CALLED!!!" << std::endl;
 	this->_contentTypes["EDI-X12"] = "application";
 	this->_contentTypes["EDIFACT"] = "application";
 	this->_contentTypes["javascript"] = "application";

@@ -39,21 +39,22 @@ int main(int ac, char **av)
 		{
 			std::cout << "Parsing config" << std::endl;
 			parse(av[1], server_configs);
-			ports = getPortsAndSetTable(server_configs, table);
-			poller = Poller(ports);
+			std::cout << server_configs[0] << std::endl;
+			// ports = getPortsAndSetTable(server_configs, table);
+			// poller = Poller(ports);
 		}
 		catch(const std::exception& e)
 		{
 			std::cerr << e.what() << '\n';
 		}
-		while (true)
-		{
-			poller.executePoll(table);
-			// handle_connection(data);
-			std::cout << "Waiting for connections..." << std::endl;
-			// check_connection(data);
-			usleep(500000);
-		}
+		// while (true)
+		// {
+		// 	poller.executePoll(table);
+		// 	// handle_connection(data);
+		// 	std::cout << "Waiting for connections..." << std::endl;
+		// 	// check_connection(data);
+		// 	usleep(500000);
+		// }
 	}
 	else
 		std::cout << "incorrect arguments" << std::endl;
