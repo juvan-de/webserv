@@ -75,10 +75,11 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 
 Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location)
 {
-	const std::string& request_location = this->_request.getLocation();
+	const std::string& uri = this->_request.getUri();
 
 	std::cout << "RESPONSE BUILDING" << std::endl;
 	std::cout << location->first << std::endl;
+	
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return Response(413, server);
 	if (location == server->getLocations().end()) /* bad request */
@@ -88,37 +89,45 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(location->second.getRedir().getLocation());
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
 		return Response(405, server);
-	if (request_location[request_location.size() - 1] == '/')
+	if (uri[uri.size() - 1] == '/')
 	{
-		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + request_location);
+		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + uri);
 		if (itr_filename != location->second.getIndex().end())
-			return Response(server, location->second.getRoot() + request_location + *itr_filename);
+			return Response(server, location->second.getRoot() + uri + *itr_filename, location->second.getRoot());
 		if (location->second.getAutoindex())
-			return Response(server, location->second.getRoot() + request_location);
+			return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 		else
 			return Response(403, server);
 	}
-	if (!doesFileExist(location->second.getRoot() + request_location))
+	if (!doesFileExist(location->second.getRoot() + uri))
 		return Response(404, server);
 	else
-		return Response(server, location->second.getRoot() + request_location);
+		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
 #include <sstream>
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	std::cout << _request << std::endl;
+	std::cout << this->_request << std::endl;
 	Server *server = find_server(table, this->_request);
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
 		if (this->_request.getType() == GET)
 		{
-			std::string	request_location = this->_request.getLocation();
-			std::cout << "TO SEARCH FOR: " << request_location << std::endl << std::endl;
-			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-			response = this->makeGetResponse(server, itr);
+			try
+			{
+				std::string	uri = this->_request.getUri();
+				std::cout << "TO SEARCH FOR: " << uri << std::endl << std::endl;
+				std::map<std::string, Location>::const_iterator itr = server->getRightLocation(uri);
+				std::cout << itr->second.getRoot() << std::endl;
+				response = this->makeGetResponse(server, itr);
+			}
+			catch(const Response::ResponseException& e)
+			{
+				response = Response(e.getError(), server);
+			}
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
 			if (ret < 0)
 				std::cout << "send error" << std::endl;
@@ -127,7 +136,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else if (this->_request.getType() == POST)
 		{
 			std::cout << "Post request" << std::endl;
-			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
 			if (_cgi->getStatus() == FINISHED)
 			{
@@ -137,7 +146,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else if (this->_request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
-			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
 		}
 		else if (this->_request.getType() == ERROR)

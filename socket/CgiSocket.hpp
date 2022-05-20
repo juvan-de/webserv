@@ -25,6 +25,7 @@ class CgiSocket
 		int							_fdOut[2];
 		std::string					_output;
 
+		std::string			getFilepath(Server server, Request request);
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		~CgiSocket();

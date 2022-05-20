@@ -42,44 +42,61 @@ static std::string	getType(Type type)
 	return "";
 }
 
+std::string	CgiSocket::getFilepath(Server server, Request request)
+{
+	std::map<std::string, Location>::const_iterator 	location;
+	std::map<std::string, std::string>::const_iterator	path;
+	std::string											root;
+	std::string											filename;
+	std::string											filepath;
+	int 												ret;
+	
+	location = server.getRightLocation("/");
+	if (location == server.getLocations().end())
+		throw CgiException(404);
+	if (request.getUri().find(".py?") != std::string::npos)
+		path = location->second.getCgi().find(".py");
+	else
+		path = location->second.getCgi().find(".php");
+	if (path == location->second.getCgi().end())
+		throw CgiException(400);
+	
+	root = location->second.getRoot();
+	filename = request.getUri().substr(0, request.getUri().find_first_of("?"));
+	filepath = root + "/" + path->second + filename;
+
+	if ((ret = isValidPath(root, filepath)) != 0)
+		throw CgiException(ret);
+	return filepath;
+}
+
 CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _output(std::string())
 {
 	/*Constructor*/
-	std::string					req_type = getType(request.getType());
-	std::string					filename = request.getLocation().substr(0, request.getLocation().find_first_of("?"));
-	std::string					root = server.getLocation("/").getRoot();
-	std::string					path;
 	std::string					filepath;
-	std::vector<std::string>	tmp;
-	std::vector<const char*>	envp;
+	std::vector<std::string>	envp;
+	std::string					req_type = getType(request.getType());
+	char						buf[INET_ADDRSTRLEN];
 
-	char buf[INET_ADDRSTRLEN];
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
 		std::cout << "Error making ip" << std::endl;
+	filepath = getFilepath(server, request);
 
-	if (request.getLocation().find(".py?") != std::string::npos)
-		path = server.getLocation("/").getCgi().find(".py")->second;
-	else
-		path = server.getLocation("/").getCgi().find(".php")->second;
-	// filepath = root + path + filename;
-	filepath = path + filename; // still need to add realpath to be able to do root + path + filename
-	std::cout << "CGI filepath: " << filepath << std::endl;
+	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envp.push_back("REMOTE_ADDR=" + std::string(buf));
+	envp.push_back("REQUEST_METHOD=" + req_type);
+	envp.push_back("SCRIPT_NAME=" + request.getUri().substr(0, request.getUri().find_first_of("?")));
+	envp.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
+	envp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
+	envp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envp.push_back("SERVER_SOFTWARE=webserv/42");
+	envp.push_back("QUERY_STRING=" + request.getUri().substr(request.getUri().find_first_of("?") + 1, request.getUri().size() - request.getUri().find_first_of("?") - 1));
 
-	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	tmp.push_back("REMOTE_ADDR=" + std::string(buf));
-	tmp.push_back("REQUEST_METHOD=" + req_type);
-	tmp.push_back("SCRIPT_NAME=" + filename);
-	tmp.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
-	tmp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
-	tmp.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	tmp.push_back("SERVER_SOFTWARE=webserv/42");
-	tmp.push_back("QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
-
-	executeCgi(filepath, tmp);
+	executeCgi(filepath, envp);
 }
 
-void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
+void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 {
 	int	pipe_in[2];
 	int	pipe_out[2];
@@ -132,7 +149,7 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	}
 }
 
-void		CgiSocket::read_cgi()
+void	CgiSocket::read_cgi()
 {
 	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
