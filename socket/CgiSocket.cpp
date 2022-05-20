@@ -84,12 +84,12 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	int	pipe_out[2];
 
 	if (pipe(pipe_in))
-		std::cout << "Error: pipe didnt work" << std::endl;
+		std::cout << "CGI ERROR 500" << std::endl;
 	if (pipe(pipe_out))
 	{
 		close(pipe_in[0]);
 		close(pipe_in[1]);
-		std::cout << "Error: pipe didnt work" << std::endl;
+		std::cout << "CGI ERROR 500" << std::endl;
 	}
 
 	try
@@ -102,9 +102,7 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 			dup2(pipe_out[1], STDERR_FILENO);
 
 			if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
-				std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2) of 500 Internal Server Error (1, 3, 4, 5, error)
-				// exit(errno);
-				// throw ;
+				std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
 			
 			close(pipe_in[0]);
 			close(pipe_in[1]);
@@ -133,8 +131,6 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	}
 }
 
-#include <sstream>
-
 void		CgiSocket::read_cgi()
 {
 	char	cstr[BUFFER_SIZE + 1];
@@ -152,4 +148,33 @@ void		CgiSocket::read_cgi()
 		_status = FINNISHED;
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
+}
+
+void	CgiSocket::checkError()
+{
+	std::stringstream ss;
+	int error;
+	std::string num = "";
+
+	if (_input.find("Execv error: ") != std::string::npos)
+	{
+		// forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
+		for (size_t i = 13; i < _input.size() && isdigit(_input[i]); i++)
+			num.push_back(_input[i]);
+		ss << num;
+		ss >> error;
+
+		switch (error)
+		{
+		case 2:
+			std::cout << "CGI ERROR 403" << std::endl;
+			break;
+		case 13:
+			std::cout << "CGI ERROR 400" << std::endl;
+			break;
+		default:
+			std::cout << "CGI ERROR 500" << std::endl;
+			break;
+		}
+	}
 }

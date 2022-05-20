@@ -33,6 +33,7 @@ class CgiSocket
 		CgiSocket(Request request, Server server, sockaddr_in client_struct);
 		void				executeCgi(std::string filepath, std::vector<std::string> envp);
 		void				read_cgi();
+		void				checkError();
 		int					getFd() const { return _fdOut[0]; }
 		const std::string	getInput() const { return _input; }
 		void				setSatus(t_status status) { _status = status; }

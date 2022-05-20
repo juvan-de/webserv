@@ -131,16 +131,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 				_cgi = new CgiSocket(_request, *server, _address);
 			if (_cgi->getStatus() == FINNISHED)
 			{
-				std::stringstream ss;
-				int ret;
-				if (_cgi->getInput().find("Execv error: ") != std::string::npos)
-				{
-					ss << _cgi->getInput().substr(14, 1);
-					// std::cout << "errno: " << ss << std::endl;
-					ss >> ret;
-					std::cout << "CGI ERROR ***************: " << ret << std::endl;
-
-				}
+				_cgi->checkError();
 			}
 		}
 		else if (this->_request.getType() == DELETE)
