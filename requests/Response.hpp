@@ -20,7 +20,7 @@ class	Response
 	public:
 
 	Response();
-	Response(const Server *server, const std::string path); //valid
+	Response(const Server *server, const std::string& path, const std::string& root); //valid
 	Response(int errorcode, const Server *server = NULL); //error
 	Response(const std::string& redir); //301
 	Response(const Response& ref);
@@ -35,7 +35,7 @@ class	Response
 	void								setResponseBodyFromDir(const std::string& dirname);
 	void								setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages);
 
-	private: /* -Exception- */
+	public: /* -Exception- */
 		class ResponseException : public std::exception
 		{
 			private:

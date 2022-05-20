@@ -42,12 +42,12 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _input(std::string())
+CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _input(std::string()) //moet nog gechecked worden op throws
 {
 	/*Constructor*/
 	std::string					req_type = getType(request.getType());
-	std::string					filename = request.getLocation().substr(0, request.getLocation().find_first_of("?"));
-	std::string					root = server.getLocation("/").getRoot();
+	std::string					filename = request.getUri().substr(0, request.getUri().find_first_of("?"));
+	std::string					root = server.getRightLocation("/")->second.getRoot();
 	std::string					path;
 	std::string					filepath;
 	std::vector<std::string>	tmp;
@@ -57,10 +57,10 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
 		std::cout << "Error making ip" << std::endl;
 
-	if (request.getLocation().find(".py?") != std::string::npos)
-		path = server.getLocation("/").getCgi().find(".py")->second;
+	if (request.getUri().find(".py?") != std::string::npos)
+		path = server.getRightLocation("/")->second.getCgi().find(".py")->second;
 	else
-		path = server.getLocation("/").getCgi().find(".php")->second;
+		path = server.getRightLocation("/")->second.getCgi().find(".php")->second; //dit moet even gechecked worden
 	// filepath = root + path + filename;
 	filepath = path + filename; // still need to add realpath to be able to do root + path + filename
 
@@ -73,7 +73,7 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 	tmp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
 	tmp.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	tmp.push_back("SERVER_SOFTWARE=webserv/42");
-	tmp.push_back("QUERY_STRING=" + request.getLocation().substr(request.getLocation().find_first_of("?") + 1, request.getLocation().size() - request.getLocation().find_first_of("?") - 1));
+	tmp.push_back("QUERY_STRING=" + request.getUri().substr(request.getUri().find_first_of("?") + 1, request.getUri().size() - request.getUri().find_first_of("?") - 1));
 
 	executeCgi(filepath, tmp);
 }
