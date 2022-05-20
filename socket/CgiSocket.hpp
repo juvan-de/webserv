@@ -23,7 +23,7 @@ class CgiSocket
 		/*--------------------------Member variables--------------------------*/
 		t_status					_status;
 		int							_fdOut[2];
-		std::string					_input;
+		std::string					_output;
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
@@ -34,12 +34,13 @@ class CgiSocket
 		void				executeCgi(std::string filepath, std::vector<std::string> envp);
 		void				read_cgi();
 		void				checkError();
+		
 		int					getFd() const { return _fdOut[0]; }
-		const std::string	getInput() const { return _input; }
+		const std::string	getInput() const { return _output; }
 		void				setSatus(t_status status) { _status = status; }
 		t_status			getStatus() const { return _status; }
 
-		private: /* -Exception- */
+	private: /* -Exception- */
 		class CgiException : public std::exception
 		{
 			private:

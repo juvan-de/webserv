@@ -41,7 +41,7 @@ OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
 FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
-COMPILE		=	clang++
+COMPILE		=	c++
 
 #  -Wall -Wextra -Werror
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi

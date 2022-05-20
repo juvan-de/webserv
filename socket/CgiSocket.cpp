@@ -42,7 +42,7 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _input(std::string())
+CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _output(std::string())
 {
 	/*Constructor*/
 	std::string					req_type = getType(request.getType());
@@ -142,8 +142,8 @@ void		CgiSocket::read_cgi()
 	if (ret > 0)
 	{
 		cstr[ret] = '\0';
-		_input.append(cstr);
-		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+		_output.append(cstr);
+		std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret < BUFFER_SIZE && ret >= 0)
 		_status = FINISHED;
@@ -157,11 +157,11 @@ void	CgiSocket::checkError()
 	int error;
 	std::string num = "";
 
-	if (_input.find("Execv error: ") != std::string::npos)
+	if (_output.find("Execv error: ") != std::string::npos)
 	{
 		// forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
-		for (size_t i = 13; i < _input.size() && isdigit(_input[i]); i++)
-			num.push_back(_input[i]);
+		for (size_t i = 13; i < _output.size() && isdigit(_output[i]); i++)
+			num.push_back(_output[i]);
 		ss << num;
 		ss >> error;
 

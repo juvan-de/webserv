@@ -25,7 +25,6 @@ class Socket
 		int			new_connection(sockaddr *cli_addr);
 		void		setFd(int fd) { _fd = fd; }
 		int			getFd() const { return _fd; }
-
 };
 
 #endif
