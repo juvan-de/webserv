@@ -22,7 +22,10 @@ class CgiSocket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		t_status					_status;
-		int							_fdOut[2];
+		int							_pipeIn[2];
+		int							_pipeOut[2];
+		int							_fdIn;
+		int							_fdOut;
 		std::string					_output;
 
 		std::string			getFilepath(Server server, Request request);
@@ -33,10 +36,11 @@ class CgiSocket
 		/*--------------------------Member functions--------------------------*/
 		CgiSocket(Request request, Server server, sockaddr_in client_struct);
 		void				executeCgi(std::string filepath, std::vector<std::string> envp);
-		void				read_cgi();
+		void				read_or_write_cgi(int fd);
 		void				checkError();
 		
-		int					getFd() const { return _fdOut[0]; }
+		int					getFdIn() const { return _fdIn; }
+		int					getFdOut() const { return _fdOut; }
 		const std::string	getInput() const { return _output; }
 		void				setSatus(t_status status) { _status = status; }
 		t_status			getStatus() const { return _status; }

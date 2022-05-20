@@ -64,7 +64,7 @@ void			Poller::addSocket(ClientSocket *cli)
 
 void			Poller::addSocket(CgiSocket *cgi)
 {
-	int fd = cgi->getFd();
+	int fd = cgi->getFdOut();
 	_lookup.insert(std::pair<int, t_type>(fd, CGI));
 	_cgi_socks.insert(std::pair<int, CgiSocket*>(fd, cgi));
 	_pollfds.push_back(addPoll(fd));
@@ -110,23 +110,6 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 {
 	for (std::vector< std::pair<int, short> >::const_iterator it = clients.begin(); it != clients.end(); it++)
 	{
-		// switch (POLLSTANDARD & it->second)
-		// {
-		// case (POLLHUP):
-		// 	deleteSocket(it->first);
-		// 	break;
-		// case (POLLIN):
-		// 	_client_socks.find(it->first)->second->handle_pollin();
-		// 	break;
-		// case (POLLOUT):
-		// 	_client_socks.find(it->first)->second->handle_pollout(table);
-		// 	if (_client_socks.find(it->first)->second->getCgi()) {
-		// 		// std::cout << "ADDED A CGI" << std::endl;
-		// 		addSocket(_client_socks.find(it->first)->second->getCgi());
-		// 		_client_socks.find(it->first)->second->getCgi()->setSatus(ADDED);
-		// 	}
-		// 	break;
-		// }
 		if (it->second & POLLHUP)
 			deleteSocket(it->first);
 		else if (it->second & POLLIN)
@@ -148,23 +131,11 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
 	{
 		std::cout << "cgi revents: " << it->second << std::endl;
-		// switch (it->second)
-		// {
-		// case (17):
-		// 	deleteSocket(it->first);
-		// 	break;
-		// case (POLLSTANDARD & POLLIN):
-		// 	std::cout << "CGI idk lol" << std::endl;
-		// 	break;
-		// case (POLLSTANDARD & (POLLOUT | POLLIN)):
-		// 	_cgi_socks.find(it->first)->second->read_cgi();
-		// 	break;
-		// }
 		if (it->second & POLLHUP || _cgi_socks.find(it->first)->second->getStatus() == FINISHED)
 			// std::cout << "cgi POLLHUP" << std::endl;
 			deleteSocket(it->first);
 		else if (it->second & POLLIN)
-			_cgi_socks.find(it->first)->second->read_cgi();
+			_cgi_socks.find(it->first)->second->read_or_write_cgi(_cgi_socks.find(it->first)->second->getFdOut());
 		else if (it->second & POLLOUT) {
 			_cgi_socks.find(it->first)->second->setSatus(FINISHED);
 			std::cout << "CGI POLLOUT: " << _cgi_socks.find(it->first)->second->getStatus() << std::endl;
@@ -182,22 +153,6 @@ Poller::Poller(std::set<int> server_ports)
 
 static void		getActiveFd(std::vector< std::pair<int, short> > &vec, pollfd poll)
 {
-	// std::cout << "poll fd: " << poll.fd << ", revents: " << poll.revents << std::endl;
-	// switch (poll.revents)
-	// {
-	// case 17:
-	// 	vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
-	// 	break;
-	// case (POLLSTANDARD & (POLLIN | POLLOUT)):
-	// 	vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
-	// 	break;
-	// case (POLLSTANDARD & POLLIN):
-	// 	vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
-	// 	break;
-	// case (POLLSTANDARD & POLLOUT):
-	// 	vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
-	// 	break;
-	// }
 	if (poll.revents & POLLHUP)
 		vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
 	else if (poll.revents & POLLIN)

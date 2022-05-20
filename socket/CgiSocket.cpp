@@ -11,8 +11,10 @@ CgiSocket::~CgiSocket()
 {
 	/*Destructor*/
 	std::cout << "DEBUG: CGI SOCK CLOSED" << std::endl;
-	close(_fdOut[0]);
-	close(_fdOut[1]);
+	close(_pipeIn[0]);
+	close(_pipeIn[1]);
+	close(_pipeOut[0]);
+	close(_pipeOut[1]);
 }
 
 /*--------------------------------Coplien form--------------------------------*/
@@ -132,14 +134,15 @@ void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 		}
 		else
 		{
-			close(pipe_in[0]);
-			close(pipe_in[1]);
-			_fdOut[0] = pipe_out[0];
-			_fdOut[1] = pipe_out[1];
-			int flags;
-			if ((flags = fcntl(getFd(), F_GETFL)) < 0)
+			_pipeIn[0] = pipe_in[0];
+			_pipeIn[1] = pipe_in[1];
+			_pipeOut[0] = pipe_out[0];
+			_pipeOut[1] = pipe_out[1];
+			_fdOut = pipe_out[0];
+			_fdIn = pipe_in[1];
+			if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
 				throw CgiException(500);
-			if (fcntl(getFd(), F_SETFL, flags | O_NONBLOCK) < 0)
+			if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
 				throw CgiException(500);
 		}	
 	}
@@ -149,13 +152,12 @@ void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	}
 }
 
-void	CgiSocket::read_cgi()
+void	CgiSocket::read_or_write_cgi(int fd)
 {
 	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
 
-	// this can return an error if operation would block, see man page
-	ret = read(getFd(), cstr, BUFFER_SIZE);
+	ret = read(fd, cstr, BUFFER_SIZE);
 	if (ret > 0)
 	{
 		cstr[ret] = '\0';

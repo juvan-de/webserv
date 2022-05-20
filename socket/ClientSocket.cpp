@@ -105,8 +105,6 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
-#include <sstream>
-
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << this->_request << std::endl;
