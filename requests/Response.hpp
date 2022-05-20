@@ -13,6 +13,7 @@ class	Response
 	private:
 		std::string							_response;
 		std::string							_responseBody;
+		bool								_isFinished;
 
 		void	_setContentTypes();
 		void	_makeDefaultErrorPage(int errorCode, const std::string& errorStatus);
@@ -23,6 +24,7 @@ class	Response
 	Response(const Server *server, const std::string path); //valid
 	Response(int errorcode, const Server *server = NULL); //error
 	Response(const std::string& redir); //301
+	Response(const std::string& cgiBody, bool hasBody); //cgi/post/delete
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
 	~Response();
@@ -34,7 +36,7 @@ class	Response
 	void								setResponseBodyFromFile(const std::string& filename);
 	void								setResponseBodyFromDir(const std::string& dirname);
 	void								setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages);
-
+	bool								isFinished();
 	private: /* -Exception- */
 		class ResponseException : public std::exception
 		{

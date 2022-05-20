@@ -14,7 +14,7 @@ typedef enum e_status
 {
 	CREATED = 0,
 	ADDED = 1,
-	FINNISHED = 2
+	FINISHED = 2
 } t_status;
 
 class CgiSocket
@@ -38,6 +38,18 @@ class CgiSocket
 		const std::string	getInput() const { return _input; }
 		void				setSatus(t_status status) { _status = status; }
 		t_status			getStatus() const { return _status; }
+		public: /* -Exception- */
+			class CgiException : public std::exception
+			{
+				private:
+					int _code;
+				public:
+				CgiException(int code) : _code(code) {}
+				int	getError(void) const throw()
+				{
+					return (this->_code);
+				}
+			};
 };
 
 #endif

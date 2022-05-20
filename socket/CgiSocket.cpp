@@ -85,12 +85,12 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	int	pipe_out[2];
 
 	if (pipe(pipe_in))
-		std::cout << "CGI ERROR 500" << std::endl;
+		throw CgiException(500);
 	if (pipe(pipe_out))
 	{
 		close(pipe_in[0]);
 		close(pipe_in[1]);
-		std::cout << "CGI ERROR 500" << std::endl;
+		throw CgiException(500);
 	}
 
 	try
@@ -146,7 +146,7 @@ void		CgiSocket::read_cgi()
 		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret < BUFFER_SIZE && ret >= 0)
-		_status = FINNISHED;
+		_status = FINISHED;
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
 	else if (ret < BUFFER_SIZE && ret >= 0)
@@ -170,14 +170,11 @@ void	CgiSocket::checkError()
 		switch (error)
 		{
 		case 2:
-			std::cout << "CGI ERROR 403" << std::endl;
-			break;
+			throw CgiException(403);
 		case 13:
-			std::cout << "CGI ERROR 400" << std::endl;
-			break;
+			throw CgiException(400);
 		default:
-			std::cout << "CGI ERROR 500" << std::endl;
-			break;
+			throw CgiException(500);
 		}
 	}
 }

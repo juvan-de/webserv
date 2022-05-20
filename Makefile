@@ -2,11 +2,9 @@ NAME 		= 	webserv.exe
 
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
-				error.cpp \
-				htoi.cpp \
 				doesFileExist.cpp \
 				strToLower.cpp \
-				strtrim.cpp 
+				isNumber.cpp
 REQUEST_SRC	=	ContentTypes.cpp \
 				Request.cpp \
 				Response.cpp \

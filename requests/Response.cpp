@@ -3,12 +3,12 @@
 #include <dirent.h>
 #include <stdlib.h>
 
-Response::Response()
+Response::Response() : _isFinished(false)
 {
 	// std::cout << "default constructor called" << std::endl;
 }
 
-Response::Response(const Server *server, const std::string path)
+Response::Response(const Server *server, const std::string path) : _isFinished(true)
 {
 	std::stringstream ss;
 	std::string	contentType;
@@ -38,7 +38,7 @@ Response::Response(const Server *server, const std::string path)
 	this->_response = ss.str();
 }
 
-Response::Response(int errorCode, const Server *server)
+Response::Response(int errorCode, const Server *server) : _isFinished(true)
 {
 	std::stringstream ss;
 	const std::string errorStatus = StatusCodes::getStatusCode(errorCode);
@@ -55,11 +55,26 @@ Response::Response(int errorCode, const Server *server)
 	this->_response = ss.str();
 }
 
-Response::Response(const std::string& redir)
+Response::Response(const std::string& redir) : _isFinished(true)
 {
 	std::stringstream ss;
 	ss << "HTTP/1.1 " << 301 << ' ' << "Moved Permanently" << "\r\n";
 	ss << "Location: " << redir << "\r\n\r\n";
+	this->_response = ss.str();
+}
+
+Response::Response(const std::string& cgiBody, bool hasBody) : _isFinished(true)
+{
+	std::stringstream ss;
+	ss << "HTTP/1.1 " << 200 << ' ' << "OK" << "\r\n";
+	if (hasBody)
+	{
+		this->_responseBody = cgiBody;
+		ss << "Content-length: " << getResponseBody().size() << "\r\n";
+		ss << "Content-type: " << "text/html" << "\r\n\r\n";
+		ss << this->_responseBody << "\r\n";
+	}
+	ss << "\r\n";
 	this->_response = ss.str();
 }
 
@@ -72,6 +87,7 @@ Response&	Response::operator=(const Response& ref)
 {
 	this->_response = ref._response;
 	this->_responseBody = ref._responseBody;
+	this->_isFinished = ref._isFinished;
 	return (*this);
 }
 
@@ -167,6 +183,11 @@ void		Response::setResponseBodyFromError(int code, const std::string& errorStatu
 	}
 	else
 		_makeDefaultErrorPage(code, errorStatus);
+}
+
+bool		Response::isFinished()
+{
+	return (this->_isFinished);
 }
 
 std::ostream&	operator<<(std::ostream &out, const Response &obj)
