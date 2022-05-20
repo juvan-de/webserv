@@ -129,7 +129,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "Post request" << std::endl;
 			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
-			if (_cgi->getStatus() == FINNISHED)
+			if (_cgi->getStatus() == FINISHED)
 			{
 				_cgi->checkError();
 			}
