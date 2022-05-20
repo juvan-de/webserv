@@ -30,14 +30,14 @@ class	Location
 
 	public:
 		Location(std::string title = "");
-		Location(std::deque<std::string>& file, std::string& title);
+		Location(std::deque<std::string>& file, std::string& title, const std::string& curWorkDir);
 		Location(const Location& ref);
 		Location&	operator= (const Location& ref);
 		~Location();
 
 	public:		/* -Setters- */
 		void	setTitle(std::string& title);
-		void	setRoot(std::vector<std::string>& line);
+		void	setRoot(std::vector<std::string>& line, const std::string& curWorkDir);
 		void	setClientMaxBodySize(std::vector<std::string>& line);
 		void	setIndex(std::vector<std::string>& line);
 		void	setAutoindex(std::vector<std::string>& line);

@@ -132,4 +132,34 @@ class RedirWrongStatusCode : public std::exception
 		const char*	what (void) const throw();
 };
 
+class GetWDFailed : public std::exception
+{
+	protected:
+		std::string						_ret;
+	public:
+		GetWDFailed();
+		virtual ~GetWDFailed() throw();
+		const char*	what (void) const throw();
+};
+
+class RealPathFailed : public std::exception
+{
+	protected:
+		std::string						_ret;
+	public:
+		RealPathFailed();
+		virtual ~RealPathFailed() throw();
+		const char*	what (void) const throw();
+};
+
+class FileEmpty : public std::exception
+{
+	protected:
+		std::string						_ret;
+	public:
+		FileEmpty();
+		virtual ~FileEmpty() throw();
+		const char*	what (void) const throw();
+};
+
 #endif

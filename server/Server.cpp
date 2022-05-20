@@ -15,12 +15,11 @@ void	Server::_checkVarSet()
 {
 	if (this->_listen.size() == 0)
 		this->_listen.insert(80);
-
-	//all standard set var setten en checken of er meer gezet moet worden
-	//Index ?s
+	// if (this->_serverName.size() == 0)
+	// 	throw MissingServernameInServer();
 }
 
-Server::Server(std::deque<std::string>& file)
+Server::Server (std::deque<std::string>& file, const std::string& curWorkDir)
 {
 	std::vector<std::string>	splitted;
 	
@@ -41,27 +40,29 @@ Server::Server(std::deque<std::string>& file)
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
 			this->addErrorPage(splitted);
-		else if (splitted[0] == "location")
+		else if (splitted[0] != "location")
+			this->_errorJumpTable(splitted);
+		else if (splitted.size() == 2 && !file.empty())
 		{
-			if (splitted.size() == 3 && splitted[2] == "{")
+			std::vector<std::string>	temp = split_on_chars(file[0]);
+			if (temp.size() == 1 && temp[0] == "{")
 			{
-				this->addLocation(file, splitted[1]);
-				continue ;
+				file.pop_front();
+				this->addLocation(file, splitted[1], curWorkDir);
 			}
-			else if (splitted.size() == 2)
+			else
 			{
-				std::vector<std::string>	temp = split_on_chars(file[0]);
-				if (temp.size() > 0 && temp[0] == "{")
-				{
-					file.pop_front();
-					this->addLocation(file, splitted[1]);
-					continue ;
-				}
+				throw ArgumentIncorrect(temp);
 			}
-			throw ArgumentIncorrect(splitted);
+		}
+		else if (splitted.size() == 3 && splitted[2] == "{")
+		{
+			this->addLocation(file, splitted[1], curWorkDir);
 		}
 		else
-			this->_errorJumpTable(splitted);
+		{
+			throw ArgumentIncorrect(splitted);
+		}
 	}
 	throw MissingClosingBracket("Server");
 }
@@ -99,16 +100,16 @@ void	Server::setListen(std::vector<std::string>& line)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
 	{
-		if (line[i].find_first_not_of("0123456789") != std::string::npos)
+		if (line[i].find_first_not_of("0123456789") != std::string::npos) // error ipv negeren
 			continue ;
 		std::istringstream (line[i]) >> number;
 		this->_listen.insert(number);
 	}
 }
 
-void	Server::addLocation(std::deque<std::string>& file, std::string& title)
+void	Server::addLocation(std::deque<std::string>& file, std::string& title, const std::string& curWorkDir)
 {
-	Location loc(file, title);
+	Location loc(file, title, curWorkDir);
 
 	this->_locations[title] = loc;
 }

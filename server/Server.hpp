@@ -25,13 +25,13 @@ class	Server
 	public:
 		Server ();
 		Server (const Server& ref);
-		Server (std::deque<std::string>& file);
+		Server (std::deque<std::string>& file, const std::string& curWorkDir);
 		Server&	operator= (const Server& ref);
 		~Server ();
 
 		/* -Setters- */
 		void	setListen(std::vector<std::string>& line);
-		void	addLocation(std::deque<std::string>& file, std::string& title);
+		void	addLocation(std::deque<std::string>& file, std::string& title, const std::string& curWorkDir);
 		void	addErrorPage(std::vector<std::string>& line);
 		void	setServerName(std::vector<std::string>& line);
 

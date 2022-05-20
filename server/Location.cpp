@@ -1,10 +1,13 @@
+#include <unistd.h>
+#include <limits.h>
+
 #include <deque>
 #include <utils.hpp>
 #include <Location.hpp>
 #include <sstream>
 #include <exception>
 
-void	Location::_errorJumpTable(std::vector<std::string>& line) // naam aanpassen
+void	Location::_errorJumpTable(std::vector<std::string>& line)
 {
 	const std::string server_elements[] = {"listen", "server_name", "error_page", "location"};
 
@@ -30,7 +33,7 @@ void	Location::_checkVarSet()
 	//all standard set var setten en checken of er meer gezet moet worden
 }
 
-Location::Location(std::deque<std::string>& file, std::string& title) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir())
+Location::Location(std::deque<std::string>& file, std::string& title, const std::string& curWorkdir) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir())
 {
 	std::vector<std::string>	splitted;
 
@@ -46,7 +49,7 @@ Location::Location(std::deque<std::string>& file, std::string& title) : _title(t
 			return ;
 		}
 		else if (splitted[0] == "root")
-			this->setRoot(splitted);
+			this->setRoot(splitted, curWorkdir);
 		else if (splitted[0] == "client_max_body_size")
 			this->setClientMaxBodySize(splitted);
 		else if (splitted[0] == "index")
@@ -106,11 +109,17 @@ void	Location::setTitle(std::string& title)
 	this->_title = title;
 }
 
-void	Location::setRoot(std::vector<std::string>& line)
+void	Location::setRoot(std::vector<std::string>& line, const std::string& curWorkingDir)
 {
+	char		buf[PATH_MAX];
+	
 	if (line.size() != 2)
 		throw ArgumentIncorrect(line);
-	this->_root = line[1];
+	std::string root = curWorkingDir + "/" + line[1];
+	if (realpath(root.c_str(), buf) == NULL)
+		throw RealPathFailed();
+	root = std::string(buf);
+	this->_root = root;
 }
 
 void	Location::setClientMaxBodySize(std::vector<std::string>& line)
