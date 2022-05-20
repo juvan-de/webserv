@@ -3,33 +3,18 @@
 #include <unistd.h>
 #include <sstream>
 #include <utils.hpp>
-
+#include <errno.h>
 #define BUFFER_SIZE 30
 /*--------------------------------Coplien form--------------------------------*/
 
 CgiSocket::~CgiSocket()
 {
 	/*Destructor*/
-	std::cout << "WTF******************************************" << std::endl;
+	std::cout << "DEBUG: CGI SOCK CLOSED" << std::endl;
 	close(_fdOut[0]);
 	close(_fdOut[1]);
 }
 
-// CgiSocket::CgiSocket(const CgiSocket &ref)
-// {
-// 	/*Copy constructor*/
-// 	*this = ref;
-// }
-
-// CgiSocket&	CgiSocket::operator=(const CgiSocket &ref)
-// {
-// 	/*Assignation operator*/
-// 	if (this != &ref)
-// 	{
-// 		/* assign member variables*/
-// 	}
-// 	return *this;
-// }
 /*--------------------------------Coplien form--------------------------------*/
 static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
 {
@@ -62,6 +47,7 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 	/*Constructor*/
 	std::string					req_type = getType(request.getType());
 	std::string					filename = request.getLocation().substr(0, request.getLocation().find_first_of("?"));
+	std::string					root = server.getLocation("/").getRoot();
 	std::string					path;
 	std::string					filepath;
 	std::vector<std::string>	tmp;
@@ -75,7 +61,9 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 		path = server.getLocation("/").getCgi().find(".py")->second;
 	else
 		path = server.getLocation("/").getCgi().find(".php")->second;
-	filepath = path + filename;
+	// filepath = root + path + filename;
+	filepath = path + filename; // still need to add realpath to be able to do root + path + filename
+	std::cout << "CGI filepath: " << filepath << std::endl;
 
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	tmp.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -97,51 +85,50 @@ void		CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	int	pipe_out[2];
 
 	if (pipe(pipe_in))
-		std::cout << "Error: pipe didnt work" << std::endl;
+		std::cout << "CGI ERROR 500" << std::endl;
 	if (pipe(pipe_out))
 	{
 		close(pipe_in[0]);
 		close(pipe_in[1]);
-		std::cout << "Error: pipe didnt work" << std::endl;
+		std::cout << "CGI ERROR 500" << std::endl;
 	}
 
-	pid_t pid = fork();
-	if (pid == 0)
+	try
 	{
-		dup2(pipe_in[0], STDIN_FILENO);
-		dup2(pipe_out[1], STDOUT_FILENO);
-		dup2(pipe_out[1], STDERR_FILENO);
+		pid_t pid = fork();
+		if (pid == 0)
+		{
+			dup2(pipe_in[0], STDIN_FILENO);
+			dup2(pipe_out[1], STDOUT_FILENO);
+			dup2(pipe_out[1], STDERR_FILENO);
 
-		if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
-			std::cout << "Error: couldnt execv: " << errno << ", path: " << filepath << std::endl;
-		
-		close(pipe_in[0]);
-		close(pipe_in[1]);
-		close(pipe_out[0]);
-		close(pipe_out[1]);
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
-		exit(0);
+			if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
+				std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
+			
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+			close(pipe_out[0]);
+			close(pipe_out[1]);
+			close(STDOUT_FILENO);
+			close(STDERR_FILENO);
+			exit(0);
+		}
+		else
+		{
+			close(pipe_in[0]);
+			close(pipe_in[1]);
+			_fdOut[0] = pipe_out[0];
+			_fdOut[1] = pipe_out[1];
+			int flags;
+			if ((flags = fcntl(getFd(), F_GETFL)) < 0)
+				std::cout << "wtf" << std::endl;
+			if (fcntl(getFd(), F_SETFL, flags | O_NONBLOCK) < 0)
+				std::cout << "wtf" << std::endl;
+		}	
 	}
-	else
+	catch(const std::exception& e)
 	{
-		// char str[9999];
-		// int end;
-		// end = read(pipe_out[0], str, 9999);
-		// std::cout << "READ RETURN: " << end << std::endl;
-		// str[end] = '\0';
-		// std::cout << "CGI" << std::endl << std::string(str) << std::endl << "CGI" << std::endl;
-		close(pipe_in[0]);
-		close(pipe_in[1]);
-		// close(pipe_out[1]);
-		// _fdIn = pipe_in[1];
-		_fdOut[0] = pipe_out[0];
-		_fdOut[1] = pipe_out[1];
-		// int flags;
-		// if ((flags = fcntl(_fdOut, F_GETFL)) < 0)
-		// 	std::cout << "couldnt get flags" << std::endl;
-		// if (fcntl(_fdOut, F_SETFL, flags | O_NONBLOCK) < 0)
-		// 	std::cout << "couldnt set flags" << std::endl;
+		std::cerr << e.what() << '\n';
 	}
 }
 
@@ -158,8 +145,39 @@ void		CgiSocket::read_cgi()
 		_input.append(cstr);
 		std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
+	else if (ret < BUFFER_SIZE && ret >= 0)
+		_status = FINNISHED;
 	else if (ret <= -1)
 		std::cout << "\033[31m" << "READ ERROR: " << ret << "\033[0m" << std::endl;
 	else if (ret < BUFFER_SIZE && ret >= 0)
 		this->_status = FINISHED;
+}
+
+void	CgiSocket::checkError()
+{
+	std::stringstream ss;
+	int error;
+	std::string num = "";
+
+	if (_input.find("Execv error: ") != std::string::npos)
+	{
+		// forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
+		for (size_t i = 13; i < _input.size() && isdigit(_input[i]); i++)
+			num.push_back(_input[i]);
+		ss << num;
+		ss >> error;
+
+		switch (error)
+		{
+		case 2:
+			std::cout << "CGI ERROR 403" << std::endl;
+			break;
+		case 13:
+			std::cout << "CGI ERROR 400" << std::endl;
+			break;
+		default:
+			std::cout << "CGI ERROR 500" << std::endl;
+			break;
+		}
+	}
 }

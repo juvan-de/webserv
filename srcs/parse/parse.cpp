@@ -1,3 +1,6 @@
+#include <limits.h>
+#include <unistd.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -47,9 +50,15 @@ static void	setFileInDeque(const std::string filename, std::deque<std::string>& 
 void	parse(const std::string filename, std::vector<Server>& servers)
 {
 	std::deque<std::string>	filedeque;
+	char					buf[PATH_MAX];
+	std::string				curWorkDir;
 
+	(void)servers;
 	try
 	{
+		if (getwd(buf) == NULL)
+			throw GetWDFailed();
+		curWorkDir = std::string(buf);
 		setFileInDeque(filename, filedeque);
 	}
 	catch(const std::exception& e)
@@ -64,20 +73,34 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 		std::vector<std::string>	splitted;
 		while (!filedeque.empty())
 		{
-			splitted = split(filedeque[0]);
+			splitted = split_on_chars(filedeque[0]);
+			std::cout << filedeque[0] << std::endl;
 			filedeque.pop_front();
 			if (splitted.size() == 0)
 				continue ;
 			if (splitted[0] != "server")
-				throw ;
-			if ((splitted.size() == 1 && filedeque[0] == "{") || (splitted.size() == 2 && splitted[1] == "{"))
+				throw DirectiveNotRecognized(splitted);
+			if (splitted.size() == 1)
 			{
-				if (splitted.size() == 1 && filedeque[0] == "{")
+				if(filedeque.empty())
+					throw FileEmpty();
+				std::vector<std::string> temp = split_on_chars(filedeque[0]);
+				if (temp.size() == 1 && temp[0] == "{")
+				{
 					filedeque.pop_front();
-				Server server(filedeque);
-				servers.push_back(server);
+					Server server(filedeque, curWorkDir);
+					servers.push_back(server);
+					continue ;
+				}
+				throw ArgumentIncorrect(temp);
 			}
-			// throw ;
+			else if (splitted.size() == 2 && splitted[1] == "{")
+			{
+				Server server(filedeque, curWorkDir);
+				servers.push_back(server);
+				continue ;
+			}
+			throw ArgumentIncorrect(splitted);
 		}
 	}
 	catch(const std::exception& e)

@@ -34,32 +34,32 @@ Request&	Request::operator=(const Request& ref)
 
 Request::~Request() {}
 
-Type		const &Request::getType() const 
+const Type&		Request::getType() const 
 {
 	return (this->_type);
 }
 
-std::string	const &Request::getLocation() const 
+const std::string&	Request::getLocation() const 
 {
 	return (this->_location);
 }
 
-std::map<std::string, std::string>	const &Request::getHeaders() const
+const std::map<std::string, std::string, cmpCaseInsensitive >&	Request::getHeaders() const
 {
 	return (this->_headers);
 }
 
-std::string		const &Request::getInput() const
+const std::string&	Request::getInput() const
 {
 	return (this->_input);
 }
 
-std::string		const &Request::getBody() const
+const std::string&	Request::getBody() const
 {
 	return (this->_body);
 }
 
-int				const &Request::getStatusCode() const
+int	Request::getStatusCode() const
 {
 	return (this->_statusCode);
 }
@@ -92,7 +92,7 @@ bool			Request::isFinished(void)
 void			Request::setRequest(void)
 {
 	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
-	std::vector<std::string> array = split(first_line);
+	std::vector<std::string> array = split_on_chars(first_line);
 	if (array.size() != 3)
 		throw RequestException(400);
 	if (array[0] == "GET")
@@ -111,14 +111,14 @@ void			Request::setRequest(void)
 void		Request::setHeaders(void)
 {
 	size_t end = this->_input.find("\r\n\r\n") + 4;
-	std::vector<std::string> lines = split(this->_input, "\r\n");
+	std::vector<std::string> lines = split_on_str(this->_input, "\r\n");
 	lines.erase(lines.begin());
 	for (size_t i = 0; i < lines.size(); i++)
 	{
 		if (lines[i].find(":") != std::string::npos)
 		{
-			std::vector<std::string> splitted = split_mc(lines[i], ": ");
-			this->_headers[splitted[0]] = strtrim(splitted[1], " \r\n");
+			std::vector<std::string> splitted = split_on_str(lines[i], ": ");
+			this->_headers[splitted[0]] = splitted[1];
 		}
 	}
 	this->_input = this->_input.substr(end);

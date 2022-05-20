@@ -5,8 +5,10 @@ UTILS_SRC	=	split.cpp \
 				error.cpp \
 				htoi.cpp \
 				doesFileExist.cpp \
+				strToLower.cpp \
 				strtrim.cpp 
-REQUEST_SRC	=	Request.cpp \
+REQUEST_SRC	=	ContentTypes.cpp \
+				Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
 SERVER_SRC	= 	Location.cpp \
@@ -40,9 +42,10 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98 -fsanitize=address -g
+FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
 COMPILE		=	clang++
 
+#  -Wall -Wextra -Werror
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi
 
 GREEN 		= 	\033[38;5;46m

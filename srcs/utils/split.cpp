@@ -1,17 +1,13 @@
 #include <string>
 #include <vector>
+#include <iostream>
 
 bool	is_in(char c, std::string str)
 {
-	for (size_t i = 0; i < str.length(); i++)
-	{
-		if (str[i] == c)
-			return true;
-	}
-	return false;
+	return (str.find(c) != std::string::npos);
 }
 
-std::vector<std::string>	split(std::string line, std::string to_split_on)
+std::vector<std::string>	split_on_chars(std::string line, std::string to_split_on)
 {
 	std::vector<std::string>	vec;
 	std::string::iterator it = line.begin();
@@ -31,22 +27,21 @@ std::vector<std::string>	split(std::string line, std::string to_split_on)
 	return vec;
 }
 
-std::vector<std::string>	split_mc(std::string line, std::string to_split_on)
+std::vector<std::string>	split_on_str(std::string line, std::string to_split_on)
 {
 	std::vector<std::string>	vec;
-	size_t i = 0;
-	size_t start = 0;
-	while (i < line.size())
+	size_t						pos;
+	size_t						start = 0;
+
+	if (line.size() == 0)
+		return vec;
+	while ((pos = line.find(to_split_on, start)) != std::string::npos)
 	{
-		i = line.find(to_split_on, i);
-		if (i == std::string::npos)
-		{
-			vec.push_back(line.substr(start));
-			return (vec);
-		}
-		vec.push_back(line.substr(start, i));
-		i += to_split_on.size();
-		start = i;
+		if (pos != start)
+			vec.push_back(line.substr(start, pos - start));
+		start = pos + to_split_on.size();
 	}
-	return (vec);
+	if (line.size() != start)
+		vec.push_back(line.substr(start, pos - start));
+	return vec;
 }

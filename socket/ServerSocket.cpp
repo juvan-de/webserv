@@ -37,7 +37,7 @@ ClientSocket	*ServerSocket::get_new_cli()
 	sockaddr_in	newaddr;
 	socklen_t	addrlen = sizeof(sockaddr);
 
-	std::cout << "NEW CLI" << std::endl;
+	// std::cout << "NEW CLI" << std::endl;
 	if ((fd = accept(getFd(), (struct sockaddr *)&newaddr, &addrlen)) < 0)
 		throw BadConnect();
 	return new ClientSocket(fd, newaddr); //memoryleak?

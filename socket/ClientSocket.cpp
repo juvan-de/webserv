@@ -4,7 +4,7 @@
 #include <utils.hpp>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
-	Socket(fd), _status(200), _request(Request()), _cgi(NULL)
+	Socket(fd), _request(Request()), _cgi(NULL)
 {
 	int flags;
 	int opt = 1;
@@ -54,7 +54,7 @@ void	ClientSocket::handle_pollin()
 
 Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
-	std::map<std::string, std::string> headers = request.getHeaders();
+	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
 	// std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{
@@ -104,47 +104,54 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + request_location);
 }
 
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table, Poller &poll)
+#include <sstream>
+
+void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
+	std::cout << _request << std::endl;
+	Server *server = find_server(table, this->_request);
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
 		if (this->_request.getType() == GET)
 		{
-			Server *server = find_server(table, this->_request);
 			std::string	request_location = this->_request.getLocation();
 			std::cout << "TO SEARCH FOR: " << request_location << std::endl << std::endl;
 			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 			response = this->makeGetResponse(server, itr);
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
+			if (ret < 0)
+				std::cout << "send error" << std::endl;
 			this->_request = Request();
 		}
 		else if (this->_request.getType() == POST)
 		{
 			std::cout << "Post request" << std::endl;
-			std::cout << this->_request.getLocation() << std::endl;
+			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+				_cgi = new CgiSocket(_request, *server, _address);
+			if (_cgi->getStatus() == FINNISHED)
+			{
+				_cgi->checkError();
+			}
 		}
 		else if (this->_request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
+			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
+				_cgi = new CgiSocket(_request, *server, _address);
 		}
 		else if (this->_request.getType() == ERROR)
 		{
 			std::cout << "TYPE ERROR" << std::endl;
 			response = Response(this->_request.getStatusCode());
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
+			if (ret < 0)
+				std::cout << "send error" << std::endl;
 			this->_request = Request();
 		}
 		else
 		{
 			std::cout << "nothing to do here" << std::endl;
-		}
-		std::cout << "Post request" << std::endl;
-		if (!this->_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
-		{
-			Server *server = find_server(table, this->_request);
-			this->_cgi = new CgiSocket(_request, *server, _address);
-			// std::cout << cgi;
 		}
 	}
 }

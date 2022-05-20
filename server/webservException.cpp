@@ -148,7 +148,7 @@ MissingRootInLocation::MissingRootInLocation(const std::string& title) {
 MissingRootInLocation::~MissingRootInLocation() throw() {}
 const char*	MissingRootInLocation::what (void) const throw() {return this->_ret.c_str(); }
 
-/* Missing root in Location */
+/* Redirecection wrong status code */
 RedirWrongStatusCode::RedirWrongStatusCode(int statuscode) {
 	this->_ret = COLOR_WHITE_BOLD;
 	this->_ret += "Statuscode is not allowed\n";
@@ -158,3 +158,27 @@ RedirWrongStatusCode::RedirWrongStatusCode(int statuscode) {
 }
 RedirWrongStatusCode::~RedirWrongStatusCode() throw() {}
 const char*	RedirWrongStatusCode::what (void) const throw() {return this->_ret.c_str(); }
+
+/* Get Working directory failed [getwd] */
+GetWDFailed::GetWDFailed() {
+	this->_ret += COLOR_WHITE_BOLD;
+	this->_ret += "getwd failed";
+}
+GetWDFailed::~GetWDFailed() throw() {}
+const char*	GetWDFailed::what (void) const throw() {return this->_ret.c_str(); }
+
+/* Get Real Path failed */
+RealPathFailed::RealPathFailed() {
+	this->_ret += COLOR_WHITE_BOLD;
+	this->_ret += "realpath failed";
+}
+RealPathFailed::~RealPathFailed() throw() {}
+const char*	RealPathFailed::what (void) const throw() {return this->_ret.c_str(); }
+
+/* File suddenly ended, nor al information given */
+FileEmpty::FileEmpty() {
+	this->_ret += COLOR_WHITE_BOLD;
+	this->_ret += "File suddenly ended, nor al information given";
+}
+FileEmpty::~FileEmpty() throw() {}
+const char*	FileEmpty::what (void) const throw() {return this->_ret.c_str(); }
