@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 
-bool	is_in(char c, std::string str)
+static bool	is_in(char c, std::string str)
 {
 	return (str.find(c) != std::string::npos);
 }

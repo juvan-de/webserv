@@ -108,6 +108,18 @@ class ElemNotANumber : public std::exception
 		const char*	what (void) const throw();
 };
 
+class MissingLocationInServer : public std::exception
+{
+	private:
+
+	protected:
+		std::string						_ret;
+	public:
+		MissingLocationInServer();
+		virtual ~MissingLocationInServer() throw();
+		const char*	what (void) const throw();
+};
+
 class MissingRootInLocation : public std::exception
 {
 	private:

@@ -148,6 +148,14 @@ MissingRootInLocation::MissingRootInLocation(const std::string& title) {
 MissingRootInLocation::~MissingRootInLocation() throw() {}
 const char*	MissingRootInLocation::what (void) const throw() {return this->_ret.c_str(); }
 
+/* Missing root in Location */
+MissingLocationInServer::MissingLocationInServer() {
+	this->_ret = COLOR_WHITE_BOLD;
+	this->_ret += "Missing a Locationblock in a serverblock";
+}
+MissingLocationInServer::~MissingLocationInServer() throw() {}
+const char*	MissingLocationInServer::what (void) const throw() {return this->_ret.c_str(); }
+
 /* Redirecection wrong status code */
 RedirWrongStatusCode::RedirWrongStatusCode(int statuscode) {
 	this->_ret = COLOR_WHITE_BOLD;

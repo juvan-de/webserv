@@ -22,10 +22,8 @@ class	Location
 		unsigned long						_clientMaxBodySize;
 		std::vector<std::string>			_index;
 		bool								_autoindex;
-		bool								_staticDir;
 		std::map<std::string, std::string>	_cgi;
 		std::set<std::string>				_limitExcept;
-		std::string							_uploadStore;
 		Redir								_redir;
 
 	public:
@@ -41,10 +39,8 @@ class	Location
 		void	setClientMaxBodySize(std::vector<std::string>& line);
 		void	setIndex(std::vector<std::string>& line);
 		void	setAutoindex(std::vector<std::string>& line);
-		void	setStaticDir(std::vector<std::string>& line);
 		void	addCgi(std::vector<std::string>& line);
 		void	setLimitExcept(std::vector<std::string>& line);
-		void	setUploadStore(std::vector<std::string>& line);
 		void	setRedir(std::vector<std::string>& line);
 
 	private:	/* -Setters Utils- */
@@ -58,10 +54,8 @@ class	Location
 		unsigned long								getClientMaxBodySize() const;
 		const std::vector<std::string>&				getIndex() const;
 		bool										getAutoindex() const;
-		bool										getStaticDir() const;
 		const std::map<std::string, std::string>&	getCgi() const;
 		const std::set<std::string>&				getLimitExcept() const;
-		const std::string&							getUploadStore() const;
 		const Redir&								getRedir() const;
 
 		std::vector<std::string>::const_iterator	getRightIndexFile(const std::string prefix) const;

@@ -15,8 +15,10 @@ void	Server::_checkVarSet()
 {
 	if (this->_listen.size() == 0)
 		this->_listen.insert(80);
-	// if (this->_serverName.size() == 0)
-	// 	throw MissingServernameInServer();
+	if (this->_serverName.size() == 0)
+		this->_serverName.insert("localhost");
+	if (this->_locations.size() == 0)
+		throw MissingLocationInServer();
 }
 
 Server::Server (std::deque<std::string>& file, const std::string& curWorkDir)
@@ -100,8 +102,8 @@ void	Server::setListen(std::vector<std::string>& line)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
 	{
-		if (line[i].find_first_not_of("0123456789") != std::string::npos) // error ipv negeren
-			continue ;
+		if (line[i].find_first_not_of("0123456789") != std::string::npos)
+			throw ElemNotANumber(line[i], line);
 		std::istringstream (line[i]) >> number;
 		this->_listen.insert(number);
 	}
