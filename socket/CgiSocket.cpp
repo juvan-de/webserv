@@ -17,17 +17,6 @@ CgiSocket::~CgiSocket()
 	close(_pipeOut[1]);
 }
 
-/*--------------------------------Coplien form--------------------------------*/
-static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
-{
-	std::vector<const char*> envp;
-	envp.reserve(tmp.size() + 1);
-	for (size_t i = 0; i < tmp.size(); i++)
-		envp.push_back(tmp[i].c_str());
-	envp.push_back(NULL);
-	return envp;
-}
-
 static std::string	getType(Type type)
 {
 	switch (type)
@@ -42,6 +31,45 @@ static std::string	getType(Type type)
 			return "";
 	}
 	return "";
+}
+
+CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _output(std::string())
+{
+	/*Constructor*/
+	std::string					filepath;
+	std::vector<std::string>	envp;
+	std::string					req_type = getType(request.getType());
+	char						buf[INET_ADDRSTRLEN];
+
+	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
+		std::cout << "Error making ip" << std::endl;
+	if (request.getType() == POST && request.getBody().size())
+		std::cout << "entered post request" << std::endl;
+	filepath = getFilepath(server, request);
+
+	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	envp.push_back("REMOTE_ADDR=" + std::string(buf));
+	envp.push_back("REQUEST_METHOD=" + req_type);
+	envp.push_back("SCRIPT_NAME=" + request.getUri().substr(0, request.getUri().find_first_of("?")));
+	envp.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
+	envp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
+	envp.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	envp.push_back("SERVER_SOFTWARE=webserv/42");
+	envp.push_back("QUERY_STRING=" + request.getUri().substr(request.getUri().find_first_of("?") + 1, request.getUri().size() - request.getUri().find_first_of("?") - 1));
+
+	executeCgi(filepath, envp);
+}
+
+/*--------------------------------Coplien form--------------------------------*/
+static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
+{
+	std::vector<const char*> envp;
+	envp.reserve(tmp.size() + 1);
+	for (size_t i = 0; i < tmp.size(); i++)
+		envp.push_back(tmp[i].c_str());
+	envp.push_back(NULL);
+	return envp;
 }
 
 std::string	CgiSocket::getFilepath(Server server, Request request)
@@ -72,31 +100,37 @@ std::string	CgiSocket::getFilepath(Server server, Request request)
 	return filepath;
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _output(std::string())
+static void	childProccess(int pipe_in[2], int pipe_out[2], std::string filepath, std::vector<std::string> envp)
 {
-	/*Constructor*/
-	std::string					filepath;
-	std::vector<std::string>	envp;
-	std::string					req_type = getType(request.getType());
-	char						buf[INET_ADDRSTRLEN];
+	dup2(pipe_in[0], STDIN_FILENO);
+	dup2(pipe_out[1], STDOUT_FILENO);
+	dup2(pipe_out[1], STDERR_FILENO);
 
-	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
-		std::cout << "Error making ip" << std::endl;
-	filepath = getFilepath(server, request);
-
-	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	envp.push_back("REMOTE_ADDR=" + std::string(buf));
-	envp.push_back("REQUEST_METHOD=" + req_type);
-	envp.push_back("SCRIPT_NAME=" + request.getUri().substr(0, request.getUri().find_first_of("?")));
-	envp.push_back("SERVER_NAME=" + request.getHeaders().find("Referer")->second);
-	envp.push_back("SERVER_PORT=" + request.getHeaders().find("Host")->second);
-	envp.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	envp.push_back("SERVER_SOFTWARE=webserv/42");
-	envp.push_back("QUERY_STRING=" + request.getUri().substr(request.getUri().find_first_of("?") + 1, request.getUri().size() - request.getUri().find_first_of("?") - 1));
-
-	executeCgi(filepath, envp);
+	if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
+		std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
+	
+	close(pipe_in[0]);
+	close(pipe_in[1]);
+	close(pipe_out[0]);
+	close(pipe_out[1]);
+	close(STDOUT_FILENO);
+	close(STDERR_FILENO);
 }
+
+void	CgiSocket::mainProcess(int pipe_in[2], int pipe_out[2])
+{
+	_pipeIn[0] = pipe_in[0];
+	_pipeIn[1] = pipe_in[1];
+	_pipeOut[0] = pipe_out[0];
+	_pipeOut[1] = pipe_out[1];
+	_fdOut = pipe_out[0];
+	_fdIn = pipe_in[1];
+	if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
+	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
+}
+/*-------------------------------statics/private------------------------------*/
 
 void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 {
@@ -116,35 +150,9 @@ void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	{
 		pid_t pid = fork();
 		if (pid == 0)
-		{
-			dup2(pipe_in[0], STDIN_FILENO);
-			dup2(pipe_out[1], STDOUT_FILENO);
-			dup2(pipe_out[1], STDERR_FILENO);
-
-			if (execve(filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(envp).data()) < 0)
-				std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
-			
-			close(pipe_in[0]);
-			close(pipe_in[1]);
-			close(pipe_out[0]);
-			close(pipe_out[1]);
-			close(STDOUT_FILENO);
-			close(STDERR_FILENO);
-			exit(0);
-		}
+			childProccess(pipe_in, pipe_out, filepath, envp);
 		else
-		{
-			_pipeIn[0] = pipe_in[0];
-			_pipeIn[1] = pipe_in[1];
-			_pipeOut[0] = pipe_out[0];
-			_pipeOut[1] = pipe_out[1];
-			_fdOut = pipe_out[0];
-			_fdIn = pipe_in[1];
-			if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
-				throw CgiException(500);
-			if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
-				throw CgiException(500);
-		}	
+			mainProcess(pipe_in, pipe_out);
 	}
 	catch(const std::exception& e)
 	{
@@ -152,12 +160,12 @@ void	CgiSocket::executeCgi(std::string filepath, std::vector<std::string> envp)
 	}
 }
 
-void	CgiSocket::read_or_write_cgi(int fd)
+void	CgiSocket::read_from_cgi()
 {
 	char	cstr[BUFFER_SIZE + 1];
 	int		ret = 1;
 
-	ret = read(fd, cstr, BUFFER_SIZE);
+	ret = read(getFdOut(), cstr, BUFFER_SIZE);
 	if (ret > 0)
 	{
 		cstr[ret] = '\0';
@@ -167,6 +175,16 @@ void	CgiSocket::read_or_write_cgi(int fd)
 	else if (ret < BUFFER_SIZE && ret >= 0)
 		_status = FINISHED;
 	else if (ret <= -1)
+		throw CgiException(500);
+}
+
+void	CgiSocket::write_to_cgi()
+{
+	std::string input;
+	int		ret = 1;
+
+	ret = write(getFdIn(), input.c_str(), input.size());
+	if (ret <= -1)
 		throw CgiException(500);
 }
 

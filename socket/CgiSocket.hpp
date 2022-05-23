@@ -29,6 +29,7 @@ class CgiSocket
 		std::string					_output;
 
 		std::string			getFilepath(Server server, Request request);
+		void				mainProcess(int pipe_in[2], int pipe_out[2]);
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		~CgiSocket();
@@ -36,7 +37,8 @@ class CgiSocket
 		/*--------------------------Member functions--------------------------*/
 		CgiSocket(Request request, Server server, sockaddr_in client_struct);
 		void				executeCgi(std::string filepath, std::vector<std::string> envp);
-		void				read_or_write_cgi(int fd);
+		void				read_from_cgi();
+		void				write_to_cgi();
 		void				checkError();
 		
 		int					getFdIn() const { return _fdIn; }
