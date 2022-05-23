@@ -69,7 +69,10 @@ void			Poller::addSocket(CgiSocket *cgi)
 	if (cgi->getBodyStatus() == HASBODY)
 		fd = cgi->getFdIn();
 	else
+	{
+		std::cout << "sugvaosvtgq3478gpq08egve87gvqf78agdf8bgaofgoafsgbpaifsybgpaid" << std::endl;
 		fd = cgi->getFdOut();
+	}
 	_lookup.insert(std::pair<int, t_type>(fd, CGI));
 	_cgi_socks.insert(std::pair<int, CgiSocket*>(fd, cgi));
 	_pollfds.push_back(addPoll(fd));
@@ -147,6 +150,9 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 			{
 				std::cout << "BODY FOUND**************************" << std::endl;
 				_cgi_socks.find(it->first)->second->write_to_cgi();
+				_cgi_socks.find(it->first)->second->setBodyStatus(SENTBODY);
+				addSocket(_cgi_socks.find(it->first)->second);
+				deleteSocket(it->first);
 			}
 			else {
 				_cgi_socks.find(it->first)->second->setSatus(FINISHED);
