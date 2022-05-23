@@ -134,9 +134,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else if (this->_request.getType() == POST)
 		{
 			std::cout << "Post request" << std::endl;
-			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
+			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
-			if (_cgi->getStatus() == FINISHED)
+			if (_cgi && _cgi->getStatus() == FINISHED)
 			{
 				_cgi->checkError();
 			}
@@ -144,8 +144,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else if (this->_request.getType() == DELETE)
 		{
 			std::cout << "we be deletin tho" << std::endl;
-			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
+			std::cout << "Post request" << std::endl;
+			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
+			if (_cgi && _cgi->getStatus() == FINISHED)
+			{
+				_cgi->checkError();
+			}
 		}
 		else if (this->_request.getType() == ERROR)
 		{

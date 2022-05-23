@@ -17,26 +17,39 @@ typedef enum e_status
 	FINISHED = 2
 } t_status;
 
+typedef enum e_body
+{
+	NONE = 0,
+	HASBODY = 2,
+	SENTBODY = 3,
+} t_body;
+
 class CgiSocket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
 		t_status					_status;
+		t_body						_bodyStatus;
+		std::string					_filepath;
+		std::vector<std::string>	_envp;
 		int							_pipeIn[2];
 		int							_pipeOut[2];
 		int							_fdIn;
 		int							_fdOut;
+		std::string					_input;
 		std::string					_output;
 
 		std::string			getFilepath(Server server, Request request);
-		void				mainProcess(int pipe_in[2], int pipe_out[2]);
+		void				mainProcess();
+		void				childProccess();
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		~CgiSocket();
 
 		/*--------------------------Member functions--------------------------*/
 		CgiSocket(Request request, Server server, sockaddr_in client_struct);
-		void				executeCgi(std::string filepath, std::vector<std::string> envp);
+		void				prepareCgi();
+		void				executeCgi();
 		void				read_from_cgi();
 		void				write_to_cgi();
 		void				checkError();
@@ -44,8 +57,11 @@ class CgiSocket
 		int					getFdIn() const { return _fdIn; }
 		int					getFdOut() const { return _fdOut; }
 		const std::string	getInput() const { return _output; }
-		void				setSatus(t_status status) { _status = status; }
 		t_status			getStatus() const { return _status; }
+		t_body				getBodyStatus() const { return _bodyStatus; }
+		void				setSatus(t_status status) { _status = status; }
+		void				setBodyStatus(t_body status) { _bodyStatus = status; }
+
 
 	private: /* -Exception- */
 		class CgiException : public std::exception

@@ -64,7 +64,12 @@ void			Poller::addSocket(ClientSocket *cli)
 
 void			Poller::addSocket(CgiSocket *cgi)
 {
-	int fd = cgi->getFdOut();
+	int fd;
+	
+	if (cgi->getBodyStatus() == HASBODY)
+		fd = cgi->getFdIn();
+	else
+		fd = cgi->getFdOut();
 	_lookup.insert(std::pair<int, t_type>(fd, CGI));
 	_cgi_socks.insert(std::pair<int, CgiSocket*>(fd, cgi));
 	_pollfds.push_back(addPoll(fd));
@@ -138,7 +143,14 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 		else if (it->second & POLLIN)
 			_cgi_socks.find(it->first)->second->read_from_cgi();
 		else if (it->second & POLLOUT) {
-			_cgi_socks.find(it->first)->second->setSatus(FINISHED);
+			if (_cgi_socks.find(it->first)->second->getBodyStatus() == HASBODY)
+			{
+				std::cout << "BODY FOUND**************************" << std::endl;
+				_cgi_socks.find(it->first)->second->write_to_cgi();
+			}
+			else {
+				_cgi_socks.find(it->first)->second->setSatus(FINISHED);
+			}
 			std::cout << "CGI POLLOUT: " << _cgi_socks.find(it->first)->second->getStatus() << std::endl;
 		}
 	}
@@ -153,6 +165,7 @@ Poller::Poller(std::set<int> server_ports)
 
 static void		getActiveFd(std::vector< std::pair<int, short> > &vec, pollfd poll)
 {
+	std::cout << "active fd: " << poll.fd << ", revents: " << poll.revents << std::endl;
 	if (poll.revents & POLLHUP)
 		vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
 	else if (poll.revents & POLLIN)
