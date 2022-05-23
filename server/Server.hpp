@@ -44,7 +44,7 @@ class	Server
 		const std::set<std::string>&					getServerName() const;
 		std::map<std::string, Location>::const_iterator	getRightLocation(const std::string& request_loc) const;
 
-		/* Not parse exception */  //Hoe willen we dit preies vormgeven
+		/* Not parse exception */
 		class LocationDoesNotExist : public std::exception
 		{
 			const char*	what(void) const throw()
