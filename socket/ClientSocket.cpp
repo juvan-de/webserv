@@ -59,7 +59,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname: " << std::endl;
+		// std::cout << "error finding hostname: " << std::endl;
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
@@ -67,7 +67,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (table.find(std::make_pair(port, name)) == table.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << " pair" << std::endl;
+		// std::cout << " pair" << std::endl;
 		return NULL;
 	}
 	return (table[std::make_pair(port, name)]);
@@ -77,14 +77,14 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 {
 	const std::string& uri = this->_request.getUri();
 
-	std::cout << "RESPONSE BUILDING" << std::endl;
+	// std::cout << "RESPONSE BUILDING" << std::endl;
 	std::cout << location->first << std::endl;
 	
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return Response(413, server);
 	if (location == server->getLocations().end()) /* bad request */
 		return Response(404, server);
-	std::cout << location->second.getRedir().isSet() << std::endl;
+	// std::cout << location->second.getRedir().isSet() << std::endl;
 	if (location->second.getRedir().isSet())
 		return Response(location->second.getRedir().getLocation());
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
@@ -107,7 +107,7 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	std::cout << this->_request << std::endl;
+	// std::cout << this->_request << std::endl;
 	Server *server = find_server(table, this->_request);
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
@@ -117,9 +117,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			try
 			{
 				std::string	uri = this->_request.getUri();
-				std::cout << "TO SEARCH FOR: " << uri << std::endl << std::endl;
+				// std::cout << "TO SEARCH FOR: " << uri << std::endl << std::endl;
 				std::map<std::string, Location>::const_iterator itr = server->getRightLocation(uri);
-				std::cout << itr->second.getRoot() << std::endl;
+				// std::cout << itr->second.getRoot() << std::endl;
 				response = this->makeGetResponse(server, itr);
 			}
 			catch(const Response::ResponseException& e)
@@ -128,12 +128,12 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			}
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
 			if (ret < 0)
-				std::cout << "send error" << std::endl;
+				// std::cout << "send error" << std::endl;
 			this->_request = Request();
 		}
 		else if (this->_request.getType() == POST)
 		{
-			std::cout << "Post request" << std::endl;
+			// std::cout << "Post request" << std::endl;
 			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)
@@ -143,7 +143,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == DELETE)
 		{
-			std::cout << "we be deletin tho" << std::endl;
+			// std::cout << "we be deletin tho" << std::endl;
 			std::cout << "Post request" << std::endl;
 			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
 				_cgi = new CgiSocket(_request, *server, _address);

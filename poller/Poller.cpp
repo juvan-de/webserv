@@ -46,6 +46,25 @@ static pollfd	addPoll(int fd)
 }
 /*------------------------------private functions-----------------------------*/
 
+void			Poller::changePoll(int oldFd, int newFd)
+{
+	std::cout << "changing poll old fd: " << oldFd << ", new fd: " << newFd << std::endl;
+	for (std::vector<pollfd>::iterator it = _pollfds.begin(); it != _pollfds.end(); it++)
+	{
+		if (it->fd == oldFd)
+		{
+			std::map<int, CgiSocket*>::iterator cgi_it = _cgi_socks.find(it->fd);
+			CgiSocket *socket = cgi_it->second;
+			_cgi_socks.erase(cgi_it);
+			_cgi_socks.insert(std::pair<int, CgiSocket*>(newFd, socket));
+			_lookup.erase(_lookup.find(oldFd));
+			_lookup.insert(std::pair<int, t_type>(newFd, CGI));
+			it->fd = newFd;
+			return ;
+		}
+	}
+}
+
 void			Poller::addSocket(ServerSocket *serv)
 {
 	int fd = serv->getFd();
@@ -69,10 +88,7 @@ void			Poller::addSocket(CgiSocket *cgi)
 	if (cgi->getBodyStatus() == HASBODY)
 		fd = cgi->getFdIn();
 	else
-	{
-		std::cout << "sugvaosvtgq3478gpq08egve87gvqf78agdf8bgaofgoafsgbpaifsybgpaid" << std::endl;
 		fd = cgi->getFdOut();
-	}
 	_lookup.insert(std::pair<int, t_type>(fd, CGI));
 	_cgi_socks.insert(std::pair<int, CgiSocket*>(fd, cgi));
 	_pollfds.push_back(addPoll(fd));
@@ -105,6 +121,7 @@ void			Poller::deleteSocket(int fd)
 			break ;
 		}
 	}
+	_lookup.erase(_lookup.find(fd));
 }
 
 void			Poller::handleServ(std::vector< std::pair<int, short> > servers)
@@ -138,26 +155,26 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 {
 	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
 	{
-		std::cout << "cgi revents: " << it->second << std::endl;
-		if (it->second & POLLHUP || _cgi_socks.find(it->first)->second->getStatus() == FINISHED) {
+		CgiSocket *socket = _cgi_socks.find(it->first)->second;
+		std::cout << "cgi fd: " << it->first <<  ", revents: " << it->second << std::endl;
+		if (it->second & POLLHUP || socket->getStatus() == FINISHED) {
 			std::cout << "cgi POLLHUP" << std::endl;
 			deleteSocket(it->first);
 		}
 		else if (it->second & POLLIN)
-			_cgi_socks.find(it->first)->second->read_from_cgi();
+			socket->read_from_cgi();
 		else if (it->second & POLLOUT) {
-			if (_cgi_socks.find(it->first)->second->getBodyStatus() == HASBODY)
+			if (socket->getBodyStatus() == HASBODY)
 			{
 				std::cout << "BODY FOUND**************************" << std::endl;
-				_cgi_socks.find(it->first)->second->write_to_cgi();
-				_cgi_socks.find(it->first)->second->setBodyStatus(SENTBODY);
-				addSocket(_cgi_socks.find(it->first)->second);
-				deleteSocket(it->first);
+				socket->write_to_cgi();
+				socket->setBodyStatus(SENTBODY);
+				changePoll(socket->getFdIn(), socket->getFdOut());
 			}
 			else {
 				_cgi_socks.find(it->first)->second->setSatus(FINISHED);
 			}
-			std::cout << "CGI POLLOUT: " << _cgi_socks.find(it->first)->second->getStatus() << std::endl;
+			// std::cout << "CGI POLLOUT: " << socket->getStatus() << std::endl;
 		}
 	}
 }
@@ -171,7 +188,7 @@ Poller::Poller(std::set<int> server_ports)
 
 static void		getActiveFd(std::vector< std::pair<int, short> > &vec, pollfd poll)
 {
-	std::cout << "active fd: " << poll.fd << ", revents: " << poll.revents << std::endl;
+	// std::cout << "active fd: " << poll.fd << ", revents: " << poll.revents << std::endl;
 	if (poll.revents & POLLHUP)
 		vec.push_back(std::pair<int, short>(poll.fd, poll.revents));
 	else if (poll.revents & POLLIN)
@@ -204,13 +221,13 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 				getActiveFd(clients, *it);
 				break;
 			case CGI:
-				std::cout << "IT RECOGNIZES CGI" << std::endl;
+				// std::cout << "IT RECOGNIZES CGI" << std::endl;
 				getActiveFd(cgi, *it);
 				break;
 			}
 		}
-		std::cout << "ExecutePoll serves size: " << servers.size() << std::endl;
-		std::cout << "ExecutePoll clients size: " << clients.size() << std::endl;
+		// std::cout << "ExecutePoll serves size: " << servers.size() << std::endl;
+		// std::cout << "ExecutePoll clients size: " << clients.size() << std::endl;
 		std::cout << "ExecutePoll cgi size: " << cgi.size() << std::endl;
 		handleCgi(cgi);
 		handleCli(clients, table);
