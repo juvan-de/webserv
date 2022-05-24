@@ -189,7 +189,7 @@ void			Request::readChunked(int fd)
 	if (this->_input == "0\r\n\r\n")
 	{
 		this->_isFinished = true;
-		// std::cout << "we finishin\n";
+		std::cout << "we finishin\n";
 	}
 }
 

@@ -113,9 +113,6 @@ void	CgiSocket::childProccess()
 	dup2(_pipeOut[1], STDOUT_FILENO);
 	dup2(_pipeOut[1], STDERR_FILENO);
 
-	// char buff[999999];
-	// read(STDIN_FILENO, buff, 999999);
-	// std::cout << buff << std::endl;
 	if (execve(_filepath.c_str(), (char *const *)std::vector<char const*>().data(), (char *const *)vec_to_arr(_envp).data()) < 0)
 		std::cout << "Execv error: " << errno << std::endl; // forbidden 403(errno = 2), 500 Internal Server Error (1, 3, 4, 5, error), bad request 400 (13)
 	
@@ -209,7 +206,6 @@ void	CgiSocket::write_to_cgi()
 	ret = write(getFdIn(), _input.c_str(), _input.size());
 	if (ret <= -1)
 		throw CgiException(500);
-	executeCgi();
 	_bodyStatus = SENTBODY;
 }
 
