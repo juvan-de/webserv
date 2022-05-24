@@ -142,8 +142,11 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 		else if (it->second & POLLOUT)
 		{
 			_client_socks.find(it->first)->second->handle_pollout(table);
-			if (_client_socks.find(it->first)->second->getCgi() && _client_socks.find(it->first)->second->getCgi()->getStatus() == CREATED) {
-				// std::cout << "ADDED A CGI" << std::endl;
+			if (_client_socks.find(it->first)->second->getCgi())
+				std::cout << "CLI MADE A CGI: " << _client_socks.find(it->first)->second->getCgi()->getStatus() << ", " << CREATED << std::endl;
+			if (_client_socks.find(it->first)->second->getCgi() && _client_socks.find(it->first)->second->getCgi()->getStatus() == CREATED)
+			{
+				std::cout << "ADDED A CGI" << std::endl;
 				addSocket(_client_socks.find(it->first)->second->getCgi());
 				_client_socks.find(it->first)->second->getCgi()->setSatus(ADDED);
 			}
@@ -228,7 +231,7 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 		}
 		// std::cout << "ExecutePoll serves size: " << servers.size() << std::endl;
 		// std::cout << "ExecutePoll clients size: " << clients.size() << std::endl;
-		std::cout << "ExecutePoll cgi size: " << cgi.size() << std::endl;
+		// std::cout << "ExecutePoll cgi size: " << cgi.size() << std::endl;
 		handleCgi(cgi);
 		handleCli(clients, table);
 		handleServ(servers);

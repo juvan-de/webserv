@@ -110,6 +110,32 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
+static std::string	isCgiRequest(Server *server, Request request)
+{
+	std::string	request_location = request.getUri();
+	std::map<std::string, Location>::const_iterator location = server->getRightLocation(request_location);
+
+	if (location == server->getLocations().end())
+		return "";
+	else
+	{
+		for (std::map<std::string, std::string>::const_iterator it = location->second.getCgi().begin(); it != location->second.getCgi().end(); it++)
+		{
+			size_t pos;
+			if (request.getType() == POST)
+			{
+				if ((pos = request_location.find(it->first)))
+					return request_location.substr(0, pos) + it->first;
+			}
+			else
+			{
+				if ((pos = request_location.find(it->first + "?")))
+					return request_location.substr(0, pos) + it->first;
+			}
+		}
+	}
+	return "";
+}
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
@@ -117,12 +143,14 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
+		std::string	filename;
 		Server *server = find_server(table, this->_request);
-		std::cout << "request in pollout:\n" << this->_request << std::endl;
+		// std::cout << "request in pollout:\n" << this->_request << std::endl;
 		try 
 		{
-			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
-				_cgi = new CgiSocket(_request, *server, _address);
+			filename = isCgiRequest(server, this->_request);
+			if (!_cgi && filename.compare(""))
+				_cgi = new CgiSocket(filename, this->_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)
 			{
 				this->_cgi->checkError();
