@@ -4,7 +4,8 @@ PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				doesFileExist.cpp \
 				strToLower.cpp \
-				isNumber.cpp
+				isNumber.cpp \
+				strtrim.cpp
 REQUEST_SRC	=	ContentTypes.cpp \
 				Request.cpp \
 				Response.cpp \
@@ -40,7 +41,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
+FLAGS 		=	-std=c++98 -fsanitize=address -g
 COMPILE		=	clang++
 
 #  -Wall -Wextra -Werror

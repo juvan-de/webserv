@@ -3,6 +3,7 @@
 #include <Request.hpp>
 #include <utils.hpp>
 #include <sstream>
+#include <ostream>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
@@ -109,6 +110,35 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + request_location);
 }
 
+Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
+{
+	std::cout << "we're handling the post now" << std::endl;
+	std::string filename;
+	std::map<std::string, std::string, cmpCaseInsensitive> headers = this->_request.getHeaders();
+	if (headers.find("Content-Disposition") == headers.end())
+	{
+		std::string start = size_t boundary_start = headers.find("Content-Type")->second;
+		size_t boundary_start = start.find("boundary=") + 9;
+		std::string boundary = start.substr(boundary_start);
+		filename = "image.png";
+		std::cout << "some error here, prob bad request" << std::endl;
+	//	return Response(400, server);
+	}
+	else
+	{
+		std::string content = headers.find("Content-Disposition")->second;
+		std::cout << "CONTENT BBY: " << content << std::endl;
+		size_t pos = content.find("filename=") + 10; //hacky parsing prob
+		std::string filename = strtrim(content.substr(pos), "\"");
+		if (filename.size() == 1)
+			return Response(400, server);
+	}
+	std::string upload_location = location->second.getRoot() + this->_request.getLocation() + "/" + filename;
+	std::cout << "location: " << upload_location << std::endl;
+	std::ofstream os(upload_location);
+	os.write(this->_request.getBody().c_str(), this->_request.getBody().size()); 
+	return Response(200, server);
+}
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
@@ -117,7 +147,6 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	{
 		Response response;
 		Server *server = find_server(table, this->_request);
-		std::cout << "request in pollout:\n" << this->_request << std::endl;
 		try 
 		{
 			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
@@ -140,7 +169,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == POST)
 		{
-			std::cout << "here we are going to upload the picture :D" << std::endl;
+			std::string	request_location = this->_request.getLocation();
+			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+			response = handle_post(server, itr);
 		}
 		else if (this->_request.getType() == DELETE)
 		{
@@ -155,7 +186,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "nothing to do here" << std::endl;
 		if (response.isFinished())
 		{
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
+			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
 			if (ret < 0)
 				std::cout << "send error" << std::endl;
 			this->_request = Request();	

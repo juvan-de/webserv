@@ -115,8 +115,10 @@ void			Request::setRequest(void)
 
 void		Request::setHeaders(void)
 {
+	std::cout << "INPUT:\n" << _input << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
-	std::vector<std::string> lines = split_on_str(this->_input, "\r\n");
+	std::string headers = this->_input.substr(0, end);
+	std::vector<std::string> lines = split_on_str(headers, "\r\n");
 	lines.erase(lines.begin());
 	for (size_t i = 0; i < lines.size(); i++)
 	{
