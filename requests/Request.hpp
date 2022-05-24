@@ -45,6 +45,7 @@ class	Request
 	void						setResponse(Response response);
 	void						setRequest(void);
 	void						setHeaders(void);
+	void						append_body(void);
 	void						setType(Type code);
 	void						setStatusCode(int code);
 	void						setAsFinished();
