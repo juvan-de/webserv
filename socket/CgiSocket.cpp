@@ -33,7 +33,8 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) : _status(CREATED), _bodyStatus(NONE), _input(std::string()), _output(std::string())
+CgiSocket::CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct)
+	 : _status(CREATED), _bodyStatus(NONE), _input(std::string()), _output(std::string())
 {
 	/*Constructor*/
 	std::stringstream			ss;
@@ -41,16 +42,15 @@ CgiSocket::CgiSocket(Request request, Server server, sockaddr_in client_struct) 
 	std::string					req_type = getType(request.getType());
 	char						buf[INET_ADDRSTRLEN];
 
-	std::cout << "***CGI*** type: " << request.getType() << " rec type: " << POST << ", body size: " << request.getInput().size() << std::endl;
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
 		std::cout << "Error making ip" << std::endl;
-	if (request.getInput().size() > 0)
+	if (request.getBody().size() > 0)
 	{
 		_bodyStatus = HASBODY;
-		_input = request.getInput();
+		_input = request.getBody();
 	}
-	_filepath = getFilepath(server, request);
-	ss << request.getInput().size();
+	_filepath = getFilepath(filename, server);
+	ss << request.getBody().size();
 	ss >> body_len;
 
 	_envp.push_back("GATEWAY_INTERFACE=CGI/1.1");
@@ -79,27 +79,21 @@ static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
 	return envp;
 }
 
-std::string	CgiSocket::getFilepath(Server server, Request request)
+std::string	CgiSocket::getFilepath(std::string filename, Server server)
 {
 	std::map<std::string, Location>::const_iterator 	location;
 	std::map<std::string, std::string>::const_iterator	path;
 	std::string											root;
-	std::string											filename;
 	std::string											filepath;
 	int 												ret;
 	
 	location = server.getRightLocation("/");
 	if (location == server.getLocations().end())
 		throw CgiException(404);
-	if (request.getUri().find(".py?") != std::string::npos)
-		path = location->second.getCgi().find(".py");
-	else
-		path = location->second.getCgi().find(".php");
+	path = location->second.getCgi().find(filename.substr(filename.find("."), filename.size()));
 	if (path == location->second.getCgi().end())
 		throw CgiException(400);
-	
 	root = location->second.getRoot();
-	filename = request.getUri().substr(0, request.getUri().find_first_of("?"));
 	filepath = root + "/" + path->second + filename;
 
 	if ((ret = isValidPath(root, filepath)) != 0)
@@ -133,10 +127,6 @@ void	CgiSocket::mainProcess()
 		throw CgiException(500);
 	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
 		throw CgiException(500);
-	// _pipeIn[0] = pipe_in[0];
-	// _pipeIn[1] = pipe_in[1];
-	// _pipeOut[0] = pipe_out[0];
-	// _pipeOut[1] = pipe_out[1];
 }
 
 void	CgiSocket::executeCgi()
@@ -206,6 +196,7 @@ void	CgiSocket::write_to_cgi()
 	ret = write(getFdIn(), _input.c_str(), _input.size());
 	if (ret <= -1)
 		throw CgiException(500);
+	executeCgi();
 	_bodyStatus = SENTBODY;
 }
 

@@ -39,7 +39,7 @@ class CgiSocket
 		std::string					_input;
 		std::string					_output;
 
-		std::string			getFilepath(Server server, Request request);
+		std::string			getFilepath(std::string filename, Server server);
 		void				mainProcess();
 		void				childProccess();
 	public:
@@ -47,7 +47,7 @@ class CgiSocket
 		~CgiSocket();
 
 		/*--------------------------Member functions--------------------------*/
-		CgiSocket(Request request, Server server, sockaddr_in client_struct);
+		CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct);
 		void				prepareCgi();
 		void				executeCgi();
 		void				read_from_cgi();
@@ -62,8 +62,7 @@ class CgiSocket
 		void				setSatus(t_status status) { _status = status; }
 		void				setBodyStatus(t_body status) { _bodyStatus = status; }
 
-
-	private: /* -Exception- */
+	public: /* -Exception- */
 		class CgiException : public std::exception
 		{
 			private:
