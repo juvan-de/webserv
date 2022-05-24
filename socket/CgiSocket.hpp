@@ -62,8 +62,7 @@ class CgiSocket
 		void				setSatus(t_status status) { _status = status; }
 		void				setBodyStatus(t_body status) { _bodyStatus = status; }
 
-
-	private: /* -Exception- */
+	public: /* -Exception- */
 		class CgiException : public std::exception
 		{
 			private:

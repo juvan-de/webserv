@@ -74,9 +74,14 @@ void			Request::addto_request(int fd)
 
 	// this can return an error if operation would block, see man page
 	ret = recv(fd, cstr, BUFFER_SIZE, MSG_DONTWAIT);
-	if (ret > 0)
+	if (ret > 0 && ret < BUFFER_SIZE)
 	{
-		cstr[ret] = '\0';
+		this->_input.append(cstr);
+		this->_isFinished = true;
+	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+	}
+	else if (ret > 0)
+	{
 		this->_input.append(cstr);
 	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
@@ -86,7 +91,7 @@ void			Request::addto_request(int fd)
 
 bool			Request::isFinished(void)
 {
-	std::string::reverse_iterator rit = this->_input.rbegin();
+	std::string::reverse_iterator rit = this->_body.rbegin();
 	if (rit[0] == '\n' && rit[1] == '\r' && rit[2] == '\n' && rit[3] == '\r')
 		return (true);
 	return (false);
@@ -133,12 +138,21 @@ void		Request::setHeaders(void)
 	}
 	else
 	{
-		it = this->_headers.find("content-length"); //case sensitive
+		this->_isChunked = false;
+		it = this->_headers.find("Content-Length");
 		if (it == this->_headers.end() && this->_type == POST)
 			throw RequestException(411);
-		this->_isChunked = false;
-		this->_isFinished = true;
+		if (this->_input.size() == 0) //unsure if failproof
+			this->_isFinished = true;
 	}
+}
+
+void		Request::append_body()
+{
+	this->_body.append(this->_input);
+	this->_input.clear();
+	if (this->isFinished())
+		this->_isFinished = true;
 }
 
 void		Request::setType(Type code)

@@ -2,6 +2,7 @@
 #include <BadInit.hpp>
 #include <Request.hpp>
 #include <utils.hpp>
+#include <sstream>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
@@ -32,14 +33,18 @@ void	ClientSocket::handle_pollin()
 		if (this->_request.getType() == NOTSET)
 		{
 			this->_request.setRequest();
-			std::cout << std::endl << std::endl << "REQUEST IN POLLLIN" << std::endl << this->_request << std::endl;
 			this->_request.setHeaders();
 		}
 		if (this->_request.checkIfChunked())
 		{
-			// std::cout << "CHUNKED" << std::endl;
+			std::cout << "CHUNKED" << std::endl;
 			this->_request.readChunked(getFd());
 		}
+		if (this->_request.getInput().size() > 0)
+		{
+			this->_request.append_body();
+		} 
+		std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -105,65 +110,56 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	// std::cout << this->_request << std::endl;
-	Server *server = find_server(table, this->_request);
+	std::cout << "POLLOUT" << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
+		Server *server = find_server(table, this->_request);
+		std::cout << "request in pollout:\n" << this->_request << std::endl;
+		try 
+		{
+			if (!_cgi && (_request.getUri().find(".php?") != std::string::npos || _request.getUri().find(".py?") != std::string::npos))
+				_cgi = new CgiSocket(_request, *server, _address);
+			if (_cgi && _cgi->getStatus() == FINISHED)
+			{
+				this->_cgi->checkError();
+				response = Response(this->_cgi->getInput(), true);
+			}
+		}
+		catch (CgiSocket::CgiException& e)
+		{
+			response = Response(e.getError(), server);
+		}
 		if (this->_request.getType() == GET)
 		{
-			try
-			{
-				std::string	uri = this->_request.getUri();
-				// std::cout << "TO SEARCH FOR: " << uri << std::endl << std::endl;
-				std::map<std::string, Location>::const_iterator itr = server->getRightLocation(uri);
-				// std::cout << itr->second.getRoot() << std::endl;
-				response = this->makeGetResponse(server, itr);
-			}
-			catch(const Response::ResponseException& e)
-			{
-				response = Response(e.getError(), server);
-			}
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen, moet er nog ierts met de reurn gebeuren?
-			if (ret < 0)
-				// std::cout << "send error" << std::endl;
-			this->_request = Request();
+			std::string	request_location = this->_request.getUri();
+			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+			response = this->makeGetResponse(server, itr);
 		}
 		else if (this->_request.getType() == POST)
 		{
-			// std::cout << "Post request" << std::endl;
-			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
-				_cgi = new CgiSocket(_request, *server, _address);
-			if (_cgi && _cgi->getStatus() == FINISHED)
-			{
-				_cgi->checkError();
-			}
+			std::cout << "here we are going to upload the picture :D" << std::endl;
 		}
 		else if (this->_request.getType() == DELETE)
 		{
-			// std::cout << "we be deletin tho" << std::endl;
-			std::cout << "Post request" << std::endl;
-			if (!_cgi && (_request.getUri().find(".php") != std::string::npos || _request.getUri().find(".py") != std::string::npos))
-				_cgi = new CgiSocket(_request, *server, _address);
-			if (_cgi && _cgi->getStatus() == FINISHED)
-			{
-				_cgi->checkError();
-			}
+			std::cout << "we be deletin tho" << std::endl;
 		}
 		else if (this->_request.getType() == ERROR)
 		{
 			std::cout << "TYPE ERROR" << std::endl;
 			response = Response(this->_request.getStatusCode());
+		}
+		else
+			std::cout << "nothing to do here" << std::endl;
+		if (response.isFinished())
+		{
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
 			if (ret < 0)
 				std::cout << "send error" << std::endl;
-			this->_request = Request();
-		}
-		else
-		{
-			std::cout << "nothing to do here" << std::endl;
+			this->_request = Request();	
 		}
 	}
 }
