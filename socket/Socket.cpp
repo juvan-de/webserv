@@ -24,5 +24,5 @@ Socket::Socket(int domain, int service, int protocol)
 
 Socket::Socket(int fd) : _fd(fd)
 {
-	// std::cout << "Debug: constructing sock " << _fd << std::endl;
+	std::cout << "Debug: constructing sock " << _fd << std::endl;
 }

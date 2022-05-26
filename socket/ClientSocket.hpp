@@ -22,6 +22,7 @@ class ClientSocket : public Socket
 	public:
 		/*--------------------------Member functions--------------------------*/
 		ClientSocket(int fd, sockaddr_in addr);
+		const Request		getRequest() const { return _request; }
 		CgiSocket			*getCgi() { return _cgi; }
 		struct sockaddr_in	&getAddr() { return _address; }
 		void				handle_pollin();
