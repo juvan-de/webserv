@@ -12,6 +12,7 @@ Request::Request()
 	this->_isFinished = false;
 	this->_isChunked = false;
 	this->_statusCode = 200;
+	this->_bytesRead = 0;
 }
 
 Request::Request(const Request& ref)
@@ -29,6 +30,7 @@ Request&	Request::operator=(const Request& ref)
 	this->_isFinished = ref.readyForParse();
 	this->_body = ref.getBody();
 	this->_statusCode = ref.getStatusCode();
+	this->_bytesRead = ref.getBytesRead();
 	return (*this);
 }
 
@@ -64,23 +66,30 @@ int	Request::getStatusCode() const
 	return (this->_statusCode);
 }
 
+size_t Request::getBytesRead() const
+{
+	return (this->_bytesRead);
+}
+
 void			Request::addto_request(int fd)
 {
-	char	cstr[BUFFER_SIZE + 1];
+	char	cstr[BUFFER_SIZE];
 	int		ret = 1;
 
 	// this can return an error if operation would block, see man page
-	ret = recv(fd, cstr, BUFFER_SIZE, MSG_DONTWAIT);
+	ret = recv(fd, cstr, BUFFER_SIZE, 0);
+	std::cout << "reading from request: " << cstr <<  std::endl;
 	if (ret > 0 && ret < BUFFER_SIZE)
 	{
-		this->_input.append(cstr);
-		this->_isFinished = true;
-	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+		this->_input.append(cstr, ret);
+		this->_bytesRead = ret;
+		if (this->_type != NOTSET)
+			this->_isFinished = true;
 	}
 	else if (ret > 0)
 	{
-		this->_input.append(cstr);
-	//	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+		this->_input.append(cstr, ret);
+		this->_bytesRead = ret;
 	}
 	else if (ret <= -1)
 		throw RequestException(505);
@@ -89,8 +98,16 @@ void			Request::addto_request(int fd)
 bool			Request::isFinished(void)
 {
 	std::string::reverse_iterator rit = this->_body.rbegin();
-	if (rit[0] == '\n' && rit[1] == '\r' && rit[2] == '\n' && rit[3] == '\r')
-		return (true);
+	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
+	if (rit[0] == '\n' && rit[1] == '\r' && rit[2] == '\n' && rit[3] == '\r') //needs work
+	{
+		if (it == this->_headers.end())
+			return (true);
+		size_t length = std::atoi(it->second.c_str());
+		if (length == this->_body.size())
+			return (true);
+		return (false);
+	}
 	return (false);
 }
 
@@ -115,7 +132,7 @@ void			Request::setRequest(void)
 
 void		Request::setHeaders(void)
 {
-	std::cout << "INPUT:\n" << _input << std::endl;
+	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
 	std::vector<std::string> lines = split_on_str(headers, "\r\n");
@@ -141,14 +158,15 @@ void		Request::setHeaders(void)
 		it = this->_headers.find("Content-Length");
 		if (it == this->_headers.end() && this->_type == POST)
 			throw RequestException(411);
-		if (this->_input.size() == 0) //unsure if failproof
+		if (this->isFinished()) //unsure if failproof
 			this->_isFinished = true;
 	}
 }
 
 void		Request::append_body()
 {
-	this->_body.append(this->_input);
+	for (size_t i = 0; i < this->_input.size(); i++)
+		this->_body += this->_input[i];
 	this->_input.clear();
 	if (this->isFinished())
 		this->_isFinished = true;
@@ -182,6 +200,7 @@ bool		Request::readyForParse(void) const
 void			Request::readChunked(int fd)
 {
 	(void)fd;
+	std::cout << "INPUT IN CHUNK:\n" << this->_input << std::endl;
 	int bodysize = std::stoi(this->_input, NULL, 16);
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
@@ -201,12 +220,14 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())
-		out << "The request is fully read" << std::endl;
+	{
+		out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
+	}
 	out << "location: " << obj.getLocation() << std::endl;
 	out << "HEADERS: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = obj.getHeaders().begin(); it != obj.getHeaders().end(); it++)
 	{
-		std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
+		out << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
 	out << "BODY:\n" << obj.getBody();
 	return (out);

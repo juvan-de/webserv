@@ -41,7 +41,7 @@ SOURCES		= 	main.cpp \
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98 -fsanitize=address -g
+FLAGS 		=	-std=c++98
 COMPILE		=	clang++
 
 #  -Wall -Wextra -Werror

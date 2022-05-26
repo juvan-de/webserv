@@ -113,36 +113,16 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
 {
 	std::cout << "we're handling the post now" << std::endl;
-	std::string filename;
-	std::map<std::string, std::string, cmpCaseInsensitive> headers = this->_request.getHeaders();
-	if (headers.find("Content-Disposition") == headers.end())
-	{
-		std::string start = size_t boundary_start = headers.find("Content-Type")->second;
-		size_t boundary_start = start.find("boundary=") + 9;
-		std::string boundary = start.substr(boundary_start);
-		filename = "image.png";
-		std::cout << "some error here, prob bad request" << std::endl;
-	//	return Response(400, server);
-	}
-	else
-	{
-		std::string content = headers.find("Content-Disposition")->second;
-		std::cout << "CONTENT BBY: " << content << std::endl;
-		size_t pos = content.find("filename=") + 10; //hacky parsing prob
-		std::string filename = strtrim(content.substr(pos), "\"");
-		if (filename.size() == 1)
-			return Response(400, server);
-	}
-	std::string upload_location = location->second.getRoot() + this->_request.getLocation() + "/" + filename;
-	std::cout << "location: " << upload_location << std::endl;
-	std::ofstream os(upload_location);
-	os.write(this->_request.getBody().c_str(), this->_request.getBody().size()); 
-	return Response(200, server);
+	std::string upload_location = location->second.getRoot() + this->_request.getLocation();
+	std::ofstream os(upload_location, std::ofstream::binary);
+	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
+	return (Response(200, server));
 }
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	std::cout << "POLLOUT" << std::endl;
+	std::cout << this->_request.getBody() << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
