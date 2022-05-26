@@ -78,7 +78,6 @@ void			Request::addto_request(int fd)
 
 	// this can return an error if operation would block, see man page
 	ret = recv(fd, cstr, BUFFER_SIZE, 0);
-	std::cout << "reading from request: " << cstr <<  std::endl;
 	if (ret > 0 && ret < BUFFER_SIZE)
 	{
 		this->_input.append(cstr, ret);
