@@ -1,9 +1,0 @@
-poller
-- serv_socks
-- cgi_socks
-- cli_socks
-
-execute
-1. vec<poll> = serv_socks + cgi_socks + cli_socks
-2. poll
-3. while ()

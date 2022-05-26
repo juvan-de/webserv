@@ -20,8 +20,8 @@ typedef enum e_status
 typedef enum e_body
 {
 	NONE = 0,
-	HASBODY = 2,
-	SENTBODY = 3,
+	HASBODY = 1,
+	SENTBODY = 2,
 } t_body;
 
 class CgiSocket
@@ -29,7 +29,7 @@ class CgiSocket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		t_status					_status;
-		t_body						_bodyStatus;
+		bool						_hasBody;
 		std::string					_filepath;
 		std::vector<std::string>	_envp;
 		int							_pipeIn[2];
@@ -58,9 +58,8 @@ class CgiSocket
 		int					getFdOut() const { return _fdOut; }
 		const std::string	getInput() const { return _output; }
 		t_status			getStatus() const { return _status; }
-		t_body				getBodyStatus() const { return _bodyStatus; }
+		bool				getBodyStatus() const { return _hasBody; }
 		void				setSatus(t_status status) { _status = status; }
-		void				setBodyStatus(t_body status) { _bodyStatus = status; }
 
 	public: /* -Exception- */
 		class CgiException : public std::exception

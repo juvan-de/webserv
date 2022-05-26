@@ -4,7 +4,7 @@
 #include <sstream>
 #include <utils.hpp>
 #include <errno.h>
-#define BUFFER_SIZE 30
+#define BUFFER_SIZE 100
 /*--------------------------------Coplien form--------------------------------*/
 
 CgiSocket::~CgiSocket()
@@ -34,8 +34,9 @@ static std::string	getType(Type type)
 }
 
 CgiSocket::CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct)
-	 : _status(CREATED), _bodyStatus(NONE), _input(std::string()), _output(std::string())
+	 : _status(CREATED), _hasBody(false), _input(std::string()), _output(std::string())
 {
+	std::cout << "DEBUG: CGI SOCK OPENED" << std::endl;
 	/*Constructor*/
 	std::stringstream			ss;
 	std::string					body_len;
@@ -43,10 +44,10 @@ CgiSocket::CgiSocket(std::string filename, Request request, Server server, socka
 	char						buf[INET_ADDRSTRLEN];
 
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
-		std::cout << "Error making ip" << std::endl;
+		throw CgiException(500);
 	if (request.getBody().size() > 0)
 	{
-		_bodyStatus = HASBODY;
+		_hasBody = true;
 		_input = request.getBody();
 	}
 	_filepath = getFilepath(filename, server);
@@ -167,7 +168,7 @@ void	CgiSocket::prepareCgi()
 	_fdOut = _pipeOut[0];
 	_fdIn = _pipeIn[1];
 
-	if (_bodyStatus == NONE)
+	if (!_hasBody)
 		executeCgi();
 }
 
@@ -197,7 +198,7 @@ void	CgiSocket::write_to_cgi()
 	if (ret <= -1)
 		throw CgiException(500);
 	executeCgi();
-	_bodyStatus = SENTBODY;
+	_hasBody = false;
 }
 
 void	CgiSocket::checkError()

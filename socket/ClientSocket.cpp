@@ -7,6 +7,7 @@
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
 {
+	std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
 	int flags;
 	int opt = 1;
 
@@ -27,8 +28,6 @@ void	ClientSocket::handle_pollin()
 {
 	try
 	{
-		std::cout << "POLLING IN" << std::endl;
-		std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 		this->_request.addto_request(getFd());
 		if (this->_request.getType() == NOTSET)
 		{
@@ -57,7 +56,7 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
+static Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
 	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
 	// std::cout << request << std::endl;
@@ -124,12 +123,12 @@ static std::string	isCgiRequest(Server *server, Request request)
 			size_t pos;
 			if (request.getType() == POST)
 			{
-				if ((pos = request_location.find(it->first)))
+				if ((pos = request_location.find(it->first)) != std::string::npos)
 					return request_location.substr(0, pos) + it->first;
 			}
 			else
 			{
-				if ((pos = request_location.find(it->first + "?")))
+				if ((pos = request_location.find(it->first + "?")) != std::string::npos)
 					return request_location.substr(0, pos) + it->first;
 			}
 		}
@@ -139,7 +138,6 @@ static std::string	isCgiRequest(Server *server, Request request)
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	std::cout << "POLLOUT" << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
@@ -149,6 +147,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		try 
 		{
 			filename = isCgiRequest(server, this->_request);
+			std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
 			if (!_cgi && filename.compare(""))
 				_cgi = new CgiSocket(filename, this->_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)

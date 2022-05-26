@@ -1,14 +1,10 @@
 #include <iostream> // cout
 #include <unistd.h> // sleep
 #include <csignal> // signal for ignoring pipe breaks
-// custom
-// #include <connection.hpp> // handle_connection
 #include <webserv.hpp> // parse
 #include <Poller.hpp>
 
-// const Statuscodes {
-// 	std::map<int, std::string>
-// }
+
 
 std::set<int> getPortsAndSetTable(std::vector<Server>& servers, std::map<std::pair<int, std::string>, Server*>& table)
 {
@@ -31,29 +27,29 @@ int main(int ac, char **av)
 	if (ac == 2)
 	{
 		std::map<std::pair<int, std::string>, Server*>	table;
-		std::vector<Server>		server_configs;
-		std::set<int>			ports;
-		Poller					poller;
+		std::vector<Server>								server_configs;
+		std::set<int>									ports;
+		Poller											*poller;
 
 		try
 		{
-			std::cout << "Parsing config" << std::endl;
 			parse(av[1], server_configs);
 			ports = getPortsAndSetTable(server_configs, table);
-			poller = Poller(ports);
+			poller = new Poller(ports);
 		}
 		catch(const std::exception& e)
 		{
 			std::cerr << e.what() << '\n';
+			return (0);	 // "als poll niet goed construct dan closen voordat aborts of segv gebeuren"
 		}
 		while (true)
 		{
-			poller.executePoll(table);
-			// handle_connection(data);
+			poller->executePoll(table);
 			std::cout << "Waiting for connections..." << std::endl;
-			// check_connection(data);
 			usleep(500000);
 		}
+		if (poller)
+			delete(poller);
 	}
 	else
 		std::cout << "incorrect arguments" << std::endl;

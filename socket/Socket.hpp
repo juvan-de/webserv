@@ -14,9 +14,6 @@ class Socket
 
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		Socket();
-		Socket(const Socket &ref);
-		Socket& operator=(const Socket &ref);
 		virtual ~Socket();
 
 		/*--------------------------Member functions--------------------------*/

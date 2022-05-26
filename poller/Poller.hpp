@@ -42,9 +42,6 @@ class Poller
 		void	deleteSocket(int fd);
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		Poller();
-		Poller(const Poller &ref);
-		Poller& operator=(const Poller &ref);
 		~Poller();
 
 		/*--------------------------Member functions--------------------------*/
