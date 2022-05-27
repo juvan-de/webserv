@@ -31,6 +31,7 @@ int main(int ac, char **av)
 		std::set<int>									ports;
 		Poller											*poller;
 
+		signal(SIGINT, NULL);
 		try
 		{
 			parse(av[1], server_configs);
