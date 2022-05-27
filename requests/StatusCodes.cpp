@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 12:09:08 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/05/18 13:42:59 by avan-ber      ########   odam.nl         */
+/*   Updated: 2022/05/24 15:16:55 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 
 StatusCodes::StatusCodes()
 {
-	std::cout << "STATUSCODE DEFAULT CNSTRUCTOR CALLED!!!" << std::endl;
 	this->_statusCodes[100] = "Continue";
 	this->_statusCodes[101] = "Switching Protocols";
 	this->_statusCodes[200] = "OK";

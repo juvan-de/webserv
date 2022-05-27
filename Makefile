@@ -3,9 +3,10 @@ NAME 		= 	webserv.exe
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
 				doesFileExist.cpp \
+				strToLower.cpp \
+				strtrim.cpp \
 				isNumber.cpp \
-				isRealPath.cpp \
-				strToLower.cpp
+				isRealPath.cpp 
 REQUEST_SRC	=	ContentTypes.cpp \
 				Request.cpp \
 				Response.cpp \
@@ -42,7 +43,7 @@ OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
 FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
-COMPILE		=	c++
+COMPILE		=	clang++
 
 #  -Wall -Wextra -Werror
 INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi

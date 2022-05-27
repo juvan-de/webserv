@@ -8,6 +8,7 @@
 	std::vector<std::string>	split_on_str(std::string line, std::string to_split_on);
 	std::string					strToLower(const std::string& str);
 	bool						doesFileExist(const std::string& filename);
+	std::string					strtrim(std::string toTrim, std::string trimChar);
 	int							isValidPath(const std::string& root, const std::string& filename);
 	
 	struct cmpCaseInsensitive

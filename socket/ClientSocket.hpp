@@ -28,6 +28,8 @@ class ClientSocket : public Socket
 		void				handle_pollin();
 		void				handle_pollout(std::map<std::pair<int, std::string>, Server*> table);
 		Response			makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location);
+		Response			handle_post(Server* server, std::map<std::string, Location>::const_iterator location);
+		Response			handle_delete(Server* server, std::map<std::string, Location>::const_iterator location);
 
 };
 

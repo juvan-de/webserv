@@ -9,7 +9,7 @@
 Socket::~Socket()
 {
 	/*Destructor*/
-	std::cout << "Debug: closing sock " << _fd << std::endl;
+	// std::cout << "Debug: closing sock " << _fd << std::endl;
 	close(_fd);
 }
 /*--------------------------------Coplien form--------------------------------*/
@@ -19,10 +19,10 @@ Socket::Socket(int domain, int service, int protocol)
     // Establish a connection
 	if ((_fd = socket(domain, service, protocol)) < 0)
 		throw BadInit();
-	std::cout << "Debug: constructing sock " << _fd << std::endl;
+	// std::cout << "Debug: constructing sock " << _fd << std::endl;
 }
 
 Socket::Socket(int fd) : _fd(fd)
 {
-	std::cout << "Debug: constructing sock " << _fd << std::endl;
+	// std::cout << "Debug: constructing sock " << _fd << std::endl;
 }

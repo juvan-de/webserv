@@ -10,7 +10,7 @@
 CgiSocket::~CgiSocket()
 {
 	/*Destructor*/
-	std::cout << "DEBUG: CGI SOCK CLOSED" << std::endl;
+	// std::cout << "DEBUG: CGI SOCK CLOSED" << std::endl;
 	close(_pipeIn[0]);
 	close(_pipeIn[1]);
 	close(_pipeOut[0]);
@@ -36,7 +36,7 @@ static std::string	getType(Type type)
 CgiSocket::CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct)
 	 : _status(CREATED), _hasBody(false), _input(std::string()), _output(std::string())
 {
-	std::cout << "DEBUG: CGI SOCK OPENED" << std::endl;
+	// std::cout << "DEBUG: CGI SOCK OPENED" << std::endl;
 	/*Constructor*/
 	std::stringstream			ss;
 	std::string					body_len;
@@ -182,7 +182,7 @@ void	CgiSocket::read_from_cgi()
 	{
 		cstr[ret] = '\0';
 		_output.append(cstr);
-		std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
+		// std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret < BUFFER_SIZE && ret >= 0)
 		_status = FINISHED;

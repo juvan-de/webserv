@@ -16,7 +16,7 @@ Response::Response(const Server *server, const std::string& path, const std::str
 	try
 	{
 		int ret = isValidPath(root, path);
-		std::cout << "compare: " << ret << std::endl;
+		// std::cout << "compare: " << ret << std::endl;
 		if (ret != 0)
 			throw ResponseException(ret);
 		if (path[path.size() - 1] == '/')

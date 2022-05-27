@@ -28,6 +28,8 @@ class	Request
 	bool													_isFinished;
 	std::string												_body;
 	int														_statusCode;
+	size_t													_bytesRead;
+	size_t													_bodySize;
 
 	public:
 	Request();	
@@ -41,6 +43,8 @@ class	Request
 	const std::string&												getInput() const;
 	const std::string&												getBody() const;
 	int																getStatusCode() const;
+	size_t															getBytesRead() const;
+	size_t															getBodySize() const;
 
 	void						setResponse(Response response);
 	void						setRequest(void);

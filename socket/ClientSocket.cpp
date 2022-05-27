@@ -3,11 +3,13 @@
 #include <Request.hpp>
 #include <utils.hpp>
 #include <sstream>
+#include <ostream>
+#include <stdio.h>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
 {
-	std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
+	// std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
 	int flags;
 	int opt = 1;
 
@@ -36,14 +38,12 @@ void	ClientSocket::handle_pollin()
 		}
 		if (this->_request.checkIfChunked())
 		{
-			std::cout << "CHUNKED" << std::endl;
 			this->_request.readChunked(getFd());
 		}
 		if (this->_request.getInput().size() > 0)
 		{
 			this->_request.append_body();
-		} 
-		std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
+		}
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -109,6 +109,25 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
+Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
+{
+	// std::cout << "we're handling the post now" << std::endl;
+	std::string upload_location = location->second.getRoot() + this->_request.getUri();
+	std::ofstream os(upload_location, std::ofstream::binary);
+	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
+	return (Response(200, server));
+}
+
+Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Location>::const_iterator location)
+{
+	std::string delete_location = location->second.getRoot() + this->_request.getUri();
+	std::cout << "delete location:" << delete_location << std::endl;
+	int ret = std::remove(delete_location.c_str());
+	if (ret < 0)
+		return (Response(500, server));
+	return (Response(200, server));
+}
+
 static std::string	isCgiRequest(Server *server, Request request)
 {
 	std::string	request_location = request.getUri();
@@ -136,6 +155,7 @@ static std::string	isCgiRequest(Server *server, Request request)
 	return "";
 }
 
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
 	if (this->_request.readyForParse()) //this is now a hacky solution
@@ -143,11 +163,10 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		Response response;
 		std::string	filename;
 		Server *server = find_server(table, this->_request);
-		// std::cout << "request in pollout:\n" << this->_request << std::endl;
 		try 
 		{
 			filename = isCgiRequest(server, this->_request);
-			std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
+			// std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
 			if (!_cgi && filename.compare(""))
 				_cgi = new CgiSocket(filename, this->_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)
@@ -168,11 +187,15 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == POST)
 		{
-			std::cout << "here we are going to upload the picture :D" << std::endl;
+			std::string	request_location = this->_request.getUri();
+			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+			response = handle_post(server, itr);
 		}
 		else if (this->_request.getType() == DELETE)
 		{
-			std::cout << "we be deletin tho" << std::endl;
+			std::string	request_location = this->_request.getUri();
+			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+			response = handle_delete(server, itr);
 		}
 		else if (this->_request.getType() == ERROR)
 		{
@@ -183,7 +206,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "nothing to do here" << std::endl;
 		if (response.isFinished())
 		{
-			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);//ik denk dat dit erbuiten moet gaan komen
+			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
 			if (ret < 0)
 				std::cout << "send error" << std::endl;
 			this->_request = Request();	

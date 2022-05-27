@@ -1,2 +1,0 @@
-clientSocket
-- als een cgi request wordt ontvangen met een invalid cgi filename, dan wordt nog niet een error gegooid.

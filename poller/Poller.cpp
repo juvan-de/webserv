@@ -109,7 +109,6 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 {
 	for (std::vector< std::pair<int, short> >::const_iterator it = clients.begin(); it != clients.end(); it++)
 	{
-		std::cout << "**DEBUG cli fd: " << it->first << ", revents: " << it->second << std::endl;
 		ClientSocket *socket = _client_socks.find(it->first)->second;
 
 		if (it->second & POLLHUP)
@@ -179,8 +178,8 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 	std::vector< std::pair<int, short> > clients;
 	std::vector< std::pair<int, short> > cgi;
 
-	std::cout << "pollfd size: " << _pollfds.size() << std::endl;
-	std::cout << "cli size: " << _client_socks.size() << std::endl;
+	// std::cout << "pollfd size: " << _pollfds.size() << std::endl;
+	// std::cout << "cli size: " << _client_socks.size() << std::endl;
 	poll(_pollfds.data(), _pollfds.size(), -1);
 	try
 	{
