@@ -133,7 +133,7 @@ void			Request::setRequest(void)
 
 void		Request::setHeaders(void)
 {
-	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
+	// std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
 	std::vector<std::string> lines = split_on_str(headers, "\r\n");
@@ -219,16 +219,16 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 		out << "statusCode: " << obj.getStatusCode() << std::endl;
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
-	if (obj.readyForParse())
-	{
-		out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
-	}
+	// if (obj.readyForParse())
+	// {
+	// 	out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
+	// }
 	out << "location: " << obj.getUri() << std::endl;
 	out << "HEADERS: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = obj.getHeaders().begin(); it != obj.getHeaders().end(); it++)
 	{
 		out << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
-	// out << "BODY:\n" << obj.getBody();
+	out << "BODY:\n" << obj.getBody();
 	return (out);
 }

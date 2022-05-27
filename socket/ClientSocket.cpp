@@ -44,7 +44,6 @@ void	ClientSocket::handle_pollin()
 		{
 			this->_request.append_body();
 		}
-		/* code */
 	}
 	catch(Request::RequestException& e)
 	{
@@ -82,7 +81,7 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 	const std::string& uri = this->_request.getUri();
 
 	// std::cout << "RESPONSE BUILDING" << std::endl;
-	std::cout << location->first << std::endl;
+	// std::cout << location->first << std::endl;
 	
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return Response(413, server);
@@ -158,21 +157,23 @@ static std::string	isCgiRequest(Server *server, Request request)
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	if (this->_request.readyForParse()) //this is now a hacky solution
+	std::cout << _request << std::endl;
+	if (this->_request.readyForParse() || _request.getUri().find(".php")) //this is now a hacky solution
 	{
 		Response response;
 		std::string	filename;
 		Server *server = find_server(table, this->_request);
+		// if (_request.getType() != NOTSET)
 		try 
 		{
 			filename = isCgiRequest(server, this->_request);
-			// std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
 			if (!_cgi && filename.compare(""))
 				_cgi = new CgiSocket(filename, this->_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)
 			{
 				this->_cgi->checkError();
 				response = Response(this->_cgi->getInput(), true);
+				_cgi = NULL;
 			}
 		}
 		catch (CgiSocket::CgiException& e)

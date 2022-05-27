@@ -124,10 +124,10 @@ void	CgiSocket::mainProcess()
 	
 	_fdOut = _pipeOut[0];
 	_fdIn = _pipeIn[1];
-	if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
-		throw CgiException(500);
-	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
-		throw CgiException(500);
+	// if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
+	// 	throw CgiException(500);
+	// if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
+	// 	throw CgiException(500);
 }
 
 void	CgiSocket::executeCgi()
@@ -167,6 +167,16 @@ void	CgiSocket::prepareCgi()
 	_pipeOut[1] = pipe_out[1];
 	_fdOut = _pipeOut[0];
 	_fdIn = _pipeIn[1];
+	std::cout << "PREPARE CGI" << std::endl;
+	int flags;
+	if ((flags = fcntl(_fdOut, F_GETFL)) < 0)
+		throw CgiException(500);
+	if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
+	if ((flags = fcntl(_fdIn, F_GETFL)) < 0)
+		throw CgiException(500);
+	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
 
 	if (!_hasBody)
 		executeCgi();
@@ -182,10 +192,13 @@ void	CgiSocket::read_from_cgi()
 	{
 		cstr[ret] = '\0';
 		_output.append(cstr);
-		// std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
+		std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
 	else if (ret < BUFFER_SIZE && ret >= 0)
+	{
 		_status = FINISHED;
+		std::cout << "finiis" << std::endl;
+	}
 	else if (ret <= -1)
 		throw CgiException(500);
 }

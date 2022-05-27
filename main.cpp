@@ -32,6 +32,7 @@ int main(int ac, char **av)
 		Poller											*poller;
 
 		signal(SIGINT, NULL);
+		signal(SIGABRT, NULL);
 		try
 		{
 			parse(av[1], server_configs);
@@ -46,8 +47,9 @@ int main(int ac, char **av)
 		while (true)
 		{
 			poller->executePoll(table);
-			// std::cout << "Waiting for connections..." << std::endl;
-			usleep(500);
+			std::cout << "Waiting for connections..." << std::endl;
+			// usleep(500000);
+			// usleep(5000);
 		}
 		if (poller)
 			delete(poller);

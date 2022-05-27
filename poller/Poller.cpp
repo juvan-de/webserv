@@ -1,4 +1,5 @@
 #include "Poller.hpp"
+#include <unistd.h> // sleep
 
 /*--------------------------------Coplien form--------------------------------*/
 Poller::~Poller()
@@ -15,7 +16,7 @@ static pollfd	addPoll(int fd)
 
 	bzero(&newPoll, sizeof(newPoll));
 	newPoll.fd = fd;
-	newPoll.events = POLLIN | POLLOUT | POLLERR;
+	newPoll.events = POLLIN | POLLOUT;
 	return newPoll;
 }
 /*------------------------------private functions-----------------------------*/
@@ -127,6 +128,7 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 			{
 				addSocket(socket->getCgi());
 				socket->getCgi()->setSatus(ADDED);
+				usleep(500000);
 			}
 		}
 	}
@@ -148,6 +150,7 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 			{
 				socket->write_to_cgi();
 				changePoll(socket->getFdIn(), socket->getFdOut());
+				usleep(500000);
 			}
 			else
 				_cgi_socks.find(it->first)->second->setSatus(FINISHED);
