@@ -28,8 +28,8 @@ void	ClientSocket::handle_pollin()
 {
 	try
 	{
-		std::cout << "POLLING IN" << std::endl;
-		std::cout << "POLLIN FD: " << this->getFd() << std::endl;
+		// std::cout << "POLLING IN" << std::endl;
+		// std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 		this->_request.addto_request(getFd());
 		if (this->_request.getType() == NOTSET)
 		{
@@ -45,7 +45,7 @@ void	ClientSocket::handle_pollin()
 		{
 			this->_request.append_body();
 		} 
-		std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
+		// std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -112,7 +112,7 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
 {
-	std::cout << "we're handling the post now" << std::endl;
+	// std::cout << "we're handling the post now" << std::endl;
 	std::string upload_location = location->second.getRoot() + this->_request.getLocation();
 	std::ofstream os(upload_location, std::ofstream::binary);
 	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
@@ -121,8 +121,8 @@ Response	ClientSocket::handle_post(Server* server, std::map<std::string, Locatio
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	std::cout << "POLLOUT" << std::endl;
-	std::cout << this->_request.getBody() << std::endl;
+	// std::cout << "POLLOUT" << std::endl;
+	// std::cout << this->_request.getBody() << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;

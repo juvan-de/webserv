@@ -98,7 +98,7 @@ bool			Request::isFinished(void)
 {
 	std::string::reverse_iterator rit = this->_body.rbegin();
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
-	if (rit[0] == '\n' && rit[1] == '\r' && rit[2] == '\n' && rit[3] == '\r') //needs work
+	if (this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n") || it == this->_headers.end()) //needs work
 	{
 		if (it == this->_headers.end())
 			return (true);
@@ -199,7 +199,6 @@ bool		Request::readyForParse(void) const
 void			Request::readChunked(int fd)
 {
 	(void)fd;
-	std::cout << "INPUT IN CHUNK:\n" << this->_input << std::endl;
 	int bodysize = std::stoi(this->_input, NULL, 16);
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
@@ -228,6 +227,6 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	{
 		out << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
 	}
-	out << "BODY:\n" << obj.getBody();
+	// out << "BODY:\n" << obj.getBody();
 	return (out);
 }
