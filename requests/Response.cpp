@@ -8,13 +8,17 @@ Response::Response() : _isFinished(false)
 	// std::cout << "default constructor called" << std::endl;
 }
 
-Response::Response(const Server *server, const std::string path) : _isFinished(true)
+Response::Response(const Server *server, const std::string& path, const std::string& root) : _isFinished(true)
 {
 	std::stringstream ss;
 	std::string	contentType;
 
 	try
 	{
+		int ret = isValidPath(root, path);
+		// std::cout << "compare: " << ret << std::endl;
+		if (ret != 0)
+			throw ResponseException(ret);
 		if (path[path.size() - 1] == '/')
 		{
 			this->setResponseBodyFromDir(path);

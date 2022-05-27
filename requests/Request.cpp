@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <limits.h>
+
 #include <Request.hpp>
 #include <fstream>
 #include <sys/socket.h>
@@ -23,7 +26,7 @@ Request::Request(const Request& ref)
 Request&	Request::operator=(const Request& ref)
 {
 	this->_type = ref.getType();
-	this->_location = ref.getLocation();
+	this->_uri = ref.getUri();
 	this->_headers = ref.getHeaders();
 	this->_input = ref.getInput();
 	this->_isChunked = ref.checkIfChunked();
@@ -41,9 +44,9 @@ const Type&		Request::getType() const
 	return (this->_type);
 }
 
-const std::string&	Request::getLocation() const 
+const std::string&	Request::getUri() const 
 {
-	return (this->_location);
+	return (this->_uri);
 }
 
 const std::map<std::string, std::string, cmpCaseInsensitive >&	Request::getHeaders() const
@@ -96,7 +99,6 @@ void			Request::addto_request(int fd)
 
 bool			Request::isFinished(void)
 {
-	std::string::reverse_iterator rit = this->_body.rbegin();
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
 	if (this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n") || it == this->_headers.end()) //needs work
 	{
@@ -124,7 +126,7 @@ void			Request::setRequest(void)
 		this->_type = DELETE;
 	else
 		throw RequestException(400);
-	this->_location = array[1];
+	this->_uri = array[1];
 	if (array[2] != "HTTP/1.1")
 		throw RequestException(505);
 } 
@@ -221,7 +223,7 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 	{
 		out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
 	}
-	out << "location: " << obj.getLocation() << std::endl;
+	out << "location: " << obj.getUri() << std::endl;
 	out << "HEADERS: " << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = obj.getHeaders().begin(); it != obj.getHeaders().end(); it++)
 	{

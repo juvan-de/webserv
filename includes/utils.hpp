@@ -9,6 +9,8 @@
 	std::string					strToLower(const std::string& str);
 	bool						doesFileExist(const std::string& filename);
 	std::string					strtrim(std::string toTrim, std::string trimChar);
+	int							isValidPath(const std::string& root, const std::string& filename);
+	
 	struct cmpCaseInsensitive
 	{
 		bool operator() (const std::string& x, const std::string& y) const {return strToLower(x)<strToLower(y);}

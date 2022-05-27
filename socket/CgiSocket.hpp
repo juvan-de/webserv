@@ -17,39 +17,62 @@ typedef enum e_status
 	FINISHED = 2
 } t_status;
 
+typedef enum e_body
+{
+	NONE = 0,
+	HASBODY = 1,
+	SENTBODY = 2,
+} t_body;
+
 class CgiSocket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
 		t_status					_status;
-		int							_fdOut[2];
+		bool						_hasBody;
+		std::string					_filepath;
+		std::vector<std::string>	_envp;
+		int							_pipeIn[2];
+		int							_pipeOut[2];
+		int							_fdIn;
+		int							_fdOut;
 		std::string					_input;
+		std::string					_output;
 
+		std::string			getFilepath(std::string filename, Server server);
+		void				mainProcess();
+		void				childProccess();
 	public:
 		/*----------------------------Coplien form----------------------------*/
 		~CgiSocket();
 
 		/*--------------------------Member functions--------------------------*/
-		CgiSocket(Request request, Server server, sockaddr_in client_struct);
-		void				executeCgi(std::string filepath, std::vector<std::string> envp);
-		void				read_cgi();
+		CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct);
+		void				prepareCgi();
+		void				executeCgi();
+		void				read_from_cgi();
+		void				write_to_cgi();
 		void				checkError();
-		int					getFd() const { return _fdOut[0]; }
-		const std::string	getInput() const { return _input; }
-		void				setSatus(t_status status) { _status = status; }
+		
+		int					getFdIn() const { return _fdIn; }
+		int					getFdOut() const { return _fdOut; }
+		const std::string	getInput() const { return _output; }
 		t_status			getStatus() const { return _status; }
-		public: /* -Exception- */
-			class CgiException : public std::exception
+		bool				getBodyStatus() const { return _hasBody; }
+		void				setSatus(t_status status) { _status = status; }
+
+	public: /* -Exception- */
+		class CgiException : public std::exception
+		{
+			private:
+				int _code;
+			public:
+			CgiException(int code) : _code(code) {}
+			int	getError(void) const throw()
 			{
-				private:
-					int _code;
-				public:
-				CgiException(int code) : _code(code) {}
-				int	getError(void) const throw()
-				{
-					return (this->_code);
-				}
-			};
+				return (this->_code);
+			}
+		};
 };
 
 #endif

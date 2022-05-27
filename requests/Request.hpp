@@ -22,7 +22,7 @@ class	Request
 	private:
 	Type													_type;
 	std::string												_input;
-	std::string												_location;
+	std::string												_uri;
 	std::map<std::string, std::string, cmpCaseInsensitive>	_headers;
 	bool													_isChunked;
 	bool													_isFinished;
@@ -38,7 +38,7 @@ class	Request
 	~Request();
 
 	const Type&														getType() const;
-	const std::string& 												getLocation() const;
+	const std::string& 												getUri() const;
 	const std::map<std::string, std::string, cmpCaseInsensitive>&	getHeaders() const;
 	const std::string&												getInput() const;
 	const std::string&												getBody() const;
@@ -56,6 +56,7 @@ class	Request
 	void						addto_request(int fd);
 	bool						isFinished(void);
 	bool						checkIfChunked(void) const;
+	const std::string&			getRealPath(void) const;
 	bool						readyForParse(void) const;
 	void						readChunked(int fd);
 

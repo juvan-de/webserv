@@ -30,6 +30,7 @@ class Poller
 		std::map<int, t_type>			_lookup;
 		std::vector<pollfd>				_pollfds;
 
+		void	changePoll(int oldFd, int newFd);
 		void	addSocket(ServerSocket* serv);
 		void	addSocket(ClientSocket* cli);
 		void	addSocket(CgiSocket* cgi);
@@ -41,9 +42,6 @@ class Poller
 		void	deleteSocket(int fd);
 	public:
 		/*----------------------------Coplien form----------------------------*/
-		Poller();
-		Poller(const Poller &ref);
-		Poller& operator=(const Poller &ref);
 		~Poller();
 
 		/*--------------------------Member functions--------------------------*/

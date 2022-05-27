@@ -21,7 +21,7 @@ class	Response
 	public:
 
 	Response();
-	Response(const Server *server, const std::string path); //valid
+	Response(const Server *server, const std::string& path, const std::string& root); //valid
 	Response(int errorcode, const Server *server = NULL); //error
 	Response(const std::string& redir); //301
 	Response(const std::string& cgiBody, bool hasBody); //cgi/post/delete

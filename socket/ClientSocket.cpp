@@ -8,6 +8,7 @@
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
 {
+	// std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
 	int flags;
 	int opt = 1;
 
@@ -28,8 +29,6 @@ void	ClientSocket::handle_pollin()
 {
 	try
 	{
-		// std::cout << "POLLING IN" << std::endl;
-		// std::cout << "POLLIN FD: " << this->getFd() << std::endl;
 		this->_request.addto_request(getFd());
 		if (this->_request.getType() == NOTSET)
 		{
@@ -58,14 +57,14 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
+static Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
 	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
 	// std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << "error finding hostname: " << std::endl;
+		// std::cout << "error finding hostname: " << std::endl;
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
@@ -73,7 +72,7 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 	if (table.find(std::make_pair(port, name)) == table.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		std::cout << " pair" << std::endl;
+		// std::cout << " pair" << std::endl;
 		return NULL;
 	}
 	return (table[std::make_pair(port, name)]);
@@ -81,56 +80,85 @@ Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Reque
 
 Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location)
 {
-	const std::string& request_location = this->_request.getLocation();
+	const std::string& uri = this->_request.getUri();
 
-	std::cout << "RESPONSE BUILDING" << std::endl;
+	// std::cout << "RESPONSE BUILDING" << std::endl;
 	std::cout << location->first << std::endl;
+	
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return Response(413, server);
 	if (location == server->getLocations().end()) /* bad request */
 		return Response(404, server);
-	std::cout << location->second.getRedir().isSet() << std::endl;
+	// std::cout << location->second.getRedir().isSet() << std::endl;
 	if (location->second.getRedir().isSet())
 		return Response(location->second.getRedir().getLocation());
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
 		return Response(405, server);
-	if (request_location[request_location.size() - 1] == '/')
+	if (uri[uri.size() - 1] == '/')
 	{
-		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + request_location);
+		std::vector<std::string>::const_iterator itr_filename = location->second.getRightIndexFile(location->second.getRoot() + uri);
 		if (itr_filename != location->second.getIndex().end())
-			return Response(server, location->second.getRoot() + request_location + *itr_filename);
+			return Response(server, location->second.getRoot() + uri + *itr_filename, location->second.getRoot());
 		if (location->second.getAutoindex())
-			return Response(server, location->second.getRoot() + request_location);
+			return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 		else
 			return Response(403, server);
 	}
-	if (!doesFileExist(location->second.getRoot() + request_location))
+	if (!doesFileExist(location->second.getRoot() + uri))
 		return Response(404, server);
 	else
-		return Response(server, location->second.getRoot() + request_location);
+		return Response(server, location->second.getRoot() + uri, location->second.getRoot());
 }
 
 Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
 {
 	// std::cout << "we're handling the post now" << std::endl;
-	std::string upload_location = location->second.getRoot() + this->_request.getLocation();
+	std::string upload_location = location->second.getRoot() + this->_request.getUri();
 	std::ofstream os(upload_location, std::ofstream::binary);
 	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
 	return (Response(200, server));
 }
 
+static std::string	isCgiRequest(Server *server, Request request)
+{
+	std::string	request_location = request.getUri();
+	std::map<std::string, Location>::const_iterator location = server->getRightLocation(request_location);
+
+	if (location == server->getLocations().end())
+		return "";
+	else
+	{
+		for (std::map<std::string, std::string>::const_iterator it = location->second.getCgi().begin(); it != location->second.getCgi().end(); it++)
+		{
+			size_t pos;
+			if (request.getType() == POST)
+			{
+				if ((pos = request_location.find(it->first)) != std::string::npos)
+					return request_location.substr(0, pos) + it->first;
+			}
+			else
+			{
+				if ((pos = request_location.find(it->first + "?")) != std::string::npos)
+					return request_location.substr(0, pos) + it->first;
+			}
+		}
+	}
+	return "";
+}
+
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	// std::cout << "POLLOUT" << std::endl;
-	// std::cout << this->_request.getBody() << std::endl;
 	if (this->_request.readyForParse()) //this is now a hacky solution
 	{
 		Response response;
+		std::string	filename;
 		Server *server = find_server(table, this->_request);
 		try 
 		{
-			if (!_cgi && (_request.getLocation().find(".php?") != std::string::npos || _request.getLocation().find(".py?") != std::string::npos))
-				_cgi = new CgiSocket(_request, *server, _address);
+			filename = isCgiRequest(server, this->_request);
+			// std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
+			if (!_cgi && filename.compare(""))
+				_cgi = new CgiSocket(filename, this->_request, *server, _address);
 			if (_cgi && _cgi->getStatus() == FINISHED)
 			{
 				this->_cgi->checkError();
@@ -143,13 +171,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		if (this->_request.getType() == GET)
 		{
-			std::string	request_location = this->_request.getLocation();
+			std::string	request_location = this->_request.getUri();
 			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 			response = this->makeGetResponse(server, itr);
 		}
 		else if (this->_request.getType() == POST)
 		{
-			std::string	request_location = this->_request.getLocation();
+			std::string	request_location = this->_request.getUri();
 			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 			response = handle_post(server, itr);
 		}
