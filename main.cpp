@@ -46,7 +46,7 @@ int main(int ac, char **av)
 		{
 			poller->executePoll(table);
 			// std::cout << "Waiting for connections..." << std::endl;
-			// usleep(500000);
+			usleep(500);
 		}
 		if (poller)
 			delete(poller);

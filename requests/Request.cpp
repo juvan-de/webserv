@@ -100,10 +100,10 @@ void			Request::addto_request(int fd)
 bool			Request::isFinished(void)
 {
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
-	if ( it == this->_headers.end() || this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n")) //needs work
-	{
-		if (it == this->_headers.end())
+	if (it == this->_headers.end()) //needs work
 			return (true);
+	else if(this->_body.size() >= 4 && this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n"))
+	{
 		size_t length = std::atoi(it->second.c_str());
 		if (length == this->_body.size())
 			return (true);

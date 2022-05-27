@@ -4,6 +4,7 @@
 #include <utils.hpp>
 #include <sstream>
 #include <ostream>
+#include <stdio.h>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
 	Socket(fd), _request(Request()), _cgi(NULL)
@@ -37,14 +38,12 @@ void	ClientSocket::handle_pollin()
 		}
 		if (this->_request.checkIfChunked())
 		{
-			std::cout << "CHUNKED" << std::endl;
 			this->_request.readChunked(getFd());
 		}
 		if (this->_request.getInput().size() > 0)
 		{
 			this->_request.append_body();
-		} 
-		// std::cout << std::endl << std::endl << "REQUEST" << std::endl << this->_request << std::endl;
+		}
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -119,6 +118,16 @@ Response	ClientSocket::handle_post(Server* server, std::map<std::string, Locatio
 	return (Response(200, server));
 }
 
+Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Location>::const_iterator location)
+{
+	std::string delete_location = location->second.getRoot() + this->_request.getUri();
+	std::cout << "delete location:" << delete_location << std::endl;
+	int ret = std::remove(delete_location.c_str());
+	if (ret < 0)
+		return (Response(500, server));
+	return (Response(200, server));
+}
+
 static std::string	isCgiRequest(Server *server, Request request)
 {
 	std::string	request_location = request.getUri();
@@ -145,6 +154,7 @@ static std::string	isCgiRequest(Server *server, Request request)
 	}
 	return "";
 }
+
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
@@ -183,7 +193,9 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		}
 		else if (this->_request.getType() == DELETE)
 		{
-			std::cout << "we be deletin tho" << std::endl;
+			std::string	request_location = this->_request.getUri();
+			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+			response = handle_delete(server, itr);
 		}
 		else if (this->_request.getType() == ERROR)
 		{
