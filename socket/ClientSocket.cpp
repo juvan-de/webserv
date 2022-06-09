@@ -111,7 +111,10 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 
 Response	ClientSocket::handle_post(Server* server, std::map<std::string, Location>::const_iterator location)
 {
-	// std::cout << "we're handling the post now" << std::endl;
+	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
+		return (Response(413, server));
+	if (location->second.getLimitExcept().find("POST") == location->second.getLimitExcept().end())
+		return (Response(405, server)); //which code?
 	std::string upload_location = location->second.getRoot() + this->_request.getUri();
 	std::ofstream os(upload_location, std::ofstream::binary);
 	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
@@ -121,11 +124,12 @@ Response	ClientSocket::handle_post(Server* server, std::map<std::string, Locatio
 Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Location>::const_iterator location)
 {
 	std::string delete_location = location->second.getRoot() + this->_request.getUri();
-	std::cout << "delete location:" << delete_location << std::endl;
+	if (location->second.getLimitExcept().find("DELETE") == location->second.getLimitExcept().end())
+		return (Response(405, server)); //which code?
 	int ret = std::remove(delete_location.c_str());
 	if (ret < 0)
 		return (Response(500, server));
-	return (Response(200, server));
+	return (Response(204, server));
 }
 
 static std::string	isCgiRequest(Server *server, Request request)
@@ -158,7 +162,7 @@ static std::string	isCgiRequest(Server *server, Request request)
 
 void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 {
-	if (this->_request.readyForParse()) //this is now a hacky solution
+	if (this->_request.readyForParse())
 	{
 		Response response;
 		std::string	filename;

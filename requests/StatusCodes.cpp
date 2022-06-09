@@ -6,7 +6,7 @@
 /*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2022/03/02 12:09:08 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/05/24 15:16:55 by juvan-de      ########   odam.nl         */
+/*   Updated: 2022/06/09 13:26:02 by juvan-de      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ StatusCodes::StatusCodes()
 	this->_statusCodes[412] = "Precondition Failed";
 	this->_statusCodes[413] = "Request Entity Too Large";
 	this->_statusCodes[414] = "Request-URI Too Large";
-	this->_statusCodes[415] = "Unsupported MEdia Type";
+	this->_statusCodes[415] = "Unsupported Media Type";
 	this->_statusCodes[416] = "Requested range not satisfiable";
 	this->_statusCodes[417] = "Expectation Failed";
 	this->_statusCodes[500] = "Internal Server Error";
