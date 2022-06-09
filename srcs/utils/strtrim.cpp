@@ -1,3 +1,4 @@
+
 #include <utils.hpp>
 
 std::string	strtrim(std::string toTrim, std::string trimChar)

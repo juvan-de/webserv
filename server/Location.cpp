@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <limits.h>
+
 #include <deque>
 #include <utils.hpp>
 #include <Location.hpp>
@@ -9,26 +12,44 @@ void	Location::_errorJumpTable(std::vector<std::string>& line)
 	const std::string server_elements[] = {"listen", "server_name", "error_page", "location"};
 
 	if (isIn(line[0], server_elements, sizeof(server_elements)))
-		throw MissingClosingBracket();
+		throw MissingClosingBracket("Location");
 	else
-		throw ElemNotRecognized(line);
+		throw DirectiveNotRecognized(line);
 }
 
-Location::Location(std::deque<std::string>& file, std::string& title)
+void	Location::_checkVarSet()
+{
+	if (this->_redir.isSet())
+		return ;
+	if (this->_index.empty())
+	{
+		this->_index.push_back("index.html");
+		this->_index.push_back("index");
+	}
+	if (this->_root.empty())
+		throw MissingRootInLocation(this->_title);
+	if (this->_uploadStore.empty())
+		this->_uploadStore = this->_root;
+	//all standard set var setten en checken of er meer gezet moet worden
+}
+
+Location::Location(std::deque<std::string>& file, std::string& title, const std::string& curWorkdir) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir())
 {
 	std::vector<std::string>	splitted;
 
-	this->setTitle(title);
 	while (!file.empty())
 	{
-		splitted = split(file[0]);
+		splitted = split_on_chars(file[0]);
 		file.pop_front();
 		if (splitted.size() == 0)
 			continue ;
 		if (splitted[0] == "}")
+		{
+			this->_checkVarSet();
 			return ;
+		}
 		else if (splitted[0] == "root")
-			this->setRoot(splitted);
+			this->setRoot(splitted, curWorkdir);
 		else if (splitted[0] == "client_max_body_size")
 			this->setClientMaxBodySize(splitted);
 		else if (splitted[0] == "index")
@@ -44,11 +65,11 @@ Location::Location(std::deque<std::string>& file, std::string& title)
 		else if (splitted[0] == "upload_store")
 			this->setUploadStore(splitted);
 		else if (splitted[0] == "redir")
-			this->setUploadStore(splitted);
+			this->setRedir(splitted);
 		else
 			this->_errorJumpTable(splitted);
 	}
-	throw MissingClosingBracket();
+	throw MissingClosingBracket("Location");
 }
 
 Location&	Location::operator=(const Location& ref)
@@ -62,6 +83,7 @@ Location&	Location::operator=(const Location& ref)
 	this->_cgi = ref._cgi;
 	this->_limitExcept = ref._limitExcept;
 	this->_uploadStore = ref._uploadStore;
+	this->_redir = ref._redir;
 	return *this;
 }
 
@@ -87,11 +109,17 @@ void	Location::setTitle(std::string& title)
 	this->_title = title;
 }
 
-void	Location::setRoot(std::vector<std::string>& line)
+void	Location::setRoot(std::vector<std::string>& line, const std::string& curWorkingDir)
 {
+	char		buf[PATH_MAX];
+	
 	if (line.size() != 2)
 		throw ArgumentIncorrect(line);
-	this->_root = line[1];
+	std::string root = curWorkingDir + "/" + line[1];
+	if (realpath(root.c_str(), buf) == NULL)
+		throw RealPathFailed();
+	root = std::string(buf);
+	this->_root = root;
 }
 
 void	Location::setClientMaxBodySize(std::vector<std::string>& line)
@@ -144,7 +172,7 @@ void	Location::setAutoindex(std::vector<std::string>& line)
 	else if (line[1] == "off")
 		this->_autoindex = false;
 	else
-		throw aiElemNotRecognized(line);
+		throw ElemDefNotRecognized("Auto index", "[\"on\"/\"off\"]", line);
 }
 
 void	Location::setStaticDir(std::vector<std::string>& line)
@@ -156,7 +184,7 @@ void	Location::setStaticDir(std::vector<std::string>& line)
 	else if (line[1] == "false")
 		this->_staticDir = false;
 	else
-		throw sdElemNotRecognized(line);
+		throw ElemDefNotRecognized("Static dir", "[\"true\"/\"false\"]", line);
 }
 
 void	Location::addCgi(std::vector<std::string>& line)
@@ -186,7 +214,6 @@ void	Location::setLimitExcept(std::vector<std::string>& line)
 		if (!this->isIn(*itr, correctMethods, sizeof(correctMethods)))
 			throw leInvalidMethod(line, *itr);
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
-	//willen we voor duplicate testen want het wordt toch in een set gezet, misschien het idee van een warning
 }
 
 void	Location::setUploadStore(std::vector<std::string>& line)
@@ -200,7 +227,7 @@ void	Location::setRedir(std::vector<std::string>& line)
 {
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
-	this->_redir = Redir(line[1], line[2]);
+	this->_redir = Redir(line, line[1], line[2]);
 }
 
 /* Getters */
@@ -253,6 +280,19 @@ const std::string&	Location::getUploadStore() const
 const Redir&	Location::getRedir() const
 {
 	return this->_redir;
+}
+
+std::vector<std::string>::const_iterator	Location::getRightIndexFile(const std::string prefix) const
+{
+	std::vector<std::string>::const_iterator itr = this->_index.begin();
+	std::string filename;
+	for (; itr != this->_index.end(); itr++)
+	{
+		filename = prefix + *itr;
+		if (doesFileExist(filename))
+			return (itr);
+	}
+	return (itr);
 }
 
 std::ostream&	operator<< (std::ostream& out, const Location& obj)

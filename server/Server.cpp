@@ -2,52 +2,69 @@
 #include <utils.hpp>
 #include <sstream>
 
-Server::Server()
+void	Server::_errorJumpTable(std::vector<std::string>& line)
 {
-	return ;
+	if (line[0] == "server")
+		throw MissingClosingBracket("Server");
+	else
+		throw DirectiveNotRecognized(line);
+
 }
 
-Server::Server(std::deque<std::string>& file)
+void	Server::_checkVarSet()
+{
+	if (this->_listen.size() == 0)
+		this->_listen.insert(80);
+	// if (this->_serverName.size() == 0)
+	// 	throw MissingServernameInServer();
+}
+
+Server::Server (std::deque<std::string>& file, const std::string& curWorkDir)
 {
 	std::vector<std::string>	splitted;
 	
 	while (!file.empty())
 	{
-		splitted = split(file[0]);
+		splitted = split_on_chars(file[0]);
 		file.pop_front();
 		if (splitted.size() == 0)
 			continue ;
 		if (splitted[0] == "}")
-			return ;
-		else if (splitted[0] == "listen")
 		{
-			this->setListen(splitted);
+			this->_checkVarSet();
+			return ;
 		}
+		else if (splitted[0] == "listen")
+			this->setListen(splitted);
 		else if (splitted[0] == "server_name")
 			this->setServerName(splitted);
 		else if (splitted[0] == "error_page")
 			this->addErrorPage(splitted);
-		else if (splitted[0] == "location") // naar kijken
+		else if (splitted[0] != "location")
+			this->_errorJumpTable(splitted);
+		else if (splitted.size() == 2 && !file.empty())
 		{
-			if (splitted.size() == 3 && splitted[2] == "{")
+			std::vector<std::string>	temp = split_on_chars(file[0]);
+			if (temp.size() == 1 && temp[0] == "{")
 			{
-				this->addLocation(file, splitted[1]);
-				continue ;
+				file.pop_front();
+				this->addLocation(file, splitted[1], curWorkDir);
 			}
-			else if (splitted.size() == 2)
+			else
 			{
-				if (!file.empty() && file[0] == "{")
-				{
-					file.pop_front();
-					this->addLocation(file, splitted[1]);
-					continue ;
-				}
+				throw ArgumentIncorrect(temp);
 			}
-			throw ArgumentIncorrect(splitted); //misschien incorrect
+		}
+		else if (splitted.size() == 3 && splitted[2] == "{")
+		{
+			this->addLocation(file, splitted[1], curWorkDir);
 		}
 		else
-			throw ElemNotRecognized(splitted); //misschien incorrect
+		{
+			throw ArgumentIncorrect(splitted);
+		}
 	}
+	throw MissingClosingBracket("Server");
 }
 
 Server::Server(const Server& ref)
@@ -66,6 +83,10 @@ Server&	Server::operator=(const Server& ref)
 
 Server::~Server()
 {
+	this->_listen.clear();
+	this->_locations.clear();
+	this->_errorPage.clear();
+	this->_serverName.clear();
 	return ;
 }
 
@@ -74,20 +95,21 @@ Server::~Server()
 void	Server::setListen(std::vector<std::string>& line)
 {
 	unsigned int	number;
+
 	if (line.size() <= 1)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
 	{
-		if (line[i].find_first_not_of("0123456789") != std::string::npos)
+		if (line[i].find_first_not_of("0123456789") != std::string::npos) // error ipv negeren
 			continue ;
 		std::istringstream (line[i]) >> number;
 		this->_listen.insert(number);
 	}
 }
 
-void	Server::addLocation(std::deque<std::string>& file, std::string& title)
+void	Server::addLocation(std::deque<std::string>& file, std::string& title, const std::string& curWorkDir)
 {
-	Location loc(file, title);
+	Location loc(file, title, curWorkDir);
 
 	this->_locations[title] = loc;
 }
@@ -98,7 +120,7 @@ void	Server::addErrorPage(std::vector<std::string>& line)
 	if (line.size() != 3)
 		throw ArgumentIncorrect(line);
 	if (line[1].find_first_not_of("0123456789") != std::string::npos) 
-		throw epNotANumber(line);
+		throw ElemNotANumber(line[1], line);
 	std::istringstream (line[1]) >> number;
 	this->_errorPage[number] = line[2];
 }
@@ -129,7 +151,7 @@ Location&	Server::getLocation(const std::string& key)
 	throw LocationDoesNotExist();
 }
 
-const std::map<int, std::string>&	Server::getErrorPage() const
+const std::map<int, std::string>&	Server::getErrorPages() const
 {
 	return this->_errorPage;
 }
@@ -138,6 +160,23 @@ const std::set<std::string>&	Server::getServerName() const
 {
 	return this->_serverName;
 }
+
+std::map<std::string, Location>::const_iterator	Server::getRightLocation(const std::string& request_loc) const
+{
+	std::map<std::string, Location>::const_iterator	best_fitting = this->_locations.end();
+	std::map<std::string, Location>::const_iterator	itr = this->_locations.begin();
+	for (; itr != this->_locations.end(); itr++)
+	{
+		//checken of ie begint met request_loc
+		if (request_loc.compare(0, itr->first.length(), itr->first) == 0)
+		{
+			if (best_fitting == this->_locations.end() || best_fitting->first.size() < itr->first.size())
+				best_fitting = itr;
+		}
+	}
+	return best_fitting;
+}
+
 
 std::ostream&	operator<< (std::ostream& out, const Server& obj)
 {
@@ -153,7 +192,7 @@ std::ostream&	operator<< (std::ostream& out, const Server& obj)
 	}
 	out << "]" << std::endl;
 	out << "error_page =";
-	std::map<int, std::string> tempErrorPage = obj.getErrorPage();
+	std::map<int, std::string> tempErrorPage = obj.getErrorPages();
 	for (std::map<int, std::string>::iterator it = tempErrorPage.begin(); it != tempErrorPage.end(); it++)
 		out << " {" << it->first << " <-> " << it->second << "}";
 	out << std::endl;

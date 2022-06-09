@@ -1,14 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Response.hpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2022/03/02 11:57:48 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/15 16:49:03 by juvan-de      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
 
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
@@ -16,38 +5,48 @@
 # include <string>
 # include <iostream>
 # include <StatusCodes.hpp>
+# include <ContentTypes.hpp>
 # include <Server.hpp>
 
 class	Response
 {
 	private:
+		std::string							_response;
+		std::string							_responseBody;
+		bool								_isFinished;
 
-	std::pair<int, std::string>	_statusCode;
-	std::string					_path;
-	std::string					_response;
-	std::string					_responseBody;
+		void	_setContentTypes();
+		void	_makeDefaultErrorPage(int errorCode, const std::string& errorStatus);
 
 	public:
 
 	Response();
-	Response(std::string error);
-	Response(std::string path, Server server);
+	Response(const Server *server, const std::string& path, const std::string& root); //valid
+	Response(int errorcode, const Server *server = NULL); //error
+	Response(const std::string& redir); //301
+	Response(const std::string& cgiBody, bool hasBody); //cgi/post/delete
 	Response(const Response& ref);
 	Response& operator=(const Response& ref);
 	~Response();
 
-	const std::string					&getPath() const;
-	const std::pair<int, std::string>	&getStatusCode() const;
 	const std::string					&getResponse() const;
 	const std::string					&getResponseBody() const;
-	void								setResponseBody(std::string &filename);
+	const std::string					getRightContentType(const std::string suffix) const;
 
+	void								setResponseBodyFromFile(const std::string& filename);
+	void								setResponseBodyFromDir(const std::string& dirname);
+	void								setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages);
+	bool								isFinished();
 	private: /* -Exception- */
-		class NotAFile : public std::exception
+		class ResponseException : public std::exception
 		{
-			const char*	what (void) const throw()
+			private:
+				int _code;
+			public:
+			ResponseException(int code) : _code(code) {}
+			int	getError(void) const throw()
 			{
-				return ("Can't open this file");
+				return (this->_code);
 			}
 		};
 };

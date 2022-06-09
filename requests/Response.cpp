@@ -1,45 +1,84 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   Response.cpp                                       :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: juvan-de <juvan-de@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2022/03/02 11:57:45 by juvan-de      #+#    #+#                 */
-/*   Updated: 2022/03/25 19:28:08 by ztan          ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include <Response.hpp>
 #include <sstream>
+#include <dirent.h>
+#include <stdlib.h>
 
-Response::Response()
+Response::Response() : _isFinished(false)
 {
 	// std::cout << "default constructor called" << std::endl;
 }
 
-Response::Response(std::string error)
+Response::Response(const Server *server, const std::string& path, const std::string& root) : _isFinished(true)
 {
-	std::cout << "an error ocurred in Response constructor" << std::endl;
+	std::stringstream ss;
+	std::string	contentType;
+
+	try
+	{
+		int ret = isValidPath(root, path);
+		// std::cout << "compare: " << ret << std::endl;
+		if (ret != 0)
+			throw ResponseException(ret);
+		if (path[path.size() - 1] == '/')
+		{
+			this->setResponseBodyFromDir(path);
+			contentType = "text/html";
+		}
+		else
+		{
+			this->setResponseBodyFromFile(path);
+			contentType = this->getRightContentType(path.substr(path.find_last_of(".") + 1));
+		}
+	}
+	catch(ResponseException &e)
+	{
+		*this = Response(e.getError(), server);
+		return ;
+	}
+	ss << "HTTP/1.1 " << 200 << ' ' << "OK" << "\r\n";
+	ss << "Content-length: " << getResponseBody().size() << "\r\n";
+	ss << "Content-type: " << contentType << "\r\n\r\n";
+	ss << this->_responseBody << "\r\n\r\n";
+	this->_response = ss.str();
 }
 
-Response::Response(std::string file, Server server)
+Response::Response(int errorCode, const Server *server) : _isFinished(true)
 {
-	StatusCodes statusCodes;
 	std::stringstream ss;
-
-	this->_path = "./files/" + server.getLocation("/").getRoot() + "/Welcome.html";
-	setResponseBody(this->_path);
-	this->_statusCode = statusCodes.getStatusCode(200);
-	ss << "HTTP/1.1 " << this->_statusCode.first << ' ' << this->_statusCode.second << "\r\n";
-	ss << "Server: " << *(server.getServerName().begin()) << "\r\n";
-	/* HARDCODED ALERT */
-	ss << "Date: Tuesday, 25-Nov-97 01:22:04 GMT" << "\r\n";
-	ss << "Last-modified: Thursday, 20-Nov-97 10:44:53 GMT" << "\r\n";
+	const std::string errorStatus = StatusCodes::getStatusCode(errorCode);
+	if (errorStatus.empty())
+		throw ResponseException(500);
+	if (server)
+		this->setResponseBodyFromError(errorCode, errorStatus, server->getErrorPages());
+	else
+		this->_makeDefaultErrorPage(errorCode, errorStatus);
+	ss << "HTTP/1.1 " << errorCode << ' ' << errorStatus << "\r\n";
 	ss << "Content-length: " << getResponseBody().size() << "\r\n";
-	ss << "Content-type: text/html" << "\r\n";
-	ss << "Connection: Keep-Alive" << "\r\n\r\n";
-	ss << getResponseBody();
+	ss << "Content-type: " << "text/html" << "\r\n\r\n";
+	ss << this->_responseBody << "\r\n\r\n";
+	this->_response = ss.str();
+}
+
+Response::Response(const std::string& redir) : _isFinished(true)
+{
+	std::stringstream ss;
+	ss << "HTTP/1.1 " << 301 << ' ' << "Moved Permanently" << "\r\n";
+	ss << "Location: " << redir << "\r\n\r\n";
+	this->_response = ss.str();
+}
+
+Response::Response(const std::string& cgiBody, bool hasBody) : _isFinished(true)
+{
+	std::stringstream ss;
+	ss << "HTTP/1.1 " << 200 << ' ' << "OK" << "\r\n";
+	if (hasBody)
+	{
+		this->_responseBody = cgiBody;
+		ss << "Content-length: " << getResponseBody().size() << "\r\n";
+		ss << "Content-type: " << "text/html" << "\r\n\r\n";
+		ss << this->_responseBody << "\r\n";
+	}
+	ss << "\r\n";
 	this->_response = ss.str();
 }
 
@@ -50,22 +89,20 @@ Response::Response(const Response& ref)
 
 Response&	Response::operator=(const Response& ref)
 {
-	this->_path = ref._path;
-	this->_statusCode = ref._statusCode;
-	this->_response = ref.getResponse();
+	this->_response = ref._response;
+	this->_responseBody = ref._responseBody;
+	this->_isFinished = ref._isFinished;
 	return (*this);
 }
 
 Response::~Response() {}
 
-const std::string	&Response::getPath() const
+const std::string	Response::getRightContentType(const std::string suffix) const
 {
-	return (this->_path);
-}
-
-const std::pair<int, std::string>	&Response::getStatusCode() const
-{
-	return (this->_statusCode);
+	std::string prefix = ContentTypes::getContentType(suffix);
+	if (prefix.empty())
+		throw ResponseException(415);
+	return (prefix + "/" + suffix);
 }
 
 const std::string					&Response::getResponse() const
@@ -78,25 +115,87 @@ const std::string					&Response::getResponseBody() const
 	return (this->_responseBody);
 }
 
-void		Response::setResponseBody(std::string &filename)
+void		Response::setResponseBodyFromDir(const std::string &dirname)//errorcodes zijn gechecked
+{
+	DIR*			dir;
+	struct dirent*	cur_file;
+
+	dir = opendir(dirname.c_str());
+	if (dir != NULL)
+	{
+		this->_responseBody = "<html><head><title>Index of " + dirname + "</title></head>";
+		this->_responseBody += "<body><h1>Index of " + dirname + "</h1><hr><pre>";
+		while ((cur_file = readdir(dir)))
+		{
+			if (strcmp(cur_file->d_name, ".") == 0)
+				continue ;
+			this->_responseBody += " <a href=\"";
+			this->_responseBody += cur_file->d_name;
+			this->_responseBody += "\">";
+			this->_responseBody += cur_file->d_name;
+			this->_responseBody += "</a><br>";
+		}
+		closedir(dir);
+		this->_responseBody += "</pre><hr></body></html>";
+	}
+	else
+		throw ResponseException(404);
+}
+
+void		Response::setResponseBodyFromFile(const std::string &filename)//errorcodes zijn gechecked
 {
 	std::ifstream	file(filename.c_str());
 	std::string		line;
+	std::ostringstream Stream;
 
-	std::cout << "filename: " << filename << std::endl;
-	if (file.is_open())
+	if (!(file.std::ios::fail()))
 	{
-		while (getline(file, line))
-		{
-			this->_responseBody.append(line);
-		}
+		Stream << file.rdbuf();
+		this->_responseBody = Stream.str();
 	}
 	else
-		throw NotAFile();
+		throw ResponseException(500);
+}
+
+void		Response::_makeDefaultErrorPage(int errorCode, const std::string& errorStatus)//errorcodes zijn gechecked
+{
+	std::string defaultError = "files/html/Website/Error/error.html";
+	std::ifstream file(defaultError.c_str()); //nee hoeven we niet te checken want default is er altijd
+	std::ostringstream	Stream;
+	Stream << file.rdbuf();
+	this->_responseBody = Stream.str();
+	size_t replacable = _responseBody.find("{{ERROR_CODE}}");
+	this->_responseBody.replace(replacable, 14, std::to_string(errorCode));
+	replacable = _responseBody.find("{{ERROR_MESSAGE}}");
+	this->_responseBody.replace(replacable, 17, errorStatus);
+}
+
+void		Response::setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages)//errorcodes zijn gechecked
+{
+	std::map<int, std::string>::const_iterator itr = errorPages.find(code);
+	if (itr != errorPages.end())
+	{
+		std::ostringstream Stream;
+		std::ifstream	file(itr->second.c_str());
+		if (!(file.std::ios::fail()))
+		{
+			Stream << file.rdbuf();
+			this->_responseBody = Stream.str();
+		}
+		else
+			_makeDefaultErrorPage(404, errorStatus);
+	}
+	else
+		_makeDefaultErrorPage(code, errorStatus);
+}
+
+bool		Response::isFinished()
+{
+	return (this->_isFinished);
 }
 
 std::ostream&	operator<<(std::ostream &out, const Response &obj)
 {
-	out << "Response path:\n" << obj.getPath() << "\nStatus code:\n[" << obj.getStatusCode().first << "]" << std::endl;
+	out << "Response:\n" << obj.getResponse();
 	return (out);
 }

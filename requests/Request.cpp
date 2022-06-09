@@ -1,3 +1,6 @@
+#include <unistd.h>
+#include <limits.h>
+
 #include <Request.hpp>
 #include <fstream>
 #include <sys/socket.h>
@@ -11,6 +14,8 @@ Request::Request()
 	this->_type = NOTSET;
 	this->_isFinished = false;
 	this->_isChunked = false;
+	this->_statusCode = 200;
+	this->_bytesRead = 0;
 }
 
 Request::Request(const Request& ref)
@@ -21,101 +26,129 @@ Request::Request(const Request& ref)
 Request&	Request::operator=(const Request& ref)
 {
 	this->_type = ref.getType();
-	this->_location = ref.getLocation();
+	this->_uri = ref.getUri();
 	this->_headers = ref.getHeaders();
+	this->_input = ref.getInput();
+	this->_isChunked = ref.checkIfChunked();
+	this->_isFinished = ref.readyForParse();
+	this->_body = ref.getBody();
+	this->_statusCode = ref.getStatusCode();
+	this->_bytesRead = ref.getBytesRead();
 	return (*this);
 }
 
 Request::~Request() {}
 
-Type		const &Request::getType() const 
+const Type&		Request::getType() const 
 {
 	return (this->_type);
 }
 
-std::string	const &Request::getLocation() const 
+const std::string&	Request::getUri() const 
 {
-	return (this->_location);
+	return (this->_uri);
 }
 
-std::map<std::string, std::string>	const &Request::getHeaders() const
+const std::map<std::string, std::string, cmpCaseInsensitive >&	Request::getHeaders() const
 {
 	return (this->_headers);
 }
 
-std::string		const &Request::getInput() const
+const std::string&	Request::getInput() const
 {
 	return (this->_input);
 }
 
+const std::string&	Request::getBody() const
+{
+	return (this->_body);
+}
+
+int	Request::getStatusCode() const
+{
+	return (this->_statusCode);
+}
+
+size_t Request::getBytesRead() const
+{
+	return (this->_bytesRead);
+}
+
 void			Request::addto_request(int fd)
 {
-	char	cstr[BUFFER_SIZE + 1];
+	char	cstr[BUFFER_SIZE];
 	int		ret = 1;
 
 	// this can return an error if operation would block, see man page
-	ret = recv(fd, cstr, BUFFER_SIZE, MSG_DONTWAIT);
-	if (ret > 0)
+	ret = recv(fd, cstr, BUFFER_SIZE, 0);
+	if (ret > 0 && ret < BUFFER_SIZE)
 	{
-		cstr[ret] = '\0';
-		this->_input.append(cstr);
+		this->_input.append(cstr, ret);
+		this->_bytesRead = ret;
+		if (this->_type != NOTSET)
+			this->_isFinished = true;
 	}
-	if (ret < -1)
-		std::cout << "\033[31m" << "RECV ERROR: " << ret << "\033[0m" << std::endl;
-	std::cout << "*********input*********\n" << this->_input << "\n*********input*********" << "\nret: " << ret << std::endl;
+	else if (ret > 0)
+	{
+		this->_input.append(cstr, ret);
+		this->_bytesRead = ret;
+	}
+	else if (ret <= -1)
+		throw RequestException(505);
 }
 
 bool			Request::isFinished(void)
 {
-	std::string::reverse_iterator rit = this->_input.rbegin();
-	if (rit[0] == '\n' && rit[1] == '\r' && rit[2] == '\n' && rit[3] == '\r')
-		return (true);
+	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
+	if (it == this->_headers.end()) //needs work
+			return (true);
+	else if(this->_body.size() >= 4 && this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n"))
+	{
+		size_t length = std::atoi(it->second.c_str());
+		if (length == this->_body.size())
+			return (true);
+		return (false);
+	}
 	return (false);
 }
 
 void			Request::setRequest(void)
 {
 	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
-	size_t size = first_line.find(' ');
-	switch(size)
-	{
-		case 3 :	this->_type = GET;
-					break ;
-		case 4 : 	this->_type = POST;
-					break;
-		case 6 : 	this->_type = DELETE;
-					break;
-	}
-	size_t start = first_line.find('/');
-	size_t end = first_line.find(' ', start);
-	this->_location = first_line.substr(start, end - start);
-	if (first_line.find("HTTP/1.1") == std::string::npos)
-		throw IncorrectHTTP();
+	std::vector<std::string> array = split_on_chars(first_line);
+	if (array.size() != 3)
+		throw RequestException(400);
+	if (array[0] == "GET")
+		this->_type = GET;
+	else if (array[0] == "POST")
+		this->_type = POST;
+	else if (array[0] == "DELETE")
+		this->_type = DELETE;
+	else
+		throw RequestException(400);
+	this->_uri = array[1];
+	if (array[2] != "HTTP/1.1")
+		throw RequestException(505);
 } 
 
 void		Request::setHeaders(void)
 {
-	this->_input = this->_input.substr(this->_input.find('\n') + 1);
+	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
-	std::vector<std::string> lines = split(headers, "\r\n");
-	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++)
+	std::vector<std::string> lines = split_on_str(headers, "\r\n");
+	lines.erase(lines.begin());
+	for (size_t i = 0; i < lines.size(); i++)
 	{
-		if (it->find(":") != std::string::npos)
+		if (lines[i].find(":") != std::string::npos)
 		{
-			std::string first = it->substr(0, it->find(':'));
-			std::string second = it->substr(it->find(':') + 1);
-			second = strtrim(second, " \r\n");
-			if (first.size() > 1)
-				this->_headers[first] = second;
+			std::vector<std::string> splitted = split_on_str(lines[i], ": ");
+			this->_headers[splitted[0]] = splitted[1];
 		}
 	}
 	this->_input = this->_input.substr(end);
-	// for (std::map<std::string, std::string>::iterator it = this->_headers.begin(); it != this->_headers.end(); it++)
-	// {
-	// 	std::cout << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
-	// }
-	if (this->_headers["Transfer-Encoding"] == "chunked")
+	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
+	if (it != this->_headers.end() && it->second == "chunked")
 	{
 		this->_isChunked = true;
 		this->_isFinished = false;
@@ -123,8 +156,36 @@ void		Request::setHeaders(void)
 	else
 	{
 		this->_isChunked = false;
-		this->_isFinished = true;
+		it = this->_headers.find("Content-Length");
+		if (it == this->_headers.end() && this->_type == POST)
+			throw RequestException(411);
+		if (this->isFinished()) //unsure if failproof
+			this->_isFinished = true;
 	}
+}
+
+void		Request::append_body()
+{
+	for (size_t i = 0; i < this->_input.size(); i++)
+		this->_body += this->_input[i];
+	this->_input.clear();
+	if (this->isFinished())
+		this->_isFinished = true;
+}
+
+void		Request::setType(Type code)
+{
+	this->_type = code;
+}
+
+void		Request::setStatusCode(int code)
+{
+	this->_statusCode = code;
+}
+
+void		Request::setAsFinished()
+{
+	this->_isFinished = true;
 }
 
 bool		Request::checkIfChunked(void) const
@@ -139,6 +200,7 @@ bool		Request::readyForParse(void) const
 
 void			Request::readChunked(int fd)
 {
+	(void)fd;
 	int bodysize = std::stoi(this->_input, NULL, 16);
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
@@ -151,11 +213,22 @@ void			Request::readChunked(int fd)
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
 {
-	out << "Input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
+	out << "Unparsed input data:\n" << obj.getInput() << "\nEnd Input" << std::endl;
+	out << "TYPE: " << obj.getType() << std::endl;
+	if (obj.getType() == 3)
+		out << "statusCode: " << obj.getStatusCode() << std::endl;
 	if (obj.checkIfChunked())
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())
-		out << "The request is fully read" << std::endl;
-	out << "location: " << obj.getLocation() << std::endl;
+	{
+		out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
+	}
+	out << "location: " << obj.getUri() << std::endl;
+	out << "HEADERS: " << std::endl;
+	for (std::map<std::string, std::string>::const_iterator it = obj.getHeaders().begin(); it != obj.getHeaders().end(); it++)
+	{
+		out << "first: (" << it->first << ")\tsecond: (" << it->second << ")" << std::endl;
+	}
+	// out << "BODY:\n" << obj.getBody();
 	return (out);
 }

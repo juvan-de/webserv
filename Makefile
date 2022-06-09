@@ -2,18 +2,24 @@ NAME 		= 	webserv.exe
 
 PARSE_SRC	=	parse.cpp
 UTILS_SRC	=	split.cpp \
-				error.cpp \
-				htoi.cpp \
-				strtrim.cpp
-INIT_SRC	=	data.cpp
-CONNECT_SRC	=	handle_connection.cpp
-REQUEST_SRC	=	Request.cpp \
+				doesFileExist.cpp \
+				strToLower.cpp \
+				strtrim.cpp \
+				isNumber.cpp \
+				isRealPath.cpp 
+REQUEST_SRC	=	ContentTypes.cpp \
+				Request.cpp \
 				Response.cpp \
 				StatusCodes.cpp 
 SERVER_SRC	= 	Location.cpp \
 				redir.cpp \
-				Server.cpp
-SOCKET_SRC	=	Socket.cpp
+				Server.cpp \
+				webservException.cpp
+SOCKET_SRC	=	Socket.cpp \
+				ServerSocket.cpp \
+				ClientSocket.cpp \
+				CgiSocket.cpp
+POLLER_SRC	=	Poller.cpp
 
 PARSE		=	$(addprefix srcs/parse/, $(PARSE_SRC))
 UTILS		=	$(addprefix srcs/utils/, $(UTILS_SRC))
@@ -22,23 +28,25 @@ CONNECT		=	$(addprefix srcs/connection/, $(CONNECT_SRC))
 REQUESTS	=	$(addprefix requests/, $(REQUEST_SRC))
 SERVER		= 	$(addprefix server/, $(SERVER_SRC))
 SOCKET		= 	$(addprefix socket/, $(SOCKET_SRC))
+POLLER		= 	$(addprefix poller/, $(POLLER_SRC))
 
 SOURCES		= 	main.cpp \
 				$(PARSE) \
 				$(UTILS) \
 				$(INIT) \
-				$(CONNECT) \
 				$(REQUESTS) \
 				$(SOCKET) \
-				$(SERVER)
+				$(SERVER) \
+				$(POLLER)
 
 OBJDIR		=	./obj/
 OBJECTS 	=	$(SOURCES:%.cpp=$(OBJDIR)%.o)
 
-FLAGS 		=	-std=c++98
+FLAGS 		=	-std=c++98 -fsanitize=address -g -Wall -Wextra -Werror
 COMPILE		=	clang++
 
-INC			=	-Iincludes -Irequests -Iserver -Isocket
+#  -Wall -Wextra -Werror
+INC			=	-Iincludes -Irequests -Iserver -Isocket -Ipoller -Isocket/exceptions -Icgi
 
 GREEN 		= 	\033[38;5;46m
 WHITE 		= 	\033[38;5;15m
