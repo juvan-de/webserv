@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 ClientSocket::ClientSocket(int fd, sockaddr_in addr, int serverPort) :
-	Socket(fd), _request(Request()), _server(NULL), _cgi(NULL), _serverPort(serverPort)
+	Socket(fd), _request(Request()), _cgi(NULL), _serverPort(serverPort)
 {
 	// std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
 	int flags;
@@ -132,16 +132,16 @@ Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Locat
 	return (Response(204, server));
 }
 
-static Response	handle_cgi()
-{
-	if (_cgi->getStatus() == FINISHED)
-	{
-		_cgi->checkError();
-		response = Response(_cgi->getInput(), true);
-		_cgi->setSatus(SENT);
-		_cgi = NULL;
-	}
-}
+// static Response	handle_cgi()
+// {
+// 	if (_cgi->getStatus() == FINISHED)
+// 	{
+// 		_cgi->checkError();
+// 		response = Response(_cgi->getInput(), true);
+// 		_cgi->setSatus(SENT);
+// 		_cgi = NULL;
+// 	}
+// }
 
 static std::string	isCgiRequest(Server *server, Request request)
 {
@@ -170,105 +170,45 @@ static std::string	isCgiRequest(Server *server, Request request)
 	return "";
 }
 
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
-{
-	Response response;
-	Server *server = find_server(table, this->_request);
-	std::string	filename = isCgiRequest(server, this->_request);
-	std::string	request_location = this->_request.getUri();
-	std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-
-	try 
-	{
-		if (!_cgi && filename.compare(""))
-			_cgi = new CgiSocket(filename, this->_request, *server, _address);
-	}
-	catch (CgiSocket::CgiException& e)
-	{
-		response = Response(e.getError(), server);
-	}
-
-	
-	switch (this->_request.getType())
-	{
-		case NOTSET:
-			break;	
-		case ERROR:
-			response = Response(this->_request.getStatusCode());
-			break;
-		case CGI:
-			handle_cgi(_request);
-			break;
-		case GET:
-			response = handle_get(server, itr);
-			break;
-		case POST:
-			response = handle_post(server, itr);
-			break;
-		case DELETE:
-			response = handle_delete(server, itr);
-			break;
-	}
-	if (response.isFinished())
-	{
-		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
-		if (ret < 0)
-			std::cout << "send error" << std::endl;
-		this->_request = Request();	
-	}
-}
-
 // void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
 // {
 // 	Response response;
-// 	std::string	filename;
 // 	Server *server = find_server(table, this->_request);
+// 	std::string	filename = isCgiRequest(server, this->_request);
+// 	std::string	request_location = this->_request.getUri();
+// 	std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
 
 // 	try 
 // 	{
-// 		filename = isCgiRequest(server, this->_request);
 // 		if (!_cgi && filename.compare(""))
 // 			_cgi = new CgiSocket(filename, this->_request, *server, _address);
-// 		if (_cgi && _cgi->getStatus() == FINISHED)
-// 		{
-// 			this->_cgi->checkError();
-// 			response = Response(this->_cgi->getInput(), true);
-// 			_cgi->setSatus(SENT);
-// 			_cgi = NULL;
-// 		}
-// 		if (_cgi && _cgi->getStatus() != FINISHED) {
-// 			return ;
-// 		}
 // 	}
 // 	catch (CgiSocket::CgiException& e)
 // 	{
 // 		response = Response(e.getError(), server);
 // 	}
-// 	if (this->_request.getType() == GET)
+
+	
+// 	switch (this->_request.getType())
 // 	{
-// 		std::string	request_location = this->_request.getUri();
-// 		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-// 		response = this->makeGetResponse(server, itr);
+// 		case NOTSET:
+// 			break;	
+// 		case ERROR:
+// 			response = Response(this->_request.getStatusCode());
+// 			break;
+// 		case CGI:
+// 			handle_cgi(_request);
+// 			break;
+// 		case GET:
+// 			response = handle_get(server, itr);
+// 			break;
+// 		case POST:
+// 			response = handle_post(server, itr);
+// 			break;
+// 		case DELETE:
+// 			response = handle_delete(server, itr);
+// 			break;
 // 	}
-// 	else if (this->_request.getType() == POST)
-// 	{
-// 		std::string	request_location = this->_request.getUri();
-// 		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-// 		response = handle_post(server, itr);
-// 	}
-// 	else if (this->_request.getType() == DELETE)
-// 	{
-// 		std::string	request_location = this->_request.getUri();
-// 		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-// 		response = handle_delete(server, itr);
-// 	}
-// 	else if (this->_request.getType() == ERROR)
-// 	{
-// 		std::cout << "TYPE ERROR" << std::endl;
-// 		response = Response(this->_request.getStatusCode());
-// 	}
-// 	else
-// 		std::cout << "nothing to do here" << std::endl;
 // 	if (response.isFinished())
 // 	{
 // 		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
@@ -277,5 +217,65 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 // 		this->_request = Request();	
 // 	}
 // }
+
+void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
+{
+	Response response;
+	std::string	filename;
+	Server *server = find_server(table, this->_request);
+
+	try 
+	{
+		filename = isCgiRequest(server, this->_request);
+		if (!_cgi && filename.compare(""))
+			_cgi = new CgiSocket(filename, this->_request, *server, _address);
+		if (_cgi && _cgi->getStatus() == FINISHED)
+		{
+			this->_cgi->checkError();
+			response = Response(this->_cgi->getInput(), true);
+			_cgi->setSatus(SENT);
+			_cgi = NULL;
+		}
+		if (_cgi && _cgi->getStatus() != FINISHED) {
+			return ;
+		}
+	}
+	catch (CgiSocket::CgiException& e)
+	{
+		response = Response(e.getError(), server);
+	}
+	if (this->_request.getType() == GET)
+	{
+		std::string	request_location = this->_request.getUri();
+		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+		response = this->handle_get(server, itr);
+	}
+	else if (this->_request.getType() == POST)
+	{
+		std::string	request_location = this->_request.getUri();
+		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+		response = handle_post(server, itr);
+	}
+	else if (this->_request.getType() == DELETE)
+	{
+		std::string	request_location = this->_request.getUri();
+		std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+		response = handle_delete(server, itr);
+	}
+	else if (this->_request.getType() == ERROR)
+	{
+		std::cout << "TYPE ERROR" << std::endl;
+		response = Response(this->_request.getStatusCode());
+	}
+	else
+		std::cout << "nothing to do here" << std::endl;
+	if (response.isFinished())
+	{
+		int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
+		if (ret < 0)
+			std::cout << "send error" << std::endl;
+		this->_request = Request();	
+	}
+}
 
 

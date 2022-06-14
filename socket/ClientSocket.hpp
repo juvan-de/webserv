@@ -16,11 +16,9 @@ class ClientSocket : public Socket
 	private:
 		/*--------------------------Member variables--------------------------*/
 		Request		_request;
-		Server		*_server;
 		CgiSocket	*_cgi;
 		sockaddr_in	_address;
 		int			_serverPort;
-
 
 	public:
 		/*--------------------------Member functions--------------------------*/
