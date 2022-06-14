@@ -182,3 +182,20 @@ FileEmpty::FileEmpty() {
 }
 FileEmpty::~FileEmpty() throw() {}
 const char*	FileEmpty::what (void) const throw() {return this->_ret.c_str(); }
+
+/* Duplicate Number */
+DuplicateNumber::DuplicateNumber(const std::string& number, const std::vector<std::string>& line) {
+	this->_ret = COLOR_WHITE_BOLD;
+	this->_ret += "There is a duplicate Number\n";
+	this->_ret += "duplicate: ";
+	this->_ret += COLOR_WHITE_BOLD;
+	this->_ret += "'";
+	this->_ret += number; 
+	this->_ret += "'\n";
+	this->_ret += COLOR_NORMAL_DIM;
+	this->_ret += "line:";
+	for (std::vector<std::string>::const_iterator it = line.begin(); it != line.end(); it++)
+		this->_ret += " " + *it;
+}
+DuplicateNumber::~DuplicateNumber() throw() {}
+const char*	DuplicateNumber::what (void) const throw() {return this->_ret.c_str(); }
