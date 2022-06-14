@@ -34,7 +34,7 @@ class	Response
 	const std::string					getRightContentType(const std::string suffix) const;
 
 	void								setResponseBodyFromFile(const std::string& filename);
-	void								setResponseBodyFromDir(const std::string& dirname);
+	void								setResponseBodyFromDir(const std::string& dirname, const std::string displayname);
 	void								setResponseBodyFromError(int code, const std::string& errorStatus, const std::map<int, std::string>& errorPages);
 	bool								isFinished();
 	private: /* -Exception- */

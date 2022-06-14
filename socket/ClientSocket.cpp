@@ -82,13 +82,10 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 	const std::string& uri = this->_request.getUri();
 
 	// std::cout << "RESPONSE BUILDING" << std::endl;
-	std::cout << location->first << std::endl;
-	
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return Response(413, server);
 	if (location == server->getLocations().end()) /* bad request */
 		return Response(404, server);
-	// std::cout << location->second.getRedir().isSet() << std::endl;
 	if (location->second.getRedir().isSet())
 		return Response(location->second.getRedir().getLocation());
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
@@ -206,8 +203,6 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			std::cout << "TYPE ERROR" << std::endl;
 			response = Response(this->_request.getStatusCode());
 		}
-		else
-			std::cout << "nothing to do here" << std::endl;
 		if (response.isFinished())
 		{
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
