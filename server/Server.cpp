@@ -91,7 +91,6 @@ Server::~Server()
 }
 
 /* -Setters- */
-
 void	Server::setListen(std::vector<std::string>& line)
 {
 	unsigned int	number;
@@ -101,8 +100,10 @@ void	Server::setListen(std::vector<std::string>& line)
 	for (size_t i = 1; i < line.size(); i++)
 	{
 		if (line[i].find_first_not_of("0123456789") != std::string::npos) // error ipv negeren
-			continue ;
+			throw ElemNotANumber(line[i], line);
 		std::istringstream (line[i]) >> number;
+		if (this->_listen.find(number) != this->_listen.end())
+			throw DuplicateNumber(line[i], line);
 		this->_listen.insert(number);
 	}
 }

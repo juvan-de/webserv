@@ -162,4 +162,14 @@ class FileEmpty : public std::exception
 		const char*	what (void) const throw();
 };
 
+class DuplicateNumber : public std::exception
+{
+	protected:
+		std::string						_ret;
+	public:
+		DuplicateNumber(const std::string& number, const std::vector<std::string>& line);
+		virtual ~DuplicateNumber() throw();
+		const char*	what (void) const throw();
+};
+
 #endif
