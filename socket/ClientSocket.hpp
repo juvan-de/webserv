@@ -14,14 +14,15 @@ class ClientSocket : public Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
-		Request		_request;
-		sockaddr_in	_address;
-		CgiSocket	*_cgi;
-
+		Request			_request;
+		sockaddr_in		_address;
+		CgiSocket		*_cgi;
+		int				_serverPort;
 
 	public:
 		/*--------------------------Member functions--------------------------*/
-		ClientSocket(int fd, sockaddr_in addr);
+		ClientSocket(int fd, sockaddr_in addr, int serverPort);
+		int					getPort() const { return _serverPort; }
 		const Request		getRequest() const { return _request; }
 		CgiSocket			*getCgi() { return _cgi; }
 		struct sockaddr_in	&getAddr() { return _address; }

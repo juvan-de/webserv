@@ -4,7 +4,8 @@
 #include <netinet/in.h> // sockaddr_in
 #include <unistd.h> // close
 
-ServerSocket::ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : Socket(domain, service, protocol)
+ServerSocket::ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : 
+	Socket(domain, service, protocol), _port(port)
 {
 	/*Instantiating a connection*/
 	int flags;
@@ -40,5 +41,5 @@ ClientSocket	*ServerSocket::get_new_cli()
 	// std::cout << "NEW CLI" << std::endl;
 	if ((fd = accept(getFd(), (struct sockaddr *)&newaddr, &addrlen)) < 0)
 		throw BadConnect();
-	return new ClientSocket(fd, newaddr); //memoryleak?
+	return new ClientSocket(fd, newaddr, _port); //memoryleak?
 }
