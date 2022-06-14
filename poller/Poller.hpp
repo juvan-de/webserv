@@ -15,9 +15,9 @@ class ServerSocket;
 
 typedef enum e_type
 {
-	SERV = 0,
-	CLI = 1,
-	CGI = 2
+	T_SERV = 0,
+	T_CLI = 1,
+	T_CGI = 2
 }	t_type;
 
 class Poller

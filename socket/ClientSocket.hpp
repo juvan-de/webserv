@@ -9,14 +9,16 @@
 # include <CgiSocket.hpp>
 
 class Poller;
+class Server;
 
 class ClientSocket : public Socket
 {
 	private:
 		/*--------------------------Member variables--------------------------*/
 		Request		_request;
-		sockaddr_in	_address;
+		Server		*_server;
 		CgiSocket	*_cgi;
+		sockaddr_in	_address;
 		int			_serverPort;
 
 
@@ -29,7 +31,7 @@ class ClientSocket : public Socket
 		struct sockaddr_in	&getAddr() { return _address; }
 		void				handle_pollin();
 		void				handle_pollout(std::map<std::pair<int, std::string>, Server*> table);
-		Response			makeGetResponse(Server* server, std::map<std::string, Location>::const_iterator location);
+		Response			handle_get(Server* server, std::map<std::string, Location>::const_iterator location);
 		Response			handle_post(Server* server, std::map<std::string, Location>::const_iterator location);
 		Response			handle_delete(Server* server, std::map<std::string, Location>::const_iterator location);
 
