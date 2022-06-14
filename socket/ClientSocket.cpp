@@ -6,8 +6,8 @@
 #include <ostream>
 #include <stdio.h>
 
-ClientSocket::ClientSocket(int fd, sockaddr_in addr) :
-	Socket(fd), _request(Request()), _cgi(NULL)
+ClientSocket::ClientSocket(int fd, sockaddr_in addr, int serverPort) :
+	Socket(fd), _request(Request()), _cgi(NULL), _serverPort(serverPort)
 {
 	// std::cout << "DEBUG: CLI SOCK OPENED" << std::endl;
 	int flags;
