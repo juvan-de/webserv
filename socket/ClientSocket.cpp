@@ -67,6 +67,7 @@ static Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
+
 	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
 	if (table.find(std::make_pair(port, name)) == table.end())
 	{
@@ -90,7 +91,10 @@ Response ClientSocket::makeGetResponse(Server* server, std::map<std::string, Loc
 		return Response(404, server);
 	// std::cout << location->second.getRedir().isSet() << std::endl;
 	if (location->second.getRedir().isSet())
+	{
+		std::cout << "redirect goes wrong here" << std::endl;
 		return Response(location->second.getRedir().getLocation());
+	}
 	if (location->second.getLimitExcept().find("GET") == location->second.getLimitExcept().end()) /* bad request (405 forbidden)*/
 		return Response(405, server);
 	if (uri[uri.size() - 1] == '/')
@@ -114,7 +118,7 @@ Response	ClientSocket::handle_post(Server* server, std::map<std::string, Locatio
 	if (this->_request.getBody().size() > location->second.getClientMaxBodySize())
 		return (Response(413, server));
 	if (location->second.getLimitExcept().find("POST") == location->second.getLimitExcept().end())
-		return (Response(405, server)); //which code?
+		return (Response(405, server));
 	std::string upload_location = location->second.getRoot() + this->_request.getUri();
 	std::ofstream os(upload_location, std::ofstream::binary);
 	os.write(this->_request.getBody().c_str(), this->_request.getBody().size());
@@ -125,7 +129,9 @@ Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Locat
 {
 	std::string delete_location = location->second.getRoot() + this->_request.getUri();
 	if (location->second.getLimitExcept().find("DELETE") == location->second.getLimitExcept().end())
-		return (Response(405, server)); //which code?
+		return (Response(405, server));
+	if (doesFileExist(delete_location))
+		return (Response(404, server));
 	int ret = std::remove(delete_location.c_str());
 	if (ret < 0)
 		return (Response(500, server));
@@ -212,7 +218,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		{
 			int ret = send(getFd(), response.getResponse().c_str(), response.getResponse().length(), 0);
 			if (ret < 0)
-				std::cout << "send error" << std::endl;
+				std::cout << "send error" << std::endl; //what we do
 			this->_request = Request();	
 		}
 	}
