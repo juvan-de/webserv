@@ -29,6 +29,7 @@ class ClientSocket : public Socket
 		struct sockaddr_in	&getAddr() { return _address; }
 		void				handle_pollin();
 		void				handle_pollout(std::map<std::pair<int, std::string>, Server*> table);
+		Server				*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request);
 		Response			handle_get(Server* server, std::map<std::string, Location>::const_iterator location);
 		Response			handle_post(Server* server, std::map<std::string, Location>::const_iterator location);
 		Response			handle_delete(Server* server, std::map<std::string, Location>::const_iterator location);

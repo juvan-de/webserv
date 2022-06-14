@@ -164,8 +164,8 @@ const std::set<std::string>&	Server::getServerName() const
 
 std::map<std::string, Location>::const_iterator	Server::getRightLocation(const std::string& request_loc) const
 {
-	std::map<std::string, Location>::const_iterator	best_fitting = this->_locations.end();
 	std::map<std::string, Location>::const_iterator	itr = this->_locations.begin();
+	std::map<std::string, Location>::const_iterator	best_fitting = this->_locations.end();
 	for (; itr != this->_locations.end(); itr++)
 	{
 		//checken of ie begint met request_loc

@@ -80,7 +80,7 @@ void			Request::addto_request(int fd)
 	int		ret = 1;
 
 	// this can return an error if operation would block, see man page
-	ret = recv(fd, cstr, BUFFER_SIZE, 0);
+	ret = recv(fd, cstr, BUFFER_SIZE, 0); //check for ret = 0
 	if (ret > 0 && ret < BUFFER_SIZE)
 	{
 		this->_input.append(cstr, ret);
@@ -125,7 +125,10 @@ void			Request::setRequest(void)
 	else if (array[0] == "DELETE")
 		this->_type = DELETE;
 	else
-		throw RequestException(400);
+	{
+		this->_type = ERROR;
+		throw RequestException(405);
+	}
 	this->_uri = array[1];
 	if (array[2] != "HTTP/1.1")
 		throw RequestException(505);
@@ -133,7 +136,7 @@ void			Request::setRequest(void)
 
 void		Request::setHeaders(void)
 {
-	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
+//	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
 	std::vector<std::string> lines = split_on_str(headers, "\r\n");
@@ -205,10 +208,7 @@ void			Request::readChunked(int fd)
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
 	if (this->_input == "0\r\n\r\n")
-	{
 		this->_isFinished = true;
-		std::cout << "we finishin\n";
-	}
 }
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
@@ -221,7 +221,8 @@ std::ostream&	operator<< (std::ostream& out, const Request& obj)
 		out << "The request is chunked" << std::endl;
 	if (obj.readyForParse())
 	{
-		out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
+		if (obj.getHeaders().find("Content-Length") != obj.getHeaders().end())
+			out << "request fully read, body size: " << obj.getBody().size() << " and content length: " << obj.getHeaders().find("Content-Length")->second << std::endl;
 	}
 	out << "location: " << obj.getUri() << std::endl;
 	out << "HEADERS: " << std::endl;
