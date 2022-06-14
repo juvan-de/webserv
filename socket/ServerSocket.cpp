@@ -4,7 +4,8 @@
 #include <netinet/in.h> // sockaddr_in
 #include <unistd.h> // close
 
-ServerSocket::ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : Socket(domain, service, protocol)
+ServerSocket::ServerSocket(int domain, int service, int protocol, int port, u_long interface, int backlog) : 
+	Socket(domain, service, protocol), _port(port)
 {
 	/*Instantiating a connection*/
 	int flags;

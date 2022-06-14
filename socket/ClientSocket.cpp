@@ -56,23 +56,19 @@ void	ClientSocket::handle_pollin()
 
 /*----------------------------------------POLLOUT--------------------------------------------*/
 
-static Server	*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
+Server	*ClientSocket::find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request)
 {
 	std::map<std::string, std::string, cmpCaseInsensitive> headers = request.getHeaders();
-	// std::cout << request << std::endl;
 	if (headers.find("Host") == headers.end())
 	{
 		/* bad request statuscode, want host is mandatory in http 1.1 */
-		// std::cout << "error finding hostname: " << std::endl;
 	}
 	std::string host = headers["Host"];
 	std::string name = host.substr(0, host.find(":"));
-
-	int port = std::atoi(host.substr(host.find(":") + 1).c_str());
+	int port = this->getPort();
 	if (table.find(std::make_pair(port, name)) == table.end())
 	{
-		/* bad request statuscode, want host is mandatory in http 1.1 */
-		// std::cout << " pair" << std::endl;
+		std::cout << "this shouldn't happen :C" << std::endl;
 		return NULL;
 	}
 	return (table[std::make_pair(port, name)]);
@@ -172,22 +168,27 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 	{
 		Response response;
 		std::string	filename;
-		Server *server = find_server(table, this->_request);
-		try 
+		Server *server = NULL;
+		if (this->_request.getType() != ERROR)
 		{
-			filename = isCgiRequest(server, this->_request);
-			// std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
-			if (!_cgi && filename.compare(""))
-				_cgi = new CgiSocket(filename, this->_request, *server, _address);
-			if (_cgi && _cgi->getStatus() == FINISHED)
+			server = find_server(table, this->_request);
+			//something so it doesn't segfault when server couldn't be found
+			try 
 			{
-				this->_cgi->checkError();
-				response = Response(this->_cgi->getInput(), true);
+				filename = isCgiRequest(server, this->_request);
+				// std::cout << "DEBUG FILENAME: " << filename << ", compare ret: " << filename.compare("") << std::endl;
+				if (!_cgi && filename.compare(""))
+					_cgi = new CgiSocket(filename, this->_request, *server, _address);
+				if (_cgi && _cgi->getStatus() == FINISHED)
+				{
+					this->_cgi->checkError();
+					response = Response(this->_cgi->getInput(), true);
+				}
 			}
-		}
-		catch (CgiSocket::CgiException& e)
-		{
-			response = Response(e.getError(), server);
+			catch (CgiSocket::CgiException& e)
+			{
+				response = Response(e.getError(), server);
+			}
 		}
 		if (this->_request.getType() == GET)
 		{
@@ -213,10 +214,7 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 			response = handle_delete(server, itr);
 		}
 		else if (this->_request.getType() == ERROR)
-		{
-			std::cout << "TYPE ERROR" << std::endl;
 			response = Response(this->_request.getStatusCode());
-		}
 		else
 			std::cout << "nothing to do here" << std::endl;
 		if (response.isFinished())

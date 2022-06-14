@@ -136,7 +136,7 @@ void			Request::setRequest(void)
 
 void		Request::setHeaders(void)
 {
-	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
+//	std::cout << "INPUT:\n" << _input << "\nendinput." << std::endl;
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
 	std::vector<std::string> lines = split_on_str(headers, "\r\n");
@@ -208,10 +208,7 @@ void			Request::readChunked(int fd)
 	this->_body.append(this->_input.substr(this->_input.find("\r\n") + 2, bodysize));
 	this->_input = this->_input.substr(this->_input.find("\r\n") + 4 + bodysize);
 	if (this->_input == "0\r\n\r\n")
-	{
 		this->_isFinished = true;
-		std::cout << "we finishin\n";
-	}
 }
 
 std::ostream&	operator<< (std::ostream& out, const Request& obj)
