@@ -130,7 +130,7 @@ Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Locat
 	std::string delete_location = location->second.getRoot() + this->_request.getUri();
 	if (location->second.getLimitExcept().find("DELETE") == location->second.getLimitExcept().end())
 		return (Response(405, server));
-	if (doesFileExist(delete_location))
+	if (!doesFileExist(delete_location))
 		return (Response(404, server));
 	int ret = std::remove(delete_location.c_str());
 	if (ret < 0)
@@ -198,8 +198,13 @@ void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>
 		else if (this->_request.getType() == POST)
 		{
 			std::string	request_location = this->_request.getUri();
-			std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
-			response = handle_post(server, itr);
+			if (request_location.size() > 0 && request_location[request_location.size() - 1] == '/')
+				response = Response(400, server);
+			else
+			{
+				std::map<std::string, Location>::const_iterator itr = server->getRightLocation(request_location);
+				response = handle_post(server, itr);
+			}
 		}
 		else if (this->_request.getType() == DELETE)
 		{
