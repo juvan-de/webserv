@@ -131,7 +131,7 @@ Response	ClientSocket::handle_delete(Server* server, std::map<std::string, Locat
 	int ret = std::remove(delete_location.c_str());
 	if (ret < 0)
 		return (Response(500, server));
-	return (Response(204, server));
+	return (Response(200, server));
 }
 
 static std::string	isCgiRequest(Server *server, Request request)
