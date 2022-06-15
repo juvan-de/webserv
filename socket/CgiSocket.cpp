@@ -191,7 +191,7 @@ void	CgiSocket::read_from_cgi()
 	}
 	cstr[ret] = '\0';
 	_output.append(cstr);
-	std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
+	// std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
 }
 
 void	CgiSocket::write_to_cgi()

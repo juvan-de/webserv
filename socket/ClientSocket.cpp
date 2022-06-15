@@ -140,21 +140,20 @@ Response	ClientSocket::handle_cgi()
 {
 	Response response = Response();
 
-	if (_cgi->getStatus() == FINISHED)
+	try
 	{
-		std::cout << "body: " << _cgi->getOutput() << std::endl;
-		// try
-		// {
-		// 	this->_cgi->checkError();/* code */
-		// }
-		// catch(const std::exception& e)
-		// {
-		// 	std::cerr << e.what() << '\n';
-		// }
-		this->_cgi->checkError();/* code */
-		response = Response(this->_cgi->getOutput(), true);
-		_cgi->setSatus(FINISHED);
-		_cgi = NULL;
+		if (_cgi->getStatus() == FINISHED)
+		{
+			// std::cout << "body: " << _cgi->getOutput() << std::endl;
+			this->_cgi->checkError();/* code */
+			response = Response(this->_cgi->getOutput(), true);
+			_cgi->setSatus(FINISHED);
+			_cgi = NULL;
+		}
+	}
+	catch (CgiSocket::CgiException& e)
+	{
+		response = Response(e.getError(), this->_server);
 	}
 	return response;
 }
@@ -186,7 +185,7 @@ void	ClientSocket::check_cgi()
 }
 
 Response ClientSocket::makeResponse()
-{
+{	
 	if (this->_request.getType() == ERROR)
 		return Response(this->_request.getStatusCode());
 	const std::string	uri = this->_request.getUri();
