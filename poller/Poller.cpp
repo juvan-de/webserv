@@ -115,21 +115,20 @@ void			Poller::handleCli(std::vector< std::pair<int, short> > clients, std::map<
 		if (it->second & POLLHUP)
 			deleteSocket(it->first);
 		else if (it->second & POLLIN)
-			socket->handle_pollin(table);
-		else if (it->second & POLLOUT)
 		{
-			if (socket->getRequest().getType() == NOTSET)
-			{
-				deleteSocket(it->first);
-				return ;
-			}
-			if (socket->getRequest().readyForParse())
-				socket->handle_pollout();
+			socket->handle_pollin(table);
 			if (socket->getCgi() && socket->getCgi()->getStatus() == CREATED)
 			{
 				addSocket(socket->getCgi());
 				socket->getCgi()->setSatus(ADDED);
 			}
+		}
+		else if (it->second & POLLOUT)
+		{
+			if (socket->getRequest().getType() == NOTSET)
+				deleteSocket(it->first);
+			else if (socket->getRequest().readyForParse())
+				socket->handle_pollout();
 		}
 	}
 }

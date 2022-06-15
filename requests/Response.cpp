@@ -15,13 +15,13 @@ Response::Response(const Server *server, const std::string& path, const std::str
 
 	try
 	{
-		int ret = isValidPath(root, path);
+		int ret = isValidPath(root, path); // hier nadenken wat is de root die je al hebt en wat is het gedeelte wat hier dus mee evrgeleken wordr
 		// std::cout << "compare: " << ret << std::endl;
 		if (ret != 0)
 			throw ResponseException(ret);
 		if (path[path.size() - 1] == '/')
 		{
-			this->setResponseBodyFromDir(path);
+			this->setResponseBodyFromDir(path, path.substr(root.size()));
 			contentType = "text/html";
 		}
 		else
@@ -115,7 +115,7 @@ const std::string					&Response::getResponseBody() const
 	return (this->_responseBody);
 }
 
-void		Response::setResponseBodyFromDir(const std::string &dirname)//errorcodes zijn gechecked
+void		Response::setResponseBodyFromDir(const std::string &dirname, const std::string displayname)//errorcodes zijn gechecked
 {
 	DIR*			dir;
 	struct dirent*	cur_file;
@@ -123,8 +123,8 @@ void		Response::setResponseBodyFromDir(const std::string &dirname)//errorcodes z
 	dir = opendir(dirname.c_str());
 	if (dir != NULL)
 	{
-		this->_responseBody = "<html><head><title>Index of " + dirname + "</title></head>";
-		this->_responseBody += "<body><h1>Index of " + dirname + "</h1><hr><pre>";
+		this->_responseBody = "<html><head><title>Index of " + displayname + "</title></head>";
+		this->_responseBody += "<body><h1>Index of " + displayname + "</h1><hr><pre>";
 		while ((cur_file = readdir(dir)))
 		{
 			if (strcmp(cur_file->d_name, ".") == 0)
