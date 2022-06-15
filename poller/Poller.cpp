@@ -137,7 +137,6 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 {
 	for (std::vector< std::pair<int, short> >::const_iterator it = cgi.begin(); it != cgi.end(); it++)
 	{
-		std::cout << "handling cgi: " << it->first << ", poll: " << it->second << std::endl;
 		CgiSocket *socket = _cgi_socks.find(it->first)->second;
 
 		if (it->second & POLLHUP || socket->getStatus() == SENT)
@@ -204,7 +203,7 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 				break;
 			}
 		}
-		std::cout << "active fds, server: " << servers.size() << ", cli: " << clients.size() << ", cgi: " << cgi.size() << std::endl;
+		// std::cout << "active fds, server: " << servers.size() << ", cli: " << clients.size() << ", cgi: " << cgi.size() << std::endl;
 		handleCgi(cgi);
 		handleCli(clients, table);
 		handleServ(servers);
