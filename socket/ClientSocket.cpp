@@ -26,7 +26,7 @@ ClientSocket::ClientSocket(int fd, sockaddr_in addr, int serverPort) :
 	_address = addr;
 }
 
-void	ClientSocket::handle_pollin()
+void	ClientSocket::handle_pollin(std::map<std::pair<int, std::string>, Server*>& table)
 {
 	try
 	{
@@ -35,6 +35,7 @@ void	ClientSocket::handle_pollin()
 		{
 			this->_request.setRequest();
 			this->_request.setHeaders();
+			this->_server = find_server(table, _request);
 		}
 		if (this->_request.checkIfChunked())
 		{
@@ -218,7 +219,7 @@ static std::string	isCgiRequest(Server *server, Request request)
 // }
 
 
-void	ClientSocket::handle_pollout(std::map<std::pair<int, std::string>, Server*>	table)
+void	ClientSocket::handle_pollout()
 {
 	if (this->_request.readyForParse())
 	{

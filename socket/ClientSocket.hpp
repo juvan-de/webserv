@@ -28,8 +28,8 @@ class ClientSocket : public Socket
 		const Request		getRequest() const { return _request; }
 		CgiSocket			*getCgi() { return _cgi; }
 		struct sockaddr_in	&getAddr() { return _address; }
-		void				handle_pollin();
-		void				handle_pollout(std::map<std::pair<int, std::string>, Server*> table);
+		void				handle_pollin(std::map<std::pair<int, std::string>, Server*>& table);
+		void				handle_pollout();
 		Server				*find_server(std::map<std::pair<int, std::string>, Server*>& table, Request& request);
 		Response			handle_get(Server* server, std::map<std::string, Location>::const_iterator location);
 		Response			handle_post(Server* server, std::map<std::string, Location>::const_iterator location);
