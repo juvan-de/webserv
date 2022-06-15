@@ -47,6 +47,7 @@ CgiSocket::CgiSocket(std::string filename, Request request, Server server, socka
 		throw CgiException(500);
 	if (request.getBody().size() > 0)
 	{
+		std::cout << "heeft request een body?" << std::endl;
 		_hasBody = true;
 		_input = request.getBody();
 	}
@@ -124,10 +125,10 @@ void	CgiSocket::mainProcess()
 	
 	_fdOut = _pipeOut[0];
 	_fdIn = _pipeIn[1];
-	if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
-		throw CgiException(500);
-	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
-		throw CgiException(500);
+	// if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
+	// 	throw CgiException(500);
+	// if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
+	// 	throw CgiException(500);
 }
 
 void	CgiSocket::executeCgi()
@@ -168,6 +169,16 @@ void	CgiSocket::prepareCgi()
 	_fdOut = _pipeOut[0];
 	_fdIn = _pipeIn[1];
 
+	int flags;
+	if ((flags = fcntl(_fdOut, F_GETFL)) < 0)
+		throw CgiException(500);
+	if (fcntl(_fdOut, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
+	if ((flags = fcntl(_fdIn, F_GETFL)) < 0)
+		throw CgiException(500);
+	if (fcntl(_fdIn, F_SETFL, O_NONBLOCK) < 0)
+		throw CgiException(500);
+
 	if (!_hasBody)
 		executeCgi();
 }
@@ -182,10 +193,12 @@ void	CgiSocket::read_from_cgi()
 	{
 		cstr[ret] = '\0';
 		_output.append(cstr);
-		// std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
+		std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
 	}
-	else if (ret < BUFFER_SIZE && ret >= 0)
+	else if (ret < BUFFER_SIZE && ret >= 0) {
+		std::cout << "finnishsed" << std::endl;
 		_status = FINISHED;
+	}
 	else if (ret <= -1)
 		throw CgiException(500);
 }

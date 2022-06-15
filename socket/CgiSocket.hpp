@@ -14,15 +14,9 @@ typedef enum e_status
 {
 	CREATED = 0,
 	ADDED = 1,
-	FINISHED = 2
+	SENT = 2,
+	FINISHED = 3
 } t_status;
-
-typedef enum e_body
-{
-	NONE = 0,
-	HASBODY = 1,
-	SENTBODY = 2,
-} t_body;
 
 class CgiSocket
 {

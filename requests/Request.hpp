@@ -14,6 +14,7 @@ enum Type
 	POST,
 	DELETE,
 	ERROR,
+	CGI,
 	NOTSET
 };
 
