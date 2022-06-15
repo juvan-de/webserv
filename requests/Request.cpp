@@ -84,17 +84,10 @@ void			Request::addto_request(int fd)
 	if (ret <= -1)
 		throw RequestException(505);
 	if (ret > 0 && ret < BUFFER_SIZE)
-	{
-		this->_input.append(cstr, ret);
-		this->_bytesRead = ret;
 		if (this->_type != NOTSET)
 			this->_isFinished = true;
-	}
-	else
-	{
-		this->_input.append(cstr, ret);
-		this->_bytesRead = ret;
-	}
+	this->_input.append(cstr, ret);
+	this->_bytesRead = ret;
 }
 
 bool			Request::isFinished(void)
