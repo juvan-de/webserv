@@ -81,6 +81,8 @@ void			Request::addto_request(int fd)
 
 	// this can return an error if operation would block, see man page
 	ret = recv(fd, cstr, BUFFER_SIZE, 0); //check for ret = 0
+	if (ret <= -1)
+		throw RequestException(505);
 	if (ret > 0 && ret < BUFFER_SIZE)
 	{
 		this->_input.append(cstr, ret);
@@ -88,18 +90,17 @@ void			Request::addto_request(int fd)
 		if (this->_type != NOTSET)
 			this->_isFinished = true;
 	}
-	else if (ret > 0)
+	else
 	{
 		this->_input.append(cstr, ret);
 		this->_bytesRead = ret;
 	}
-	else if (ret <= -1)
-		throw RequestException(505);
 }
 
 bool			Request::isFinished(void)
 {
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Content-Length");
+
 	if (it == this->_headers.end() || !it->second.compare("0")) //needs work
 		return (true);
 	else if(this->_body.size() >= 4 && this->_body.compare(this->_body.size() - 4, 4, "\r\n\r\n"))
@@ -116,6 +117,7 @@ void			Request::setRequest(void)
 {
 	std::string first_line (this->_input.substr(0, this->_input.find('\n')));
 	std::vector<std::string> array = split_on_chars(first_line);
+
 	if (array.size() != 3)
 		throw RequestException(400);
 	if (array[0] == "GET")
@@ -140,6 +142,7 @@ void		Request::setHeaders(void)
 	size_t end = this->_input.find("\r\n\r\n") + 4;
 	std::string headers = this->_input.substr(0, end);
 	std::vector<std::string> lines = split_on_str(headers, "\r\n");
+
 	lines.erase(lines.begin());
 	for (size_t i = 0; i < lines.size(); i++)
 	{
@@ -150,6 +153,7 @@ void		Request::setHeaders(void)
 		}
 	}
 	this->_input = this->_input.substr(end);
+	
 	std::map<std::string, std::string>::iterator it = this->_headers.find("Transfer-Encoding");
 	if (it != this->_headers.end() && it->second == "chunked")
 	{
