@@ -28,12 +28,10 @@ void	Location::_checkVarSet()
 	}
 	if (this->_root.empty())
 		throw MissingRootInLocation(this->_title);
-	if (this->_uploadStore.empty())
-		this->_uploadStore = this->_root;
 	//all standard set var setten en checken of er meer gezet moet worden
 }
 
-Location::Location(std::deque<std::string>& file, std::string& title, const std::string& curWorkdir) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _staticDir(false), _redir(Redir())
+Location::Location(std::deque<std::string>& file, std::string& title, const std::string& curWorkdir) : _title(title), _root(), _clientMaxBodySize(16000), _autoindex(false), _redir(Redir())
 {
 	std::vector<std::string>	splitted;
 
@@ -56,14 +54,10 @@ Location::Location(std::deque<std::string>& file, std::string& title, const std:
 			this->setIndex(splitted);
 		else if (splitted[0] == "autoindex")
 			this->setAutoindex(splitted);
-		else if (splitted[0] == "static_dir")
-			this->setStaticDir(splitted);
 		else if (splitted[0] == "cgi")
 			this->addCgi(splitted);
 		else if (splitted[0] == "limit_except")
 			this->setLimitExcept(splitted);
-		else if (splitted[0] == "upload_store")
-			this->setUploadStore(splitted);
 		else if (splitted[0] == "redir")
 			this->setRedir(splitted);
 		else
@@ -79,10 +73,8 @@ Location&	Location::operator=(const Location& ref)
 	this->_clientMaxBodySize = ref._clientMaxBodySize;
 	this->_index = ref._index;
 	this->_autoindex = ref._autoindex;
-	this->_staticDir = ref._staticDir;
 	this->_cgi = ref._cgi;
 	this->_limitExcept = ref._limitExcept;
-	this->_uploadStore = ref._uploadStore;
 	this->_redir = ref._redir;
 	return *this;
 }
@@ -92,7 +84,7 @@ Location::Location(const Location& ref)
 	*this = ref;
 }
 
-Location::Location(std::string) : _clientMaxBodySize(0), _autoindex(false), _staticDir(false)
+Location::Location(std::string) : _clientMaxBodySize(0), _autoindex(false)
 {
 	return ;
 }
@@ -175,18 +167,6 @@ void	Location::setAutoindex(std::vector<std::string>& line)
 		throw ElemDefNotRecognized("Auto index", "[\"on\"/\"off\"]", line);
 }
 
-void	Location::setStaticDir(std::vector<std::string>& line)
-{
-	if (line.size() != 2)
-		throw ArgumentIncorrect(line);
-	if (line[1] == "true")
-		this->_staticDir = true;
-	else if (line[1] == "false")
-		this->_staticDir = false;
-	else
-		throw ElemDefNotRecognized("Static dir", "[\"true\"/\"false\"]", line);
-}
-
 void	Location::addCgi(std::vector<std::string>& line)
 {
 	if (line.size() != 3)
@@ -214,13 +194,6 @@ void	Location::setLimitExcept(std::vector<std::string>& line)
 		if (!this->isIn(*itr, correctMethods, sizeof(correctMethods)))
 			throw leInvalidMethod(line, *itr);
 	this->_limitExcept = std::set<std::string>(line.begin() + 1, line.end());
-}
-
-void	Location::setUploadStore(std::vector<std::string>& line)
-{
-	if (line.size() != 2)
-		throw ArgumentIncorrect(line);
-	this->_uploadStore = line[1];
 }
 
 void	Location::setRedir(std::vector<std::string>& line)
@@ -257,11 +230,6 @@ bool	Location::getAutoindex() const
 	return this->_autoindex;
 }
 
-bool	Location::getStaticDir() const
-{
-	return this->_staticDir;
-}
-
 const std::map<std::string, std::string>&	Location::getCgi() const
 {
 	return this->_cgi;
@@ -270,11 +238,6 @@ const std::map<std::string, std::string>&	Location::getCgi() const
 const std::set<std::string>&	Location::getLimitExcept() const
 {
 	return this->_limitExcept;
-}
-
-const std::string&	Location::getUploadStore() const
-{
-	return this->_uploadStore;
 }
 
 const Redir&	Location::getRedir() const
@@ -307,7 +270,6 @@ std::ostream&	operator<< (std::ostream& out, const Location& obj)
 		out << " {" << *it << "}";
 	out << std::endl;
 	out << "\tautoindex = {" << obj.getAutoindex() << "}" << std::endl;
-	out << "\tstatic_dir = {" << obj.getStaticDir() << "}" << std::endl;
 	out << "\tcgi =";
 	std::map<std::string, std::string> tempCgi = obj.getCgi();
 	for (std::map<std::string, std::string>::iterator it = tempCgi.begin(); it != tempCgi.end(); it++)
@@ -318,7 +280,6 @@ std::ostream&	operator<< (std::ostream& out, const Location& obj)
 	for (std::set<std::string>::iterator it = tempLimitExcept.begin(); it != tempLimitExcept.end(); it++)
 		out << " {" << *it << "}";
 	out << std::endl;
-	out << "\tupload_store = {" << obj.getUploadStore() << "}" << std::endl;
 	out << "\t" << obj.getRedir();
 	return out;
 }
