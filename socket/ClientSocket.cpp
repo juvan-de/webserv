@@ -45,10 +45,8 @@ void	ClientSocket::handle_pollin(std::map<std::pair<int, std::string>, Server*>&
 		{
 			this->_request.append_body();
 		}
-		if (this->_request.isFinished()) {
-			std::cout << "uri before check_cgi: " << _request.getUri() << std::endl;
+		if (this->_request.isFinished())
 			this->check_cgi();
-		}
 		/* code */
 	}
 	catch(Request::RequestException& e)
@@ -144,9 +142,18 @@ Response	ClientSocket::handle_cgi()
 
 	if (_cgi->getStatus() == FINISHED)
 	{
-		this->_cgi->checkError();
-		response = Response(this->_cgi->getInput(), true);
-		_cgi->setSatus(SENT);
+		std::cout << "body: " << _cgi->getOutput() << std::endl;
+		// try
+		// {
+		// 	this->_cgi->checkError();/* code */
+		// }
+		// catch(const std::exception& e)
+		// {
+		// 	std::cerr << e.what() << '\n';
+		// }
+		this->_cgi->checkError();/* code */
+		response = Response(this->_cgi->getOutput(), true);
+		_cgi->setSatus(FINISHED);
 		_cgi = NULL;
 	}
 	return response;
@@ -155,7 +162,6 @@ Response	ClientSocket::handle_cgi()
 void	ClientSocket::check_cgi()
 {
 	std::string	request_location = this->_request.getUri();
-	std::cout << "uri in check_cgi: " << _request.getUri() << std::endl;
 	std::map<std::string, Location>::const_iterator location = this->_server->getRightLocation(request_location);
 
 	if (location != this->_server->getLocations().end())
@@ -172,11 +178,8 @@ void	ClientSocket::check_cgi()
 			}
 			else
 			{
-				std::cout << "check: " << it->first + "?" << ", " << request_location << std::endl;
-				if ((pos = request_location.find(it->first + "?")) != std::string::npos) {
+				if ((pos = request_location.find(it->first + "?")) != std::string::npos)
 					_cgi = new CgiSocket(request_location.substr(0, pos) + it->first, this->_request, *this->_server, this->_address);
-					std::cout << "found cgi" << std::endl;
-				}
 			}
 		}
 	}
@@ -196,7 +199,7 @@ Response ClientSocket::makeResponse()
 		return handle_post(itr, uri);
 	else if (this->_request.getType() == DELETE)
 		return handle_delete(itr);
-	return NULL;
+	return Response(500);
 }
 
 

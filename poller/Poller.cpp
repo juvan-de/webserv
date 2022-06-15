@@ -139,7 +139,7 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 	{
 		CgiSocket *socket = _cgi_socks.find(it->first)->second;
 
-		if (it->second & POLLHUP || socket->getStatus() == SENT)
+		if (it->second & POLLHUP || socket->getStatus() == FINISHED)
 			deleteSocket(it->first);
 		else if (it->second & POLLIN)
 			socket->read_from_cgi();
@@ -152,7 +152,7 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 				usleep(500000);
 			}
 			else
-				_cgi_socks.find(it->first)->second->setSatus(FINISHED);
+				_cgi_socks.find(it->first)->second->setSatus(SENT);
 		}
 	}
 }

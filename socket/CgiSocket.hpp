@@ -50,7 +50,7 @@ class CgiSocket
 		
 		int					getFdIn() const { return _fdIn; }
 		int					getFdOut() const { return _fdOut; }
-		const std::string	getInput() const { return _output; }
+		const std::string	getOutput() const { return _output; }
 		t_status			getStatus() const { return _status; }
 		bool				getBodyStatus() const { return _hasBody; }
 		void				setSatus(t_status status) { _status = status; }

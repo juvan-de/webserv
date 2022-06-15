@@ -185,8 +185,10 @@ void	CgiSocket::read_from_cgi()
 	ret = read(getFdOut(), cstr, BUFFER_SIZE);
 	if (ret < 0)
 		throw CgiException(500);
-	else if (ret < BUFFER_SIZE && ret >= 0)
+	if (ret < BUFFER_SIZE && ret >= 0) {
 		_status = FINISHED;
+		// exit(1);
+	}
 	cstr[ret] = '\0';
 	_output.append(cstr);
 	std::cout << "*********input*********\n" << this->_output << "\n*********input*********" << "\nret: " << ret << std::endl;
@@ -227,4 +229,6 @@ void	CgiSocket::checkError()
 			throw CgiException(500);
 		}
 	}
+	if (_output.size() == 0)
+		throw CgiException(500);
 }
