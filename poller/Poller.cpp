@@ -101,6 +101,7 @@ void			Poller::deleteSocket(int fd)
 
 void			Poller::handleServ(std::vector< std::pair<int, short> > servers)
 {
+	usleep(500);
 	for (std::vector< std::pair<int, short> >::const_iterator it = servers.begin(); it != servers.end(); it++)
 		if (it->second & POLLIN)
 			addSocket(_serv_socks.find(it->first)->second->get_new_cli());
@@ -147,9 +148,9 @@ void			Poller::handleCgi(std::vector< std::pair<int, short> > cgi)
 		{
 			if (socket->getBodyStatus() == true)
 			{
+				usleep(500);
 				socket->write_to_cgi();
 				changePoll(socket->getFdIn(), socket->getFdOut());
-				usleep(500000);
 			}
 			else
 				_cgi_socks.find(it->first)->second->setSatus(SENT);
@@ -205,8 +206,5 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 		handleCli(clients, table);
 		handleServ(servers);
 	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	catch(const std::exception& e) {}
 }

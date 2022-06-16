@@ -34,6 +34,7 @@ int main(int ac, char **av)
 	std::vector<Server>								server_configs;
 	std::set<int>									ports;
 	Poller											*poller;
+
 	try
 	{
 		parse(av[1], server_configs);
@@ -43,13 +44,10 @@ int main(int ac, char **av)
 	catch(const std::exception& e)
 	{
 		std::cerr << e.what() << '\n';
-		return (1);	 // "als poll niet goed construct dan closen voordat aborts of segv gebeuren"
+		return (1);
 	}
 	while (true)
-	{
 		poller->executePoll(table);
-		usleep(500);
-	}
 	if (poller)
 		delete(poller);
 	return (0);	
