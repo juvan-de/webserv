@@ -33,7 +33,7 @@ class CgiSocket
 		std::string					_input;
 		std::string					_output;
 
-		std::string			getFilepath(std::string filename, Server server);
+		std::string			getFilepath(std::string filename, Location location);
 		void				mainProcess();
 		void				childProccess();
 	public:
@@ -41,7 +41,7 @@ class CgiSocket
 		~CgiSocket();
 
 		/*--------------------------Member functions--------------------------*/
-		CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct);
+		CgiSocket(std::string filename, Request request, Location location, sockaddr_in client_struct);
 		void				prepareCgi();
 		void				executeCgi();
 		void				read_from_cgi();

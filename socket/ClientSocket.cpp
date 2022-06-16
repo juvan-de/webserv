@@ -173,12 +173,12 @@ void	ClientSocket::check_cgi()
 			if (this->_request.getType() == POST)
 			{
 				if ((pos = request_location.find(it->first)) != std::string::npos)
-					_cgi = new CgiSocket(request_location.substr(0, pos) + it->first, this->_request, *this->_server, this->_address);
+					_cgi = new CgiSocket(request_location.substr(0, pos) + it->first, this->_request, location->second, this->_address);
 			}
 			else
 			{
 				if ((pos = request_location.find(it->first + "?")) != std::string::npos)
-					_cgi = new CgiSocket(request_location.substr(0, pos) + it->first, this->_request, *this->_server, this->_address);
+					_cgi = new CgiSocket(request_location.substr(0, pos) + it->first, this->_request, location->second, this->_address);
 			}
 		}
 	}

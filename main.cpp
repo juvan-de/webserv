@@ -43,10 +43,7 @@ int main(int ac, char **av)
 			return (0);	 // "als poll niet goed construct dan closen voordat aborts of segv gebeuren"
 		}
 		while (true)
-		{
 			poller->executePoll(table);
-			usleep(500);
-		}
 		if (poller)
 			delete(poller);
 	}

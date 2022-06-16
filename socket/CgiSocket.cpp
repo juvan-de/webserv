@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <utils.hpp>
+#include <sys/stat.h> // stat struct
 #include <errno.h>
 #define BUFFER_SIZE 100
 /*--------------------------------Coplien form--------------------------------*/
@@ -33,7 +34,7 @@ static std::string	getType(Type type)
 	return "";
 }
 
-CgiSocket::CgiSocket(std::string filename, Request request, Server server, sockaddr_in client_struct)
+CgiSocket::CgiSocket(std::string filename, Request request, Location location, sockaddr_in client_struct)
 	 : _status(CREATED), _hasBody(false), _input(std::string()), _output(std::string())
 {
 	// std::cout << "DEBUG: CGI SOCK OPENED" << std::endl;
@@ -50,7 +51,7 @@ CgiSocket::CgiSocket(std::string filename, Request request, Server server, socka
 		_hasBody = true;
 		_input = request.getBody();
 	}
-	_filepath = getFilepath(filename, server);
+	_filepath = getFilepath(filename, location);
 	ss << request.getBody().size();
 	ss >> body_len;
 
@@ -80,21 +81,30 @@ static std::vector<const char*> vec_to_arr(const std::vector<std::string>& tmp)
 	return envp;
 }
 
-std::string	CgiSocket::getFilepath(std::string filename, Server server)
+static bool	doesDirExist(const std::string& dirname)
 {
-	std::map<std::string, Location>::const_iterator 	location;
+	struct stat	stats;
+	int			ret;
+
+	ret = stat(dirname.c_str(), &stats);
+	if (ret == 0 && S_ISDIR(stats.st_mode))
+		return true;
+	return false;
+}
+
+std::string	CgiSocket::getFilepath(std::string filename, Location location)
+{
 	std::map<std::string, std::string>::const_iterator	path;
 	std::string											root;
 	std::string											filepath;
 	int 												ret;
-	
-	location = server.getRightLocation("/");
-	if (location == server.getLocations().end())
-		throw CgiException(404);
-	path = location->second.getCgi().find(filename.substr(filename.find("."), filename.size()));
-	if (path == location->second.getCgi().end())
+
+	path = location.getCgi().find(filename.substr(filename.find("."), filename.size()));
+	if (path == location.getCgi().end())
 		throw CgiException(400);
-	root = location->second.getRoot();
+	if (!doesDirExist(root + "/" + path->second))
+		throw CgiException(404);
+	root = location.getRoot();
 	filepath = root + "/" + path->second + filename;
 
 	if ((ret = isValidPath(root, filepath)) != 0)
