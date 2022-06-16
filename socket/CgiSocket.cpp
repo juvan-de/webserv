@@ -5,6 +5,7 @@
 #include <utils.hpp>
 #include <sys/stat.h> // stat struct
 #include <errno.h>
+#include <Request.hpp>
 #define BUFFER_SIZE 100
 /*--------------------------------Coplien form--------------------------------*/
 
@@ -45,7 +46,7 @@ CgiSocket::CgiSocket(std::string filename, Request request, Location location, s
 	char						buf[INET_ADDRSTRLEN];
 
 	if (inet_ntop(AF_INET, &client_struct.sin_family, buf, sizeof(buf)) == NULL)
-		throw CgiException(500);
+		throw Request::RequestException(500);
 	if (request.getBody().size() > 0)
 	{
 		_hasBody = true;
@@ -101,13 +102,13 @@ std::string	CgiSocket::getFilepath(std::string filename, Location location)
 
 	path = location.getCgi().find(filename.substr(filename.find("."), filename.size()));
 	if (path == location.getCgi().end())
-		throw CgiException(400);
+		throw Request::RequestException(400);
 	root = location.getRoot();
 	if (!doesDirExist(root + "/" + path->second))
-		throw CgiException(404);
+		throw Request::RequestException(404);
 	filepath = root + "/" + path->second + filename;
 	if ((ret = isValidPath(root, filepath)) != 0)
-		throw CgiException(ret);
+		throw Request::RequestException(ret);
 	return filepath;
 }
 

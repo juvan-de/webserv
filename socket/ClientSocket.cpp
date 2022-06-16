@@ -152,7 +152,7 @@ Response	ClientSocket::handle_cgi()
 	}
 	catch (CgiSocket::CgiException& e)
 	{
-		response = Response(e.getError(), this->_server);
+		return Response(e.getError(), this->_server);
 	}
 	return response;
 }
