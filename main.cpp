@@ -24,30 +24,31 @@ std::set<int> getPortsAndSetTable(std::vector<Server>& servers, std::map<std::pa
 
 int main(int ac, char **av)
 {
-	if (ac == 2)
+	if (ac != 2)
 	{
-		std::map<std::pair<int, std::string>, Server*>	table;
-		std::vector<Server>								server_configs;
-		std::set<int>									ports;
-		Poller											*poller;
-
-		try
-		{
-			parse(av[1], server_configs);
-			ports = getPortsAndSetTable(server_configs, table);
-			poller = new Poller(ports);
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << e.what() << '\n';
-			return (0);	 // "als poll niet goed construct dan closen voordat aborts of segv gebeuren"
-		}
-		while (true)
-			poller->executePoll(table);
-		if (poller)
-			delete(poller);
-	}
-	else
 		std::cout << "incorrect arguments" << std::endl;
+		return (1);
+	}
+
+	std::map<std::pair<int, std::string>, Server*>	table;
+	std::vector<Server>								server_configs;
+	std::set<int>									ports;
+	Poller											*poller;
+
+	try
+	{
+		parse(av[1], server_configs);
+		ports = getPortsAndSetTable(server_configs, table);
+		poller = new Poller(ports);
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		return (1);
+	}
+	while (true)
+		poller->executePoll(table);
+	if (poller)
+		delete(poller);
 	return (0);	
 }

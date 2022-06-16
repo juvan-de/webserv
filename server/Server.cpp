@@ -99,7 +99,7 @@ void	Server::setListen(std::vector<std::string>& line)
 		throw ArgumentIncorrect(line);
 	for (size_t i = 1; i < line.size(); i++)
 	{
-		if (line[i].find_first_not_of("0123456789") != std::string::npos) // error ipv negeren
+		if (line[i].find_first_not_of("0123456789") != std::string::npos)
 			throw ElemNotANumber(line[i], line);
 		std::istringstream (line[i]) >> number;
 		if (this->_listen.find(number) != this->_listen.end())
@@ -177,7 +177,6 @@ std::map<std::string, Location>::const_iterator	Server::getRightLocation(const s
 	}
 	return best_fitting;
 }
-
 
 std::ostream&	operator<< (std::ostream& out, const Server& obj)
 {

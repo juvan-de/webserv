@@ -182,8 +182,6 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 	std::vector< std::pair<int, short> > clients;
 	std::vector< std::pair<int, short> > cgi;
 
-	// std::cout << "pollfd size: " << _pollfds.size() << std::endl;
-	// std::cout << "cli size: " << _client_socks.size() << std::endl;
 	poll(_pollfds.data(), _pollfds.size(), -1);
 	try
 	{
@@ -204,7 +202,6 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 				break;
 			}
 		}
-		// std::cout << "active fds, server: " << servers.size() << ", cli: " << clients.size() << ", cgi: " << cgi.size() << std::endl;
 		handleCgi(cgi);
 		handleCli(clients, table);
 		handleServ(servers);

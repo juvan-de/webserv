@@ -53,7 +53,6 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 	char					buf[PATH_MAX];
 	std::string				curWorkDir;
 
-	(void)servers;
 	try
 	{
 		if (getwd(buf) == NULL)
@@ -74,7 +73,6 @@ void	parse(const std::string filename, std::vector<Server>& servers)
 		while (!filedeque.empty())
 		{
 			splitted = split_on_chars(filedeque[0]);
-			// std::cout << filedeque[0] << std::endl;
 			filedeque.pop_front();
 			if (splitted.size() == 0)
 				continue ;
