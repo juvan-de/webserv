@@ -206,8 +206,5 @@ void			Poller::executePoll(std::map<std::pair<int, std::string>, Server*> table)
 		handleCli(clients, table);
 		handleServ(servers);
 	}
-	catch(const std::exception& e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	catch(const std::exception& e) {}
 }

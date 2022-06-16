@@ -102,11 +102,10 @@ std::string	CgiSocket::getFilepath(std::string filename, Location location)
 	path = location.getCgi().find(filename.substr(filename.find("."), filename.size()));
 	if (path == location.getCgi().end())
 		throw CgiException(400);
+	root = location.getRoot();
 	if (!doesDirExist(root + "/" + path->second))
 		throw CgiException(404);
-	root = location.getRoot();
 	filepath = root + "/" + path->second + filename;
-
 	if ((ret = isValidPath(root, filepath)) != 0)
 		throw CgiException(ret);
 	return filepath;

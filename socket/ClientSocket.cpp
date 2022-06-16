@@ -144,7 +144,6 @@ Response	ClientSocket::handle_cgi()
 	{
 		if (_cgi->getStatus() == FINISHED)
 		{
-			// std::cout << "body: " << _cgi->getOutput() << std::endl;
 			this->_cgi->checkError();/* code */
 			response = Response(this->_cgi->getOutput(), true);
 			_cgi->setSatus(FINISHED);
